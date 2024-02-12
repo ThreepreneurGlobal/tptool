@@ -28,8 +28,15 @@ const User = sequelize.define("user", {
     allowNull: true,
   },
   skills: {
-    type: Sequelize.STRING,
+    type: Sequelize.STRING, // or Sequelize.TEXT
     allowNull: true,
+    get() {
+      const value = this.getDataValue('skills');
+      return value ? JSON.parse(value) : null;
+    },
+    set(value) {
+      this.setDataValue('skills', value ? JSON.stringify(value) : null);
+    },
   },
   role: {
     type: Sequelize.STRING,
@@ -58,6 +65,24 @@ const User = sequelize.define("user", {
   status: {
     type: Sequelize.BOOLEAN,
     allowNull: false,
+  }, 
+}, 
+{
+  hooks: {
+    beforeCreate: (user) => {
+      if (!user.year) {
+        user.year = 1;
+      }
+    },
+    beforeUpdate: (user) => {
+      if (user.changed("year")) {
+        const today = new Date();
+        const currentMonth = today.getMonth(); 
+        if (currentMonth >= 6) {
+          user.year += 1;
+        }
+      }
+    },
   },
 });
 

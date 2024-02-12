@@ -17,6 +17,7 @@ const signupUser = async (req, res) => {
     phoneNumber,
     password,
   } = req.body;
+  
   console.log(
     name,
     email,
@@ -66,10 +67,10 @@ const signupUser = async (req, res) => {
   }
 };
 
-const generateAccessToken = (userId, collage, collageId, role) => {
+const generateAccessToken = (userId, collegeAdmin, collegeId, role) => {
   return jwt.sign(
-    { userId, collage, collageId, role },
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
+    { userId, collegeAdmin, collegeId, role },
+    process.env.TOKEN_SECRET
   );
 };
 
@@ -81,6 +82,7 @@ const loginUser = async (req, res) => {
     // Find user by email
     const user = await User.findOne({ where: { email: email } });
 
+    console.log(user, 'oooooooo');
     if (!user) {
       return res
         .status(404)
@@ -97,10 +99,12 @@ const loginUser = async (req, res) => {
         const role = user.role;
         const token = generateAccessToken(
           user.id,
-          user.collageName,
-          user.collageId,
+          user.name,
+          user.collegeId,
           role
         );
+
+        console.log(token, 'hooooo');
 
         res.status(200).json({
           success: true,

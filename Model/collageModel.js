@@ -19,22 +19,20 @@ const Organization = sequelize.define("organization", {
   },
   telephone: {
     type: Sequelize.STRING,
-    allowNull: false,
+    allowNull: true,
   },
   city: {
     type: Sequelize.STRING,
     unique: false,
-    allowNull: false,
+    allowNull: true,
   },
   state: {
     type: Sequelize.STRING,
-    allowNull: false,
-    unique: false,
-  },
-  regNo: {
+    allowNull: true,
+  }, 
+  regNo: { 
     type: Sequelize.STRING,
     allowNull: true,
-    unique: false,
   },
   pincode: {
     type: Sequelize.STRING,
@@ -46,11 +44,41 @@ const Organization = sequelize.define("organization", {
     allowNull: true,
   },
   department: {
+    type: Sequelize.STRING, // or Sequelize.TEXT
+    allowNull: true,
+    get() {
+      const value = this.getDataValue('department');
+      return value ? JSON.parse(value) : null;
+    },
+    set(value) {
+      this.setDataValue('department', value ? JSON.stringify(value) : null);
+    },
+  },
+  eligibility: {
+    type: Sequelize.INTEGER,
+    allowNull: true,
+  },
+  position: {
     type: Sequelize.STRING,
     allowNull: true,
   },
   type: {
-    type: Sequelize.STRING,
+    type: Sequelize.STRING, // or Sequelize.TEXT
+    allowNull: true,
+    get() {
+      const value = this.getDataValue('type');
+      return value ? JSON.parse(value) : null;
+    },
+    set(value) {
+      this.setDataValue('type', value ? JSON.stringify(value) : null);
+    },
+  },
+  category: {
+    type:Sequelize.STRING,
+    allowNull: false
+  },
+  uploader: {
+    type: Sequelize.BIGINT(10),
     allowNull: true,
   },
   location: {

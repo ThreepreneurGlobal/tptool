@@ -3,8 +3,10 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const sequelize = require('./Util/database');
 const cors = require('cors')
-
 const app = express();
+const dotenv = require('dotenv');
+
+dotenv.config();
 
 app.use(cors())
 
@@ -30,19 +32,19 @@ app.use(forgetPassword)
 // app.use(studentUserRoute);
 
   
-sequelize
-// .sync({ force: true })  
+sequelize 
+    // .sync({ force: true })  
     .sync()
     .then(result => {  
         console.log('Database synced successfully');
-        app.listen(7000);
+        app.listen(process.env.PORT);
     }) 
     .catch(err => {
         console.error('Error syncing database:', err);
-    }); 
+    });   
 
 
-
+ 
  
 
     

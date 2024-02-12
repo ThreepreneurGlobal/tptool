@@ -12,6 +12,6 @@ router.post('/api/v1/collage/saveCollageDetails', authenticateRole([ "superUser"
 
 router.get('/api/v1/collage/colleges', authenticateRole([ "superUser" ]), collegeController.getColleges);
 
-router.post('/api/v1/user/loginSuper', loginSuperUserController.loginSuperUser);
+router.post('/api/v1/user/loginSuper', loginSuperUserController.loginSuperUser); 
 
 module.exports = router;   

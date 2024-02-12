@@ -1,9 +1,10 @@
-const Student = require("../Model/studentDataModel");
+const Collage = require("../Model/collageModel");
 const User = require("../Model/userModel");
 const ExcelJS = require("exceljs");
 const multer = require("multer");
 const Recruiter = require("../Model/recruiterModel");
 const { Op } = require("sequelize");
+const { Company } = require("sib-api-v3-sdk");
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage }).single("file");
@@ -50,16 +51,17 @@ const uploadExcel = async (req, res) => {
         }
 
         const data = [];
-        const headers = [];
 
+        
         firstSheet.eachRow((row, rowNumber) => {
           if (rowNumber > 1) {
+            const skillsArray = row.getCell("D").value.split(",").map(skill => skill.trim());
             const rowData = {
               name: row.getCell("A").value,
               email: row.getCell("B").value,
               collegeId: collegeId,
               image: row.getCell("C").value,
-              skills: row.getCell("D").value,
+              skills: skillsArray,
               percentage: row.getCell("E").value,
               mobile: row.getCell("F").value,
               role: row.getCell("G").value,
@@ -94,6 +96,7 @@ const uploadExcel = async (req, res) => {
   }
 };
 
+
 const UploadIndivisualStudent = async (req, res) => {
   try {
     const {
@@ -123,13 +126,13 @@ const UploadIndivisualStudent = async (req, res) => {
 
     const skillsArray = skills.split(",").map((skill) => skill.trim());
 
-    const skillsString = JSON.stringify(skillsArray);
+    console.log(skillsArray, 'jkbekfgkhkdsyd')
 
     const uploadToDb = await User.create({
       name,
       email,
       percentage,
-      skills: skillsString,
+      skills: skillsArray,
       image,
       role,
       enrollmentId,
@@ -152,11 +155,57 @@ const UploadIndivisualStudent = async (req, res) => {
   }
 };
 
+
+
+const updateCollegeDetails = async (req, res) => {
+  try {
+    const { collegeId, address, location, telephone, logo, departments, description } = req.body;
+
+    const college = await Collage.findByPk(collegeId);
+
+    if (!college) {
+      return res.status(404).json({ success: false, message: "College not found" });
+    }
+
+    console.log(req.body, 'int the update');
+    
+    const departmentsArray = departments.split(",").map((department) => department.trim());
+
+    if(address){
+      college.address = address;
+    }
+    if(telephone){
+      college.telephone = telephone;
+    }
+    if(logo){
+      college.logo = logo;
+    }
+    if(departmentsArray){
+      college.department = departmentsArray;
+    }
+    if(location){
+      college.location = location;
+    }
+    if(description){
+      college.description = description;
+    };
+
+    await college.save();
+
+    res.status(200).json({ success: true, message: "College details updated successfully", college });
+  } catch (error) {
+    console.error("Error updating college details:", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+
+
 const viewUploadedData = async (req, res) => {
   try {
     const { userId } = req.user;
     const page = req.query.page || 1;
-    const pageSize = req.query.pageSize || 5;
+    const pageSize = req.query.pageSize || 20;
     const { branch, year, sortBy, sortOrder } = req.query;
 
     const findCollegeId = await User.findOne({ where: { id: userId } });
@@ -170,14 +219,17 @@ const viewUploadedData = async (req, res) => {
 
     const offset = (page - 1) * pageSize;
 
-    let whereClause = { collegeId, role: "student" };
+    let whereClause = { collegeId, role: "student", status: true };
+
+    console.log(whereClause, 'llkanakja')
 
     if (branch) {
       whereClause.branch = branch;
-    }
+    };
+
     if (year) {
       whereClause.year = year;
-    }
+    };
 
     let order = [];
     if (sortBy && sortOrder) {
@@ -198,12 +250,14 @@ const viewUploadedData = async (req, res) => {
       });
     } else {
       uploadedData = await User.findAll({
-        where: { collegeId, role: "student" },
+        where: { collegeId, role: "student", status: true },
         order,
         limit: pageSize,
         offset,
       });
     }
+
+    console.log(uploadedData, 'keviyeqdvqekdb')
 
     res.status(200).json({ success: true, uploadedData, totalCount, pageSize });
   } catch (error) {
@@ -213,6 +267,7 @@ const viewUploadedData = async (req, res) => {
       .json({ success: false, message: "Error getting data from db" });
   }
 };
+
 
 const searchUsersByName = async (req, res) => {
   try {
@@ -249,19 +304,23 @@ const searchUsersByName = async (req, res) => {
   }
 };
 
+
 const exportDataToExcel = async (req, res) => {
   try {
-    const { collageId } = req.user;
+    const { userId } = req.user;
 
-    console.log(collageId, " checking id in export function");
+    const findCollegeId = await User.findOne({ where: { id: userId } });
+    const collegeId = findCollegeId.collegeId;
 
-    if (!collageId) {
+    console.log(collegeId, " checking id in export function");
+
+    if (!collegeId) {
       return res
         .status(400)
         .json({ success: false, message: "CollageId is required" });
     }
 
-    const studentData = await Student.findAll({ where: { collageId } });
+    const studentData = await User.findAll({ where: { collegeId } });
 
     if (!studentData || studentData.length === 0) {
       return res.status(404).json({
@@ -274,26 +333,35 @@ const exportDataToExcel = async (req, res) => {
     const worksheet = workbook.addWorksheet("Student Data");
 
     worksheet.addRow([
-      "Name",
-      "Email",
-      "CollageId",
-      "Image",
-      "Skills",
-      "Twelfth Percentage",
-      "Phone Number",
+        "name",
+        "email",
+        "percentage",
+        "skills",
+        "image",
+        "role",
+        "enrollmentId",
+        "certification",
+        "branch",
+        "mobile",
+        "year",
+        "collegeId"
     ]);
 
     studentData.forEach((student) => {
-      const { name, email, collageId, image, skills, percentage, mobile } =
-        student;
+      const { name, email, percentage, skills, image, role, enrollmentId, certification, branch, mobile, year, collegeId } = student;
       worksheet.addRow([
         name,
         email,
-        collageId,
-        image,
-        skills,
         percentage,
+        skills,
+        image,
+        role,
+        enrollmentId,
+        certification,
+        branch,
         mobile,
+        year,
+        collegeId
       ]);
     });
 
@@ -317,29 +385,36 @@ const exportDataToExcel = async (req, res) => {
   }
 };
 
-const postContent = async (req, res) => {
-  const { companyName, position, eligibility, details } = req.body;
-  const { collageId } = req.user;
 
-  console.log(req.body, collageId);
+const postRecruiter = async (req, res) => {
+
+  const { companyName, position, eligibility, description, address , state, city } = req.body;
+  const { collegeId } = req.user;
+
+  console.log(req.body, collegeId);
 
   try {
-    const existingRecruiter = await Recruiter.findOne({
-      where: { companyName: companyName },
+    const existingRecruiter = await Collage.findOne({
+      where: { name: companyName },
     });
 
     if (existingRecruiter) {
       return res.status(400).json({
         error: "Recruiter already exists",
       });
-    }
+    };
 
-    const newRecruiter = await Recruiter.create({
-      companyName,
+    const newRecruiter = await Collage.create({
+      name: companyName,
+      address,
       position,
       eligibility,
-      details,
-      uploader: collageId,
+      description,
+      state,
+      city,
+      uploader: collegeId,
+      status: true,
+      category: "Company"
     });
 
     res.status(201).json({
@@ -351,16 +426,18 @@ const postContent = async (req, res) => {
     res
       .status(500)
       .json({ success: false, message: "Error in posting content" });
-  }
+  };
 };
+
 
 const displayRecruiter = async (req, res) => {
   try {
-    const { collageId } = req.user;
+    const { collegeId } = req.user;
     const page = req.query.page || 1;
     const pageSize = 10;
 
-    if (!collageId) {
+    console.log(req.user, 'chrck in recruiter')
+    if (!collegeId) {
       return res
         .status(400)
         .json({ success: false, message: "something went wrong" });
@@ -368,15 +445,17 @@ const displayRecruiter = async (req, res) => {
 
     const offset = (page - 1) * pageSize;
 
-    const totalCount = await Recruiter.count({
-      where: { uploader: collageId },
+    const totalCount = await Collage.count({
+      where: { uploader: collegeId, category: "Company",status: true },
     });
 
-    const uploadedData = await Recruiter.findAll({
-      where: { uploader: collageId },
+    const uploadedData = await Collage.findAll({
+      where: { uploader: collegeId, category: "Company", status: true},
       limit: pageSize,
       offset,
     });
+
+    console.log(uploadedData, 'sajjds');
 
     res.status(200).json({
       success: true,
@@ -392,43 +471,56 @@ const displayRecruiter = async (req, res) => {
   }
 };
 
-const deletePost = async (req, res) => {
+
+const deleteStudent = async (req, res) => {
   try {
     const deleteId = req.params.studentId;
-    const student_data = await Student.findOne({ where: { id: deleteId } });
+    const student_data = await User.findOne({ where: { id: deleteId } });
 
-    await student_data.destroy({ where: { id: deleteId } });
+    console.log(req.params, student_data, req.query);
+    // await student_data.destroy({ where: { id: deleteId } });
+    student_data.status = 0;
+    console.log(deleteId, student_data, 'in the delete student');
+    
+    await student_data.save();
 
-    res.status(200).json({ success: true });
+    res.status(200).json({ success: true, response: student_data }); 
+
   } catch (err) {
     console.log(err);
     res.status(400).json({ error: "id is missing" });
   }
 };
+
 
 const deleteRecruiter = async (req, res) => {
   try {
     const deleteId = req.params.recruiterId;
     console.log(req.params);
-    const recruiter = await Recruiter.findOne({ where: { id: deleteId } });
+    const recruiter = await Collage.findOne({ where: { id: deleteId } });
 
-    await recruiter.destroy({ where: { id: deleteId } });
+    recruiter.status = 0;
 
-    res.status(200).json({ success: true });
+    await recruiter.save();
+
+    res.status(200).json({ success: true, response: recruiter });
   } catch (err) {
     console.log(err);
     res.status(400).json({ error: "id is missing" });
   }
 };
 
+
 module.exports = {
   uploadExcel,
   UploadIndivisualStudent,
   viewUploadedData,
+  updateCollegeDetails,
   searchUsersByName,
   exportDataToExcel,
-  postContent,
+  postRecruiter,
   displayRecruiter,
-  deletePost,
+  deleteStudent,
   deleteRecruiter,
 };
+ 

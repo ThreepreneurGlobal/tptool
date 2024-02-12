@@ -2,7 +2,7 @@
 const jwt = require('jsonwebtoken');
 
 const generateAccessToken = (email, role) => {
-  return jwt.sign({ email, role}, "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9");
+  return jwt.sign({ email, role}, process.env.TOKEN_SECRET);
 };
 
 const loginSuperUser = (req, res) => {
