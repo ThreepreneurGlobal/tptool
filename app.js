@@ -1,7 +1,5 @@
 
 const express = require('express');
-const bodyParser = require('body-parser');
-const sequelize = require('./Util/database');
 const cors = require('cors')
 const app = express();
 const dotenv = require('dotenv');
@@ -10,14 +8,16 @@ dotenv.config();
 
 app.use(cors())
 
-app.use(bodyParser.json())
-
+const sequelize = require('./Util/database');
+const bodyParser = require('body-parser');
 const userAdminRoutes = require('./Route/userLoginRoute');
 const userRoute = require('./Route/superUserRoute');
 const studentDataRoute = require('./Route/collageAdmin');
 const studentDashboard = require('./Route/studentDashboard');
 const forgetPassword = require('./Route/forgetPasswordRoute');
 // const studentUserRoute = require('./Route/studentUserRoute');
+
+app.use(bodyParser.json())
 
 const Organization = require('./Model/collageModel');
 const User = require('./Model/userModel');
