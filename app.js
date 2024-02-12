@@ -14,7 +14,8 @@ const userAdminRoutes = require('./Route/userLoginRoute');
 const userRoute = require('./Route/superUserRoute');
 const studentDataRoute = require('./Route/collageAdmin');
 const studentDashboard = require('./Route/studentDashboard');
-const forgetPassword = require('./Route/forgetPasswordRoute');
+// const forgetPassword = require('./Route/forgetPasswordRoute');
+
 // const studentUserRoute = require('./Route/studentUserRoute');
 
 app.use(bodyParser.json())
@@ -28,7 +29,8 @@ app.use(userAdminRoutes);
 app.use(userRoute);
 app.use(studentDataRoute);
 app.use(studentDashboard);
-app.use(forgetPassword)
+// app.use(forgetPassword);
+
 // app.use(studentUserRoute);
 
   
