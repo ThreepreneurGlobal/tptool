@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.post('/api/v1/org/upload-data', authenticateRole(['admin']), adminController.uploadExcel);
 router.post('/api/v1/org/upload-form-data', authenticateRole(['admin']), adminController.UploadIndivisualStudent);
-router.get('/api/v1/org/view-uploaded-data', authenticateRole(['admin']), adminController.viewUploadedData);
+router.get('/api/v1/org/view-uploaded-data', authenticateRole(['admin']), adminController.viewUploadedData); 
 router.get('/api/v1/org/export-data-in-excel', authenticateRole(['admin']), adminController.exportDataToExcel);
 router.put('/api/v1/org/update-college-details', authenticateRole([ 'admin']), adminController.updateCollegeDetails);
 router.get('/api/v1/org/search-users-by-name', authenticateRole(['admin']), adminController.searchUsersByName);
