@@ -14,5 +14,6 @@ router.post('/api/v1/org/post-recruiter', authenticateRole(['admin']), adminCont
 router.get('/api/v1/org/display-recruiters', authenticateRole(['admin']), adminController.displayRecruiter);
 router.put('/api/v1/org/delete-student/:studentId', authenticateRole(['admin']), adminController.deleteStudent);
 router.put('/api/v1/org/delete-recruiter/:recruiterId', authenticateRole(['admin']), adminController.deleteRecruiter);
+router.put('/api/v1/org/students/:studentId', authenticateRole(['admin']), adminController.updateStudentPassword);
 
 module.exports = router;

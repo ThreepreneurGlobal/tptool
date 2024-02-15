@@ -1,13 +1,60 @@
-const Collage = require("../Model/collageModel");
+const College = require("../Model/collegeModel");
 const User = require("../Model/userModel");
 const ExcelJS = require("exceljs");
 const multer = require("multer");
 const Recruiter = require("../Model/recruiterModel");
 const { Op } = require("sequelize");
 const { Company } = require("sib-api-v3-sdk");
+const cron = require("node-cron");
+const bcrypt = require("bcrypt");
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage }).single("file");
+
+cron.schedule(
+  "0 0 1 7 *",
+  async () => {
+    try {
+      const usersToUpdate = await User.findAll({ where: { role: "student" } });
+
+      console.log(usersToUpdate, "in the cron jobs");
+
+      for (const user of usersToUpdate) {
+        console.log("nooo", "in the cron jobs");
+        const today = new Date();
+        const currentMonth = today.getMonth(); // get current month (0-11)
+
+        if (currentMonth === 6) {
+          console.log("month checking", "in the cron jobs");
+          const creationYear = new Date(user.createdAt).getFullYear(); // get the year when the user was created
+          const currentYear = today.getFullYear(); // get the current year
+
+          const yearDifference = currentYear - creationYear;
+
+          if (yearDifference < 4) {
+            user.year += 1;
+
+            console.log(
+              user,
+              creationYear,
+              currentYear,
+              yearDifference,
+              "check cron job"
+            );
+            await user.save();
+          }
+        }
+      }
+      console.log("Years incremented for users in the month of July.");
+    } catch (error) {
+      console.error("Error incrementing years for users:", error);
+    }
+  },
+  {
+    scheduled: true,
+    timezone: "Asia/Kolkata",
+  }
+);
 
 const uploadExcel = async (req, res) => {
   try {
@@ -24,13 +71,13 @@ const uploadExcel = async (req, res) => {
       const { userId } = req.user;
       console.log(file, req.user, "check in control");
 
-      const collageIdToBeUse = await User.findOne({
+      const collegeIdToBeUse = await User.findOne({
         where: {
           id: userId,
         },
       });
 
-      const collegeId = collageIdToBeUse.collegeId;
+      const collegeId = collegeIdToBeUse.collegeId;
 
       if (!file) {
         return res
@@ -52,10 +99,12 @@ const uploadExcel = async (req, res) => {
 
         const data = [];
 
-        
         firstSheet.eachRow((row, rowNumber) => {
           if (rowNumber > 1) {
-            const skillsArray = row.getCell("D").value.split(",").map(skill => skill.trim());
+            const skillsArray = row
+              .getCell("D")
+              .value.split(",")
+              .map((skill) => skill.trim());
             const rowData = {
               name: row.getCell("A").value,
               email: row.getCell("B").value,
@@ -96,7 +145,6 @@ const uploadExcel = async (req, res) => {
   }
 };
 
-
 const UploadIndivisualStudent = async (req, res) => {
   try {
     const {
@@ -126,7 +174,7 @@ const UploadIndivisualStudent = async (req, res) => {
 
     const skillsArray = skills.split(",").map((skill) => skill.trim());
 
-    console.log(skillsArray, 'jkbekfgkhkdsyd')
+    console.log(skillsArray, "jkbekfgkhkdsyd");
 
     const uploadToDb = await User.create({
       name,
@@ -155,51 +203,65 @@ const UploadIndivisualStudent = async (req, res) => {
   }
 };
 
-
-
 const updateCollegeDetails = async (req, res) => {
   try {
-    const { collegeId, address, location, telephone, logo, departments, description } = req.body;
+    const {
+      collegeId,
+      address,
+      location,
+      telephone,
+      logo,
+      departments,
+      description,
+    } = req.body;
 
-    const college = await Collage.findByPk(collegeId);
+    const college = await College.findByPk(collegeId);
 
     if (!college) {
-      return res.status(404).json({ success: false, message: "College not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "College not found" });
     }
 
-    console.log(req.body, 'int the update');
-    
-    const departmentsArray = departments.split(",").map((department) => department.trim());
+    console.log(req.body, "int the update");
 
-    if(address){
+    if (departments) {
+      var departmentsArray = departments
+        .split(",")
+        .map((department) => department.trim());
+    }
+
+    if (address) {
       college.address = address;
     }
-    if(telephone){
+    if (telephone) {
       college.telephone = telephone;
     }
-    if(logo){
+    if (logo) {
       college.logo = logo;
     }
-    if(departmentsArray){
+    if (departmentsArray) {
       college.department = departmentsArray;
     }
-    if(location){
+    if (location) {
       college.location = location;
     }
-    if(description){
+    if (description) {
       college.description = description;
-    };
+    }
 
     await college.save();
 
-    res.status(200).json({ success: true, message: "College details updated successfully", college });
+    res.status(200).json({
+      success: true,
+      message: "College details updated successfully",
+      college,
+    });
   } catch (error) {
     console.error("Error updating college details:", error);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
-
-
 
 const viewUploadedData = async (req, res) => {
   try {
@@ -221,15 +283,15 @@ const viewUploadedData = async (req, res) => {
 
     let whereClause = { collegeId, role: "student", status: true };
 
-    console.log(whereClause, 'llkanakja')
+    console.log(whereClause, "llkanakja");
 
     if (branch) {
       whereClause.branch = branch;
-    };
+    }
 
     if (year) {
       whereClause.year = year;
-    };
+    }
 
     let order = [];
     if (sortBy && sortOrder) {
@@ -257,7 +319,7 @@ const viewUploadedData = async (req, res) => {
       });
     }
 
-    console.log(uploadedData, 'keviyeqdvqekdb')
+    console.log(uploadedData, "keviyeqdvqekdb");
 
     res.status(200).json({ success: true, uploadedData, totalCount, pageSize });
   } catch (error) {
@@ -267,7 +329,6 @@ const viewUploadedData = async (req, res) => {
       .json({ success: false, message: "Error getting data from db" });
   }
 };
-
 
 const searchUsersByName = async (req, res) => {
   try {
@@ -304,7 +365,6 @@ const searchUsersByName = async (req, res) => {
   }
 };
 
-
 const exportDataToExcel = async (req, res) => {
   try {
     const { userId } = req.user;
@@ -317,7 +377,7 @@ const exportDataToExcel = async (req, res) => {
     if (!collegeId) {
       return res
         .status(400)
-        .json({ success: false, message: "CollageId is required" });
+        .json({ success: false, message: "CollegeId is required" });
     }
 
     const studentData = await User.findAll({ where: { collegeId } });
@@ -325,7 +385,7 @@ const exportDataToExcel = async (req, res) => {
     if (!studentData || studentData.length === 0) {
       return res.status(404).json({
         success: false,
-        message: "No data found for the given CollageId",
+        message: "No data found for the given CollegeId",
       });
     }
 
@@ -333,22 +393,35 @@ const exportDataToExcel = async (req, res) => {
     const worksheet = workbook.addWorksheet("Student Data");
 
     worksheet.addRow([
-        "name",
-        "email",
-        "percentage",
-        "skills",
-        "image",
-        "role",
-        "enrollmentId",
-        "certification",
-        "branch",
-        "mobile",
-        "year",
-        "collegeId"
+      "name",
+      "email",
+      "percentage",
+      "skills",
+      "image",
+      "role",
+      "enrollmentId",
+      "certification",
+      "branch",
+      "mobile",
+      "year",
+      "collegeId",
     ]);
 
     studentData.forEach((student) => {
-      const { name, email, percentage, skills, image, role, enrollmentId, certification, branch, mobile, year, collegeId } = student;
+      const {
+        name,
+        email,
+        percentage,
+        skills,
+        image,
+        role,
+        enrollmentId,
+        certification,
+        branch,
+        mobile,
+        year,
+        collegeId,
+      } = student;
       worksheet.addRow([
         name,
         email,
@@ -361,7 +434,7 @@ const exportDataToExcel = async (req, res) => {
         branch,
         mobile,
         year,
-        collegeId
+        collegeId,
       ]);
     });
 
@@ -385,16 +458,20 @@ const exportDataToExcel = async (req, res) => {
   }
 };
 
-
 const postRecruiter = async (req, res) => {
-
-  const { companyName, position, eligibility, description, address , state, city } = req.body;
+  const { companyName, position, eligibility, description, address, state, city, expirationDateTime } = req.body;
   const { collegeId } = req.user;
 
   console.log(req.body, collegeId);
 
   try {
-    const existingRecruiter = await Collage.findOne({
+    if (!expirationDateTime) {
+      return res.status(400).json({
+        error: "Expiration date and time are required",
+      });
+    }
+
+    const existingRecruiter = await College.findOne({
       where: { name: companyName },
     });
 
@@ -402,9 +479,17 @@ const postRecruiter = async (req, res) => {
       return res.status(400).json({
         error: "Recruiter already exists",
       });
-    };
+    }
 
-    const newRecruiter = await Collage.create({
+    const expirationTime  = new Date(expirationDateTime);
+
+    if (isNaN(expirationTime.getTime())) {
+      return res.status(400).json({
+        error: 'Invalid expiration date and time format',
+      });
+    }
+
+    const newRecruiter = await College.create({
       name: companyName,
       address,
       position,
@@ -414,8 +499,31 @@ const postRecruiter = async (req, res) => {
       city,
       uploader: collegeId,
       status: true,
-      category: "Company"
+      category: "Company",
+      expirationDateTime: expirationTime
     });
+
+    // Calculate delay in milliseconds until expiration time
+    const delay = expirationTime.getTime() - Date.now();
+
+    // Schedule deletion using setTimeout
+    setTimeout(async () => {
+      console.log('Deleting recruiter based on expiration date and time:', companyName);
+      try {
+        // Delete where expiration date has passed
+        await College.destroy({
+          where: {
+            name: companyName, 
+            expirationDateTime: { 
+              [Op.lte]: new Date(), // Filter less than or equal to current date and time
+            },
+          }, 
+        });
+        console.log('Recruiter deleted based on expiration date and time:', companyName);
+      } catch (error) {
+        console.error('Error deleting recruiter based on expiration date and time:', error);
+      }
+    }, delay);
 
     res.status(201).json({
       message: "Recruiter created successfully",
@@ -423,11 +531,10 @@ const postRecruiter = async (req, res) => {
     });
   } catch (err) {
     console.log(err);
-    res
-      .status(500)
-      .json({ success: false, message: "Error in posting content" });
-  };
+    res.status(500).json({ success: false, message: "Error in posting content" });
+  }
 };
+
 
 
 const displayRecruiter = async (req, res) => {
@@ -436,7 +543,7 @@ const displayRecruiter = async (req, res) => {
     const page = req.query.page || 1;
     const pageSize = 10;
 
-    console.log(req.user, 'chrck in recruiter')
+    console.log(req.user, "chrck in recruiter");
     if (!collegeId) {
       return res
         .status(400)
@@ -445,17 +552,17 @@ const displayRecruiter = async (req, res) => {
 
     const offset = (page - 1) * pageSize;
 
-    const totalCount = await Collage.count({
-      where: { uploader: collegeId, category: "Company",status: true },
+    const totalCount = await College.count({
+      where: { uploader: collegeId, category: "Company", status: true },
     });
 
-    const uploadedData = await Collage.findAll({
-      where: { uploader: collegeId, category: "Company", status: true},
+    const uploadedData = await College.findAll({
+      where: { uploader: collegeId, category: "Company", status: true },
       limit: pageSize,
       offset,
     });
 
-    console.log(uploadedData, 'sajjds');
+    console.log(uploadedData, "sajjds");
 
     res.status(200).json({
       success: true,
@@ -471,7 +578,6 @@ const displayRecruiter = async (req, res) => {
   }
 };
 
-
 const deleteStudent = async (req, res) => {
   try {
     const deleteId = req.params.studentId;
@@ -480,27 +586,24 @@ const deleteStudent = async (req, res) => {
     console.log(req.params, student_data, req.query);
     // await student_data.destroy({ where: { id: deleteId } });
     student_data.status = 0;
-    console.log(deleteId, student_data, 'in the delete student');
-    
+    console.log(deleteId, student_data, "in the delete student");
+
     await student_data.save();
 
-    res.status(200).json({ success: true, response: student_data }); 
-
+    res.status(200).json({ success: true, response: student_data });
   } catch (err) {
     console.log(err);
     res.status(400).json({ error: "id is missing" });
   }
 };
 
-
 const deleteRecruiter = async (req, res) => {
   try {
     const deleteId = req.params.recruiterId;
     console.log(req.params);
-    const recruiter = await Collage.findOne({ where: { id: deleteId } });
+    const recruiter = await College.findOne({ where: { id: deleteId } });
 
     recruiter.status = 0;
-
     await recruiter.save();
 
     res.status(200).json({ success: true, response: recruiter });
@@ -510,6 +613,37 @@ const deleteRecruiter = async (req, res) => {
   }
 };
 
+const updateStudentPassword = async (req, res) => {
+  try {
+    const { studentId } = req.params;
+    const { password } = req.body;
+
+    const student = await User.findByPk(studentId);
+
+    console.log(student, req.body, "in the update password");
+
+    if (!student) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Student not found" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    
+    student.password = hashedPassword;
+    await student.save();
+
+    res
+      .status(200)
+      .json({
+        success: true,
+        message: "Student password updated successfully",
+      });
+  } catch (error) {
+    console.error("Error updating student password:", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
 
 module.exports = {
   uploadExcel,
@@ -522,5 +656,5 @@ module.exports = {
   displayRecruiter,
   deleteStudent,
   deleteRecruiter,
+  updateStudentPassword,
 };
- 

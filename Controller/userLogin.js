@@ -1,7 +1,7 @@
 // const User = require('../Model/userModel');
 const jwt = require("jsonwebtoken");
 const Bcrypt = require("bcrypt");
-const Admin = require("../Model/collageModel");
+const Admin = require("../Model/collegeModel");
 const Student = require("../Model/studentDataModel");
 const User = require("../Model/userModel");
 
@@ -9,7 +9,7 @@ const signupUser = async (req, res) => {
   const {
     name,
     email,
-    collageId,
+    collegeId,
     twelfthPercentage,
     skills,
     image,
@@ -17,11 +17,11 @@ const signupUser = async (req, res) => {
     phoneNumber,
     password,
   } = req.body;
-  
+
   console.log(
     name,
     email,
-    collageId,
+    collegeId,
     twelfthPercentage,
     skills,
     image,
@@ -47,7 +47,7 @@ const signupUser = async (req, res) => {
       const newStudent = await Student.create({
         name,
         email,
-        collageId,
+        collegeId,
         percentage,
         skills,
         role,
@@ -67,9 +67,9 @@ const signupUser = async (req, res) => {
   }
 };
 
-const generateAccessToken = (userId, collegeAdmin, collegeId, role) => {
+const generateAccessToken = (userId, userName, collegeId, role) => {
   return jwt.sign(
-    { userId, collegeAdmin, collegeId, role },
+    { userId, userName, collegeId, role },
     process.env.TOKEN_SECRET
   );
 };
@@ -79,17 +79,15 @@ const loginUser = async (req, res) => {
     const { email, password } = req.body;
     console.log(email, password, "check in the loginUser");
 
-    // Find user by email
     const user = await User.findOne({ where: { email: email } });
 
-    console.log(user, 'oooooooo');
+    console.log(user, "oooooooo");
     if (!user) {
       return res
         .status(404)
         .json({ success: false, message: "User not found" });
     }
 
-    // Compare passwords
     Bcrypt.compare(password, user.password, (err, result) => {
       if (err) {
         throw new Error("Something Went Wrong");
@@ -104,7 +102,7 @@ const loginUser = async (req, res) => {
           role
         );
 
-        console.log(token, 'hooooo');
+        console.log(token, "hooooo");
 
         res.status(200).json({
           success: true,
@@ -123,42 +121,43 @@ const loginUser = async (req, res) => {
   }
 };
 
-const updatePassword = async (req, res) => {
-  try {
-    const { email, password } = req.body;
 
-    const newPassword = password;
+// const updatePassword = async (req, res) => {
+//   try {
+//     const { email, password } = req.body;
 
-    const user = await User.findOne({ where: { collegeEmail: collegeEmail } });
+//     const newPassword = password;
 
-    if (!user) {
-      return res
-        .status(404)
-        .json({ success: false, message: "User not found" });
-    }
+//     const user = await User.findOne({ where: { collegeEmail: collegeEmail } });
 
-    Bcrypt.hash(newPassword, 1.0, async (err, hash) => {
-      if (err) {
-        throw new Error("Something went wrong");
-      }
+//     if (!user) {
+//       return res
+//         .status(404)
+//         .json({ success: false, message: "User not found" });
+//     }
 
-      user.password = hash;
-      await user.save();
+//     Bcrypt.hash(newPassword, 1.0, async (err, hash) => {
+//       if (err) {
+//         throw new Error("Something went wrong");
+//       }
 
-      res
-        .status(200)
-        .json({ success: true, message: "Password updated successfully" });
-    });
-  } catch (error) {
-    console.error("Error updating password:", error);
-    res
-      .status(500)
-      .json({ success: false, message: "Error updating password" });
-  }
-};
+//       user.password = hash;
+//       await user.save();
+
+//       res
+//         .status(200)
+//         .json({ success: true, message: "Password updated successfully" });
+//     });
+//   } catch (error) {
+//     console.error("Error updating password:", error);
+//     res
+//       .status(500)
+//       .json({ success: false, message: "Error updating password" });
+//   }
+// };
 
 module.exports = {
   loginUser,
   signupUser,
-  updatePassword,
+  // updatePassword,
 };

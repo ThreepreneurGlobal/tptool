@@ -11,7 +11,7 @@ const onboardCollege = async (req, res) => {
 
     const existingUser = await User.findOne({ where: { collegeId } });
 
-    if (existingUser) {
+    if (existingUser) { 
       return res.status(400).json({
         success: false,
         message: "College with the same collegeId already exists",
@@ -147,12 +147,13 @@ const collegeDetails = async (req, res) => {
 //   }
 // };
 
-const generateAccessToken = (userId, collegeAdmin, collegeId, role) => {
+const generateAccessToken = (userId, userName, collegeId, role) => {
   return jwt.sign(
-    { userId, collegeAdmin, collegeId, role },
+    { userId, userName, collegeId, role },
     process.env.TOKEN_SECRET
   );
 };
+
 
 const getColleges = async (req, res) => {
   try {

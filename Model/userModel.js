@@ -67,23 +67,6 @@ const User = sequelize.define("user", {
     allowNull: false,
   }, 
 }, 
-{
-  hooks: {
-    beforeCreate: (user) => {
-      if (!user.year) {
-        user.year = 1;
-      }
-    },
-    beforeUpdate: (user) => {
-      if (user.changed("year")) {
-        const today = new Date();
-        const currentMonth = today.getMonth(); 
-        if (currentMonth >= 6) {
-          user.year += 1;
-        }
-      }
-    },
-  },
-});
+);
 
 module.exports = User;

@@ -1,7 +1,11 @@
-const Recruiter = require("../Model/recruiterModel");
-const Student = require("../Model/studentDataModel");
+// const Recruiter = require("../Model/recruiterModel");
+// const Student = require("../Model/studentDataModel");
+
+const User = require('../Model/userModel');
+const Organization = require('../Model/collegeModel')
 
 const displayProfile = async (req, res) => {
+  console.log('you have entered into the profile fun')
   try {
     const { userId } = req.user;
 
@@ -11,16 +15,16 @@ const displayProfile = async (req, res) => {
       return res
         .status(400)
         .json({ success: false, message: "something went wrong" });
-    }
+    };
 
-    const student = await Student.findAll({
-      where: { id: userId },
+    const student = await User.findOne({
+      where: { id: userId},
       attributes: [
         "name",
         "email",
-        "phoneNumber",
+        "mobile",
         "role",
-        "collageId",
+        "collegeId",
         "skills",
       ],
     });
@@ -34,22 +38,25 @@ const displayProfile = async (req, res) => {
   }
 };
 
+
 const displayReruiter = async (req, res) => {
   try {
-    const { collageId } = req.user;
+    const { userId } = req.user;
 
     console.log(req.user, " checking id");
 
-    if (!collageId) {
+    if (!userId) {
       return res
         .status(400)
         .json({ success: false, message: "something went wrong" });
     }
 
-    const uploadedData = await Recruiter.findAll({
-      where: { uploader: collageId },
+    const recruiters = await Organization.findAll({
+      where: { uploader: userId, category: 'Company' },
     });
-    res.status(200).json({ success: true, uploadedData });
+
+    res.status(200).json({ success: true, recruiters });
+
   } catch (err) {
     console.log(err);
     res
@@ -58,18 +65,19 @@ const displayReruiter = async (req, res) => {
   }
 };
 
+
 const editProfile = async (req, res) => {
   try {
     const editId = req.user.userId;
     const { name, email, phoneNumber, skills } = req.body;
 
-    console.log(editId, req.user, req.body);
-
-    const editProfile = await Student.findOne({
+    const editProfile = await User.findOne({
       where: {
         id: editId,
       },
     });
+
+    console.log(editProfile, 'found id')
 
     if (!editProfile) {
       return res
@@ -91,6 +99,7 @@ const editProfile = async (req, res) => {
     res.status(500).json({ success: false, message: "Something went wrong" });
   }
 };
+
 
 module.exports = {
   displayProfile,
