@@ -52,7 +52,7 @@ const Organization = sequelize.define("organization", {
     },
     set(value) {
       this.setDataValue('department', value ? JSON.stringify(value) : null);
-    },
+    }, 
   },
   eligibility: {
     type: Sequelize.INTEGER,

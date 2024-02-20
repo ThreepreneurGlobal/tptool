@@ -15,6 +15,7 @@ const userRoute = require("./Route/superUserRoute");
 const studentDataRoute = require("./Route/collegeAdmin");
 const studentDashboard = require("./Route/studentDashboard");
 // const forgetPassword = require("./Route/forgetPasswordRoute");
+ 
 
 app.use(bodyParser.json());
 

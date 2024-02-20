@@ -1,6 +1,5 @@
 // const Recruiter = require("../Model/recruiterModel");
 // const Student = require("../Model/studentDataModel");
-
 const User = require('../Model/userModel');
 const Organization = require('../Model/collegeModel')
 

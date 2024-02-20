@@ -4,6 +4,7 @@ const adminController = require('../Controller/studentDataController');
 
 const router = express.Router();
 
+
 router.post('/api/v1/org/upload-data', authenticateRole(['admin']), adminController.uploadExcel);
 router.post('/api/v1/org/upload-form-data', authenticateRole(['admin']), adminController.UploadIndivisualStudent);
 router.get('/api/v1/org/view-uploaded-data', authenticateRole(['admin']), adminController.viewUploadedData); 

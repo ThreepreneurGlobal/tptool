@@ -5,6 +5,7 @@ const Admin = require("../Model/collegeModel");
 const Student = require("../Model/studentDataModel");
 const User = require("../Model/userModel");
 
+
 const signupUser = async (req, res) => {
   const {
     name,
@@ -67,12 +68,14 @@ const signupUser = async (req, res) => {
   }
 };
 
+
 const generateAccessToken = (userId, userName, collegeId, role) => {
   return jwt.sign(
     { userId, userName, collegeId, role },
     process.env.TOKEN_SECRET
   );
 };
+
 
 const loginUser = async (req, res) => {
   try {

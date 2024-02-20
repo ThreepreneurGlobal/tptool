@@ -3,6 +3,7 @@ const User = require("../Model/userModel");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 
+
 const onboardCollege = async (req, res) => {
   try {
     const { name, email, mobile, collegeId, role, imgUrl, password } = req.body;

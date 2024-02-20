@@ -25,4 +25,5 @@ const loginSuperUser = (req, res) => {
     }
   };
   
-  module.exports = { loginSuperUser };
+  
+module.exports = { loginSuperUser };
