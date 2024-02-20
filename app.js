@@ -9,33 +9,30 @@ app.use(cors());
 
 const sequelize = require("./Util/database");
 const bodyParser = require("body-parser");
+
 const userAdminRoutes = require("./Route/userLoginRoute");
 const userRoute = require("./Route/superUserRoute");
 const studentDataRoute = require("./Route/collegeAdmin");
-
 const studentDashboard = require("./Route/studentDashboard");
 // const forgetPassword = require("./Route/forgetPasswordRoute");
-// const studentUserRoute = require('./Route/studentUserRoute');
 
 app.use(bodyParser.json());
 
 const Organization = require("./Model/collegeModel");
 const User = require("./Model/userModel");
 
- 
+User.belongsTo(Organization, { foreignKey: "collegeId" });
+
 app.get('/', (req, res) => {
   res.send("welcome");
 })
 
-User.belongsTo(Organization, { foreignKey: "collegeId" });
-
 app.use(userAdminRoutes);
 app.use(userRoute);
 app.use(studentDataRoute);
-
 app.use(studentDashboard);
 // app.use(forgetPassword);
-// app.use(studentUserRoute);
+
 
 sequelize
   // .sync({ force: true })

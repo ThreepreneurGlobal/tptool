@@ -4,7 +4,7 @@ const ExcelJS = require("exceljs");
 const multer = require("multer");
 const Recruiter = require("../Model/recruiterModel");
 const { Op } = require("sequelize");
-const { Company } = require("sib-api-v3-sdk");
+// const { Company } = require("sib-api-v3-sdk");
 const cron = require("node-cron");
 const bcrypt = require("bcrypt");
 
@@ -55,6 +55,7 @@ cron.schedule(
     timezone: "Asia/Kolkata",
   }
 );
+
 
 const uploadExcel = async (req, res) => {
   try {
@@ -145,6 +146,7 @@ const uploadExcel = async (req, res) => {
   }
 };
 
+
 const UploadIndivisualStudent = async (req, res) => {
   try {
     const {
@@ -202,6 +204,7 @@ const UploadIndivisualStudent = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal Error" });
   }
 };
+
 
 const updateCollegeDetails = async (req, res) => {
   try {
@@ -262,6 +265,7 @@ const updateCollegeDetails = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
+
 
 const viewUploadedData = async (req, res) => {
   try {
@@ -330,6 +334,7 @@ const viewUploadedData = async (req, res) => {
   }
 };
 
+
 const searchUsersByName = async (req, res) => {
   try {
     const { userId } = req.user;
@@ -364,6 +369,7 @@ const searchUsersByName = async (req, res) => {
       .json({ success: false, message: "Error searching users by name" });
   }
 };
+
 
 const exportDataToExcel = async (req, res) => {
   try {
@@ -458,6 +464,7 @@ const exportDataToExcel = async (req, res) => {
   }
 };
 
+
 const postRecruiter = async (req, res) => {
   const { companyName, position, eligibility, description, address, state, city, expirationDateTime } = req.body;
   const { collegeId } = req.user;
@@ -469,7 +476,7 @@ const postRecruiter = async (req, res) => {
       return res.status(400).json({
         error: "Expiration date and time are required",
       });
-    }
+    };
 
     const existingRecruiter = await College.findOne({
       where: { name: companyName },
@@ -479,7 +486,7 @@ const postRecruiter = async (req, res) => {
       return res.status(400).json({
         error: "Recruiter already exists",
       });
-    }
+    };
 
     const expirationTime  = new Date(expirationDateTime);
 
@@ -487,7 +494,7 @@ const postRecruiter = async (req, res) => {
       return res.status(400).json({
         error: 'Invalid expiration date and time format',
       });
-    }
+    };
 
     const newRecruiter = await College.create({
       name: companyName,
@@ -536,7 +543,6 @@ const postRecruiter = async (req, res) => {
 };
 
 
-
 const displayRecruiter = async (req, res) => {
   try {
     const { collegeId } = req.user;
@@ -578,6 +584,7 @@ const displayRecruiter = async (req, res) => {
   }
 };
 
+
 const deleteStudent = async (req, res) => {
   try {
     const deleteId = req.params.studentId;
@@ -597,6 +604,7 @@ const deleteStudent = async (req, res) => {
   }
 };
 
+
 const deleteRecruiter = async (req, res) => {
   try {
     const deleteId = req.params.recruiterId;
@@ -612,6 +620,7 @@ const deleteRecruiter = async (req, res) => {
     res.status(400).json({ error: "id is missing" });
   }
 };
+
 
 const updateStudentPassword = async (req, res) => {
   try {
@@ -644,6 +653,7 @@ const updateStudentPassword = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
+
 
 module.exports = {
   uploadExcel,

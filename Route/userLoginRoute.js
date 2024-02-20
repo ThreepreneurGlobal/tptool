@@ -9,7 +9,5 @@ const router = express.Router();
 router.post('/api/v1/user/login', UserController.loginUser);
 
 // router.post('/user/signup', UserController.signupUser);
-
-// router.put('/user/updatePassword', UserController.updatePassword);
   
 module.exports = router; 
