@@ -7,6 +7,7 @@ const { Op } = require("sequelize");
 // const { Company } = require("sib-api-v3-sdk");
 const cron = require("node-cron");
 const bcrypt = require("bcrypt");
+const { collegeDetails } = require("./collegeController");
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage }).single("file");
@@ -162,9 +163,12 @@ const UploadIndivisualStudent = async (req, res) => {
       certification,
       branch,
       year,
-      collegeId,
-    } = req.body;
-    console.log(req.body, req.user, "in the student");
+        } = req.body;
+
+    const { collegeId } =  req.user;
+
+    console.log(req.body, req.user, collegeId, "in the student");
+
 
     const existingUser = await User.findOne({ where: { email: email } });
 
@@ -210,7 +214,6 @@ const UploadIndivisualStudent = async (req, res) => {
 const updateCollegeDetails = async (req, res) => {
   try {
     const {
-      collegeId,
       address,
       location,
       telephone,
@@ -218,6 +221,10 @@ const updateCollegeDetails = async (req, res) => {
       departments,
       description,
     } = req.body;
+
+    const { collegeId } = req.user;
+
+    console.log(collegeId, 'this is user from token')
 
     const college = await College.findByPk(collegeId);
 
@@ -274,9 +281,9 @@ const viewUploadedData = async (req, res) => {
     const page = req.query.page || 1;
     const pageSize = req.query.pageSize || 20;
     const { branch, year, sortBy, sortOrder } = req.query;
+    const { collegeId } = req.user;
 
-    const findCollegeId = await User.findOne({ where: { id: userId } });
-    const collegeId = findCollegeId.collegeId;
+    console.log(req.user, collegeId, 'in the get data admin')
 
     if (!collegeId) {
       return res
@@ -338,11 +345,11 @@ const viewUploadedData = async (req, res) => {
 
 const searchUsersByName = async (req, res) => {
   try {
-    const { userId } = req.user;
+    const { userId, collegeId } = req.user;
     const { searchQuery } = req.query;
 
-    const findCollegeId = await User.findOne({ where: { id: userId } });
-    const collegeId = findCollegeId.collegeId;
+    // const findCollegeId = await User.findOne({ where: { id: userId } });
+    // const collegeId = findCollegeId.collegeId;
 
     if (!collegeId) {
       return res
@@ -374,12 +381,12 @@ const searchUsersByName = async (req, res) => {
 
 const exportDataToExcel = async (req, res) => {
   try {
-    const { userId } = req.user;
+    const { userId, collegeId } = req.user;
 
-    const findCollegeId = await User.findOne({ where: { id: userId } });
-    const collegeId = findCollegeId.collegeId;
+    // const findCollegeId = await User.findOne({ where: { id: userId } });
+    // const collegeId = findCollegeId.collegeId;
 
-    console.log(collegeId, " checking id in export function");
+    console.log(collegeId, userId, " checking id in export function");
 
     if (!collegeId) {
       return res
@@ -489,7 +496,7 @@ const postRecruiter = async (req, res) => {
       });
     };
 
-    const expirationTime  = new Date(expirationDateTime);
+    const expirationTime = new Date(expirationDateTime);
 
     if (isNaN(expirationTime.getTime())) {
       return res.status(400).json({
@@ -521,11 +528,11 @@ const postRecruiter = async (req, res) => {
         // Delete where expiration date has passed
         await College.destroy({
           where: {
-            name: companyName, 
-            expirationDateTime: { 
+            name: companyName,
+            expirationDateTime: {
               [Op.lte]: new Date(), // Filter less than or equal to current date and time
             },
-          }, 
+          },
         });
         console.log('Recruiter deleted based on expiration date and time:', companyName);
       } catch (error) {
