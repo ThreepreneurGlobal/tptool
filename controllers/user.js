@@ -20,7 +20,7 @@ exports.addAdmin = TryCatch(async (req, resp, next) => {
     const { name, mobile, email, password, orgId, designation, id_prf } = req.body;
 
     const [user, created] = await User.findOrCreate({
-        where: { [Op.or]: [{ name }, { email }, { orgId }] },
+        where: { name, email, orgId },
         defaults: { mobile, password, role: "admin", designation, id_prf, url: name + email }
     });
     created ? resp.status(200).json({ success: true, message: "Collage Admin Created Successfully...." }) :
@@ -76,7 +76,7 @@ exports.addStudent = TryCatch(async (req, resp, next) => {
     const { name, email, password, gender, id_prf } = req.body;
 
     const [user, created] = await User.findOrCreate({
-        where: { [Op.or]: [{ name }, { email }, { orgId: req.user.orgId }] },
+        where: { name, email, orgId: req.user.orgId },
         defaults: { password, gender, id_prf, url: name + email }
     });
     created ? resp.status(201).json({ success: true, message: `${user.name} Added Successfully...` }) :
@@ -99,6 +99,16 @@ exports.allStudent = TryCatch(async (req, resp, next) => {
     });
 
     resp.status(200).json({ success: true, students });
+});
+
+exports.getAdmins = TryCatch(async (req, resp, next) => {
+    const admins = await User.findAll({
+        where: { status: true, role: "admin" },
+        attributes: { exclude: ["password"] },
+        include: [{ model: Org, foreignKey: "orgId", as: "collage", attributes: ["id", "title", "city"] }]
+    });
+
+    resp.status(200).json({ success: true, admins });
 });
 
 exports.exportAllStud = TryCatch(async (req, resp, next) => {

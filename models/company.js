@@ -54,16 +54,16 @@ const Company = Connect.define("companies", {
         type: DataTypes.INTEGER,
         defaultValue: 0
     },
-    locations: {
-        type: DataTypes.STRING,
-        get() {
-            const rawValue = this.getDataValue('locations');
-            return rawValue ? JSON.parse(rawValue) : [];
-        },
-        set(value) {
-            this.setDataValue('locations', JSON.stringify(value));
-        }
-    },
+    // locations: {
+    //     type: DataTypes.STRING,
+    //     get() {
+    //         const rawValue = this.getDataValue('locations');
+    //         return rawValue ? JSON.parse(rawValue) : [];
+    //     },
+    //     set(value) {
+    //         this.setDataValue('locations', JSON.stringify(value));
+    //     }
+    // },
     web: {
         type: DataTypes.TEXT
     },
@@ -79,26 +79,26 @@ const Company = Connect.define("companies", {
     instagram: {
         type: DataTypes.TEXT
     },
-    techs: {
-        type: DataTypes.INTEGER,
-        get() {
-            const rawValue = this.getDataValue('techs');
-            return rawValue ? JSON.parse(rawValue) : [];
-        },
-        set(value) {
-            this.setDataValue('techs', JSON.stringify(value));
-        }
-    },
-    features: {
-        type: DataTypes.TEXT,
-        get() {
-            const rawValue = this.getDataValue('features');
-            return rawValue ? JSON.parse(rawValue) : [];
-        },
-        set(value) {
-            this.setDataValue('features', JSON.stringify(value));
-        }
-    },
+    // techs: {
+    //     type: DataTypes.INTEGER,
+    //     get() {
+    //         const rawValue = this.getDataValue('techs');
+    //         return rawValue ? JSON.parse(rawValue) : [];
+    //     },
+    //     set(value) {
+    //         this.setDataValue('techs', JSON.stringify(value));
+    //     }
+    // },
+    // features: {
+    //     type: DataTypes.TEXT,
+    //     get() {
+    //         const rawValue = this.getDataValue('features');
+    //         return rawValue ? JSON.parse(rawValue) : [];
+    //     },
+    //     set(value) {
+    //         this.setDataValue('features', JSON.stringify(value));
+    //     }
+    // },
     status: {
         type: DataTypes.BOOLEAN,
         defaultValue: true

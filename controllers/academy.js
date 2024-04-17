@@ -1,15 +1,15 @@
-const { Op } = require("sequelize");
 const TryCatch = require("../middleware/TryCatch");
 const Academy = require("../models/academy");
 const ErrorHandler = require("../utils/errHandle");
 
 //Collage Academy Sessions Controller
+// Academy.sync();
 
 exports.createAcademy = TryCatch(async (req, resp, next) => {
     const { edu_year, sem, assignment, assignment_per, assignment_status, per, live_back, close_back, marksheet, academic_status, studId, } = req.body;
 
     const [academy, created] = await Academy.findOrCreate({
-        where: { [Op.or]: [{ edu_year }, { sem }, { studId }, { orgId: req.user.orgId }] },
+        where: { edu_year, sem, studId, orgId: req.user.orgId },
         defaults: { assignment, assignment_per, assignment_status, per, live_back, close_back, marksheet, academic_status }
     });
 

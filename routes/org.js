@@ -1,6 +1,7 @@
 const express = require("express");
-const { isAutherizeRole, isAuthenticatedUser } = require("../middleware/auth");
-const { createCollage, myCollage, updateCollage, createComp, getAllCollages } = require("../controllers/org");
+const { isAuthenticatedUser, isAutherizeRole } = require("../middleware/auth");
+const { createCollage, updateCollage, getAllCollages, getDropDownCollages, getCollageById, myCollage } = require("../controllers/org");
+const { addBranchInCollage, addCourseInCollage } = require("../controllers/collageSkilll");
 
 
 const router = express.Router();
@@ -9,9 +10,17 @@ router.post("/create", isAuthenticatedUser, isAutherizeRole("super"), createColl
 
 router.get("/get", isAuthenticatedUser, isAutherizeRole("super"), getAllCollages);
 
-router.get("/get/my", isAuthenticatedUser, isAutherizeRole("admin"), myCollage);
+router.get("/get/:id", isAuthenticatedUser, isAutherizeRole("super"), getCollageById);
+
+router.get("/dd/get", isAuthenticatedUser, isAutherizeRole("super"), getDropDownCollages);
 
 router.put("/update", isAuthenticatedUser, isAutherizeRole("admin"), updateCollage);
+
+router.post("/branch/add", isAuthenticatedUser, isAutherizeRole("admin"), addBranchInCollage);
+
+router.post("/course/add", isAuthenticatedUser, isAutherizeRole("admin"), addCourseInCollage);
+
+router.put("/get/mycollage", isAuthenticatedUser, isAutherizeRole("admin"), myCollage);
 
 
 module.exports = router;

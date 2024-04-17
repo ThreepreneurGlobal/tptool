@@ -1,4 +1,3 @@
-const { Op } = require("sequelize");
 const TryCatch = require("../middleware/TryCatch");
 const University = require("../models/university");
 const User = require("../models/user");
@@ -11,7 +10,7 @@ exports.createUniversity = TryCatch(async (req, resp, next) => {
     const { title, reg_no, city, pin_code, email, state, phone } = req.body;
 
     const [university, created] = await University.findOrCreate({
-        where: { [Op.or]: [{ title }, { reg_no }] },
+        where: { title, reg_no },
         defaults: { city, pin_code, email, state, phone }
     });
     created ? resp.status(200).json({ success: true, message: `${university.title} Created Successfully...` }) :
@@ -33,9 +32,6 @@ exports.getAllUniversities = TryCatch(async (req, resp, next) => {
     let apiObj = {};
     const api = await University.findAll({
         where: { status: true },
-        // include: [
-        //     { model: Collage, foreignKey: "universityId", as: "collages", attributes: ["title", "city", "id", "pin_code"] }
-        // ]
     });
     if (api.length === 0) {
         return next(new ErrorHandler("No Universities Found", 404));

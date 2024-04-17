@@ -10,7 +10,7 @@ exports.createSkill = TryCatch(async (req, resp, next) => {
     const { title, short_name, description, sub_category } = req.body;
 
     const [skill, created] = await Skill.findOrCreate({
-        where: { [Op.or]: [{ title }, { short_name }] },
+        where: { title, short_name },
         defaults: { description, sub_category, category: "skills" }
     });
     created ? resp.status(201).json({ success: true, message: `${skill.title} is Created Successfully...` }) :
@@ -54,7 +54,7 @@ exports.getAllBranches = TryCatch(async (req, resp, next) => {
 exports.createBranch = TryCatch(async (req, resp, next) => {
     const { title, short_name, description } = req.body;
     const [branch, created] = await Skill.findOrCreate({
-        where: { [Op.or]: [{ title }, { short_name }] },
+        where: { title, short_name },
         defaults: { description, category: "course", sub_category: "branch" }
     });
     created ? resp.status(201).json({ success: true, message: `${branch.title} is Created Successfully...` }) :
@@ -93,7 +93,7 @@ exports.createCourse = TryCatch(async (req, resp, next) => {
     const { title, short_name, description, sub_category } = req.body;
 
     const [course, created] = await Skill.findOrCreate({
-        where: { [Op.or]: [{ title }, { short_name }] },
+        where: { title, short_name },
         defaults: { description, category: "course", sub_category }
     });
     created ? resp.status(201).json({ success: true, message: `${course.title} is Created Successfully...` }) :

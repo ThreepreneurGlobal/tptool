@@ -1,9 +1,12 @@
-const { Op } = require("sequelize");
 const TryCatch = require("../middleware/TryCatch");
 const Org = require("../models/org");
 const User = require("../models/user");
 const University = require("../models/university");
 const ErrorHandler = require("../utils/errHandle");
+const CollageSkill = require("../models/collageSkill");
+const Skill = require("../models/skill");
+const Company = require("../models/company");
+const CollageCompany = require("../models/collageCompany");
 
 // Org.sync({ alter: true, force: true });
 
@@ -12,7 +15,7 @@ exports.createCollage = TryCatch(async (req, resp, next) => {
     const { title, reg_no, city, pin_code, email, universityId } = req.body;
 
     const [collage, created] = await Org.findOrCreate({
-        where: { [Op.or]: [{ title }, { reg_no }] },
+        where: { title, reg_no },
         defaults: { city, pin_code, email, universityId }
     });
     created ? resp.status(200).json({ success: true, message: `${collage.title} Created Successfully...` }) :
@@ -34,14 +37,46 @@ exports.getAllCollages = TryCatch(async (req, resp, next) => {
     resp.status(200).json({ success: true, collages: collages.reverse() });
 });
 
-
-// Admin Controls
-exports.myCollage = TryCatch(async (req, resp, next) => {
-    const collage = await Org.findOne({ where: { id: req.user.orgId, status: true } });
+exports.getCollageById = TryCatch(async (req, resp, next) => {
+    const collage = await Org.findOne({
+        where: { status: true, id: req.params.id },
+        include: [
+            { model: University, foreignKey: "universityId", as: "university", attributes: ["title", "state", "id", "email", "logo"] },
+            { model: User, foreignKey: "orgId", as: "admins", where: { role: "admin" }, attributes: ["id", "name", "email", "id_prf", "designation"], where: { status: true } },
+            { model: Skill, through: CollageSkill, as: "branches", attributes: ["id", "title", "short_name", "sub_category"], where: { sub_category: "branch", status: true } },
+            { model: Company, through: CollageCompany, as: "companies", attributes: ["id", "title", "email", "logo", "type", "phone"], where: { status: true } },
+            { model: Skill, through: CollageSkill, as: "courses", attributes: ["id", "title", "short_name", "sub_category"], where: { sub_category: ["degree", "diploma", "master"], status: true } },
+        ],
+        attributes: {
+            exclude: ["universityId"],
+        }
+    });
+    if (!collage) {
+        return next(new ErrorHandler("Collage Not Found", 404));
+    };
 
     resp.status(200).json({ success: true, collage });
 });
 
+exports.getDropDownCollages = TryCatch(async (req, resp, next) => {
+    const apiObj = {};
+    const api = await Org.findAll({ where: { status: true } });
+    if (api.length === 0) {
+        return next(new ErrorHandler("Collages Not Found!", 404));
+    };
+
+    api.forEach((item) => {
+        if (!apiObj[item.city]) {
+            apiObj[item.city] = { label: item.city.toUpperCase(), options: [] }
+        };
+        apiObj[item.city].options.push({ label: item.title, value: item.id });
+    });
+    const collages = Object.values(apiObj);
+    resp.status(200).json({ success: true, collages });
+});
+
+
+// Admin Controls
 exports.updateCollage = TryCatch(async (req, resp, next) => {
     let collage = await Org.findOne({ where: { id: req.user.orgId, status: true } });
     const { description, address, city, state, pin_code, phone, email, branches } = req.body;
@@ -50,9 +85,28 @@ exports.updateCollage = TryCatch(async (req, resp, next) => {
     resp.status(200).json({ success: true, message: "Collage Profile Updated Successfully..." });
 });
 
+exports.myCollage = TryCatch(async (req, resp, next) => {
+    const collage = await Org.findOne({
+        where: { status: true, id: req.user.orgId },
+        include: [
+            { model: University, foreignKey: "universityId", as: "university", attributes: ["title", "id", "state", "email", "logo", "city", "country"] },
+            { model: Skill, through: CollageSkill, as: "branches", where: { sub_category: "branch", status: true } },
+            { model: Company, through: CollageCompany, as: "companies", where: { status: true } },
+            { model: Skill, through: CollageSkill, as: "courses", where: { sub_category: ["degree", "diploma", "master"], status: true } },
+        ],
+    });
+
+    resp.status(200).json({ success: true, collage });
+});
+
+
+
+
 //User to Collage Association
 Org.hasMany(User, { foreignKey: "orgId", as: "students" });
 User.belongsTo(Org, { foreignKey: "orgId", as: "collage" });
+
+Org.hasMany(User, { foreignKey: "orgId", as: "admins" });
 
 //User to Organisation Association
 University.hasMany(Org, { foreignKey: "universityId", as: "collages" });

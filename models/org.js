@@ -47,30 +47,10 @@ const Org = Connect.define("collages", {
     type: {
         type: DataTypes.STRING
     },
-    branches: {
-        type: DataTypes.INTEGER,
-        get() {
-            const rawValue = this.getDataValue('branches');
-            return rawValue ? JSON.parse(rawValue) : [];
-        },
-        set(value) {
-            this.setDataValue('branches', JSON.stringify(value));
-        }
-    },
     universityId: { type: DataTypes.INTEGER },
     team_size: {
         type: DataTypes.INTEGER,
         defaultValue: 0
-    },
-    locations: {
-        type: DataTypes.STRING,
-        get() {
-            const rawValue = this.getDataValue('locations');
-            return rawValue ? JSON.parse(rawValue) : [];
-        },
-        set(value) {
-            this.setDataValue('locations', JSON.stringify(value));
-        }
     },
     web: {
         type: DataTypes.TEXT
@@ -95,16 +75,6 @@ const Org = Connect.define("collages", {
         },
         set(value) {
             this.setDataValue('features', JSON.stringify(value));
-        }
-    },
-    orgsId: {
-        type: DataTypes.INTEGER,
-        get() {
-            const rawValue = this.getDataValue('orgsId');
-            return rawValue ? JSON.parse(rawValue) : [];
-        },
-        set(value) {
-            this.setDataValue('orgsId', JSON.stringify(value));
         }
     },
     status: {
