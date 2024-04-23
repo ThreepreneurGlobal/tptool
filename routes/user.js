@@ -1,7 +1,8 @@
 const express = require("express");
 const { isAuthenticatedUser, isAutherizeRole } = require("../middleware/auth");
-const { registerUser, loginUser, logoutUser, myProfile, addAdmin, addStudent, allStudent, exportAllStud, importStudent, updateProfile, deleteStudent, getAdmins } = require("../controllers/user");
+const { registerUser, loginUser, logoutUser, myProfile, addAdmin, addStudent, allStudent, updateProfile, deleteStudent, getAdmins } = require("../controllers/user");
 const upload = require("../utils/upload");
+const { getStudentById, exportAllStud, importStudent } = require("../controllers/student");
 
 
 const router = express.Router();
@@ -20,6 +21,8 @@ router.post("/admin/add", isAuthenticatedUser, isAutherizeRole("super"), addAdmi
 router.post("/student/add", isAuthenticatedUser, isAutherizeRole("admin"), addStudent);
 
 router.get("/get/students", isAuthenticatedUser, isAutherizeRole("admin"), allStudent);
+
+router.get("/get/student/:id", isAuthenticatedUser, isAutherizeRole("admin"), getStudentById);
 
 router.get("/admin/get", isAuthenticatedUser, isAutherizeRole("super"), getAdmins);
 

@@ -12,31 +12,46 @@ const Student = Connect.define("students", {
     dob: {
         type: DataTypes.DATEONLY
     },
-    course: {
-        type: DataTypes.STRING
+    courseId: {
+        type: DataTypes.INTEGER
     },
     course_desc: {
         type: DataTypes.TEXT
     },
     batch: {
-        type: DataTypes.NUMBER
+        type: DataTypes.INTEGER
     },
-    branch: {
-        type: DataTypes.STRING
+    branchId: {
+        type: DataTypes.INTEGER
     },
-    current_yr: { type: DataTypes.NUMBER },
+    current_yr: { type: DataTypes.INTEGER },
     enroll: {
         type: DataTypes.STRING
+    },
+    universityId: {
+        type: DataTypes.INTEGER
+    },
+    ten_yr: {
+        type: DataTypes.INTEGER,
     },
     ten_per: {
         type: DataTypes.FLOAT,
         defaultValue: 0
+    },
+    twelve_yr: {
+        type: DataTypes.INTEGER,
+    },
+    twelve_stream: {
+        type: DataTypes.TEXT,
     },
     twelve_per: {
         type: DataTypes.FLOAT,
         defaultValue: 0
     },
     diploma: {
+        type: DataTypes.STRING
+    },
+    diploma_stream: {
         type: DataTypes.STRING
     },
     diploma_per: {
@@ -79,41 +94,12 @@ const Student = Connect.define("students", {
         type: DataTypes.INTEGER,
         defaultValue: 0
     },
+    gap_desc: {
+        type: DataTypes.TEXT,
+    },
     disablity: {
         type: DataTypes.BOOLEAN,
         defaultValue: false
-    },
-    langs: {
-        type: DataTypes.STRING, // Define a string field for skills
-        get() {
-            const rawValue = this.getDataValue('langs');
-            return rawValue ? JSON.parse(rawValue) : [];
-        },
-        set(value) {
-            this.setDataValue('langs', JSON.stringify(value));
-        }
-    },
-    skills: {
-        // type: DataTypes.ARRAY(DataTypes.STRING),
-        // defaultValue:[]
-        type: DataTypes.INTEGER, // Define a string field for skills
-        get() {
-            const rawValue = this.getDataValue('skills');
-            return rawValue ? JSON.parse(rawValue) : [];
-        },
-        set(value) {
-            this.setDataValue('skills', JSON.stringify(value));
-        }
-    },
-    projects:{
-        type: DataTypes.INTEGER,
-        get(){
-            const rawValue = this.getDataValue("projects");
-            return rawValue ? JSON.parse(rawValue):[];
-        },
-        set(value){
-            this.setDataValue("projects", JSON.stringify(value));
-        }
     },
     experience: { type: DataTypes.FLOAT },
     userId: {

@@ -4,17 +4,37 @@ const Company = require("../models/company");
 const TryCatch = require("../middleware/TryCatch");
 const ErrorHandler = require("../utils/errHandle");
 
-// CollageCompany.sync();
+// CollageCompany.sync({ alter: true, force: true });
 
 exports.addCompanyInCollage = TryCatch(async (req, resp, next) => {
-    const { companyId } = req.body;
+    const { companyIds } = req.body;
+    if (!Array.isArray(companyIds)) {
+        return next(new ErrorHandler("Select at Least one Company!", 203));
+    };
 
-    const exists = await CollageCompany.findOne({ where: { companyId, collageId: req.user.orgId, status: true } });
-    if (exists) {
-        return next(new ErrorHandler("Company Already Exists!"));
+    //Check Existing Companies
+    const existCompanies = await CollageCompany.findAll({ where: { companyId: companyIds, collageId: req.user.orgId, status: true } });
+    if (existCompanies.length > 0) {
+        return next(new ErrorHandler("Companies Already Exists!", 400));
     }
+    // Company Id's
+    const existIds = existCompanies.map((item) => item.companyId);
+    // Create New Companies after Checking Existing Id's
+    const newCompanies = companyIds.filter(item => !existIds.includes(item));
 
-    await CollageCompany.create({ companyId, collageId: req.user.orgId });
+    await Promise.all(newCompanies.map(async (companyId) => {
+        try {
+            const existingCompany = await CollageCompany.findOne({ where: { companyId, collageId: req.user.orgId, status: true } });
+            if (!existingCompany) {
+                return CollageCompany.create({ companyId, collageId: req.user.orgId });
+            } else {
+                return next(new ErrorHandler("Company Already Exists!", 400));
+            };
+        } catch (error) {
+            console.error(error.message);
+        }
+    }));
+
     resp.status(200).json({ success: true, message: "Company Added Successfully..." });
 });
 

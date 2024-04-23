@@ -2,6 +2,7 @@ const { Op } = require("sequelize");
 const TryCatch = require("../middleware/TryCatch");
 const Skill = require("../models/skill");
 const ErrorHandler = require("../utils/errHandle");
+const Student = require("../models/student");
 
 // Skill.sync();
 
@@ -48,6 +49,23 @@ exports.getSuperSkills = TryCatch(async (req, resp, next) => {
 //Branch
 exports.getAllBranches = TryCatch(async (req, resp, next) => {
     const branches = await Skill.findAll({ where: { category: "course", status: true, sub_category: "branch" } });
+    resp.status(200).json({ success: true, branches });
+});
+
+exports.getGenBranches = TryCatch(async (req, resp, next) => {
+    const apiObj = {};
+    const api = await Skill.findAll({ where: { sub_category: "branch", status: true } });
+    if (api.length === 0) {
+        return next(new ErrorHandler("Branches Not Found!", 404));
+    };
+    api.forEach((item) => {
+        if (!apiObj[item.sub_category]) {
+            apiObj[item.sub_category] = { label: item.sub_category.toUpperCase(), options: [] };
+        };
+        apiObj[item.sub_category].options.push({ label: item.title, value: item.id });
+    });
+
+    const branches = Object.values(apiObj);
     resp.status(200).json({ success: true, branches });
 });
 
@@ -132,3 +150,11 @@ exports.deleteSkill = TryCatch(async (req, resp, next) => {
     await skill.update({ status: false });
     resp.status(200).json({ success: true, message: `Deleted Successfully...` });
 });
+
+
+//Student - Skill {Branch/Course} Association
+Student.belongsTo(Skill, { foreignKey: "courseId", as:"course" });
+// Skill.hasOne(Skill, { foreignKey: "course" });
+
+Student.belongsTo(Skill, { foreignKey: "branchId", as:"branch" });
+// Skill.hasOne(Skill, { foreignKey: "branch" });

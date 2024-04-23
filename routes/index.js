@@ -5,6 +5,7 @@ const skillRouter = require("./skill");
 const academyRouter = require("./academy");
 const universityRouter = require("./university");
 const companyRouter = require("./company");
+const placementRouter = require("./placement");
 
 const router = express.Router();
 
@@ -19,5 +20,7 @@ router.use("/academy", academyRouter);
 router.use("/university", universityRouter);
 
 router.use("/company", companyRouter);
+
+router.use("/placement", placementRouter);
 
 module.exports = router;

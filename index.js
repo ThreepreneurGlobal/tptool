@@ -15,7 +15,7 @@ app.use(cors({
     ]
 }));
 app.use(cookieParser());
-
+app.use("/upload", express.static("upload"));
 
 app.get("/", (req, resp) => {
     resp.send("<h1>Welcome to the TPConnect API!</h1>");

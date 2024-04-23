@@ -1,6 +1,6 @@
 const express = require("express");
 const { isAuthenticatedUser, isAutherizeRole } = require("../middleware/auth");
-const { createSkill, getAllSkills, getSkillById, updateSkill, getAllBranches, getAllCourses, createBranch, getSuperCourses, createCourse, getSuperSkills } = require("../controllers/skill");
+const { createSkill, getAllSkills, getSkillById, updateSkill, getAllBranches, getAllCourses, createBranch, getSuperCourses, createCourse, getSuperSkills, getGenBranches } = require("../controllers/skill");
 
 
 const router = express.Router();
@@ -15,6 +15,8 @@ router.get("/super/get", isAuthenticatedUser, isAutherizeRole("super"), getSuper
 
 //Branch
 router.get("/branch/get", isAuthenticatedUser, getAllBranches);
+
+router.get("/branch/dd/get", isAuthenticatedUser, getGenBranches);
 
 router.post("/branch/create", isAuthenticatedUser, isAutherizeRole("super"), createBranch);
 

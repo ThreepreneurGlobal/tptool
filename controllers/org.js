@@ -79,9 +79,9 @@ exports.getDropDownCollages = TryCatch(async (req, resp, next) => {
 // Admin Controls
 exports.updateCollage = TryCatch(async (req, resp, next) => {
     let collage = await Org.findOne({ where: { id: req.user.orgId, status: true } });
-    const { description, address, city, state, pin_code, phone, email, branches } = req.body;
+    const { description, address, city, state, country, pin_code, phone, facebook, instagram, linkedin, youtube, web } = req.body;
 
-    await collage.update({ description, address, city, state, pin_code, phone, email, branches });
+    await collage.update({ description, address, city, state, pin_code, phone, country, facebook, instagram, linkedin, youtube, web });
     resp.status(200).json({ success: true, message: "Collage Profile Updated Successfully..." });
 });
 
@@ -91,7 +91,7 @@ exports.myCollage = TryCatch(async (req, resp, next) => {
         include: [
             { model: University, foreignKey: "universityId", as: "university", attributes: ["title", "id", "state", "email", "logo", "city", "country"] },
             { model: Skill, through: CollageSkill, as: "branches", where: { sub_category: "branch", status: true } },
-            { model: Company, through: CollageCompany, as: "companies", where: { status: true } },
+            { model: Company, through: CollageCompany, as: "companies" },
             { model: Skill, through: CollageSkill, as: "courses", where: { sub_category: ["degree", "diploma", "master"], status: true } },
         ],
     });

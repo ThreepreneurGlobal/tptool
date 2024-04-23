@@ -17,6 +17,12 @@ try {
 };
 
 //Update DB Structure and Delete Old Structure with Old Data.
-// Connect.sync({ alter: true, force: true });
+// Connect.sync({ alter: true, force: true })
+//     .then(() => {
+//         console.log("All Models Synchronized Successfully...");
+//     })
+//     .catch((err) => {
+//         console.error("Error for Synchronizing....");
+//     })
 
 module.exports = Connect;
