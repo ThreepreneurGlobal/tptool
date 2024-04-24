@@ -33,7 +33,7 @@ exports.getCollagePlacement = TryCatch(async (req, resp, next) => {
         where: { status: true, collageId: req.user.orgId },
         include: [
             { model: PlacePosition, foreignKey: "placementId", as: "positions", attributes: ["locations", "id", "title", "type"] },
-            { model: Skill, through: PlaceSkill, as: "courses", attributes: ["id", "title"] },
+            { model: Skill, through: PlaceSkill, as: "courses", attributes: ["id", "short_name"] },
             { model: Company, foreignKey: "companyId", as: "company", attributes: ["id", "title"] },
         ],
         attributes: { exclude: ["userId", "companyId", "status", "created_at", "updated_at"] }

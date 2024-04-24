@@ -8,9 +8,9 @@ const router = express.Router();
 
 router.get("/get", isAuthenticatedUser, isAutherizeRole("super"), getAllPlacements);
 
-router.get("/collage/get", isAuthenticatedUser, isAutherizeRole("admin"), getCollagePlacement);
+router.get("/collage/get", isAuthenticatedUser, isAutherizeRole("admin", "user"), getCollagePlacement);
 
-router.get("/collage/get/:id", isAuthenticatedUser, isAutherizeRole("admin"), getCollagePlacementById);
+router.get("/collage/get/:id", isAuthenticatedUser, getCollagePlacementById);
 
 router.post("/create", isAuthenticatedUser, isAutherizeRole("admin"),
     upload.fields([{ name: "attach_student" }, { name: "attach_tpo" }]), addPlacement);

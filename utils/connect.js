@@ -5,7 +5,7 @@ const Connect = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.
     dialect: "mysql",
     // logging: (msg)=>{
     //     console.log(msg);
-    // }
+    // },
     logging: false
 });
 

@@ -65,6 +65,14 @@ const Placement = Connect.define("placements", {
     reg_details: {
         type: DataTypes.TEXT
     },
+    ctc: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
+    },
+    stipend: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
+    },
     attach_tpo: {
         type: DataTypes.TEXT
     },
