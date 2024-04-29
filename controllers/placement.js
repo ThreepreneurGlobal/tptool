@@ -51,6 +51,7 @@ exports.getCollagePlacementById = TryCatch(async (req, resp, next) => {
             { model: Company, foreignKey: "companyId", as: "company" },
             { model: User, foreignKey: "userId", as: "admin", attributes: ["id", "name", "email"] },
         ],
+        attributes: { exclude: ['attach_tpo', 'attach_student'] }
     });
 
     resp.status(200).json({ success: true, placement });
@@ -61,8 +62,8 @@ exports.addPlacement = TryCatch(async (req, resp, next) => {
     const { title, type, exp_opening, place_status, status_details, selection_details, other_details,
         contact_per, company_contact, reg_stime, reg_sdate, reg_etime, reg_edate, rereg_etime, rereg_edate,
         reg_details, add_comment, history, companyId, positions, skillIds, criteria } = req.body;
-    const attach_student = `${process.env.HOST_URL}/${req.files['attach_student'][0].path}`;
-    const attach_tpo = `${process.env.HOST_URL}/${req.files['attach_tpo'][0].path}`;
+    const attach_student = req.files['attach_student'][0].path;
+    const attach_tpo = req.files['attach_tpo'][0].path;
 
     const placement = await Placement.create({
         title, type, exp_opening, place_status, status_details, selection_details, other_details, contact_per,
@@ -81,25 +82,11 @@ exports.addPlacement = TryCatch(async (req, resp, next) => {
             return next(new ErrorHandler("Position Not Added...!", 500));
         }
 
-        // Skills
-        if (!Array.isArray(skillIds)) {
-            return next(new ErrorHandler("Select at Least one Course!", 203));
-        };
-        //Check Existing Courses
-        const existCourses = await PlaceSkill.findAll({ where: { skillId: skillIds, companyId, status: true } });
-        if (existCourses.length > 0) {
-            return next(new ErrorHandler("Course Already Exists!", 400));
-        }
-        // Course Id's
-        const existIds = existCourses.map((course) => course.skillId);
-        // Create New Courses after Checking Existing Id's
-        const newCourses = skillIds.filter(skillId => !existIds.includes(skillId));
-        await Promise.all(newCourses.map(async (skillId) => {
+        // Remove Duplicate from SkillID's Array
+        const uniqueSkillIds = [...new Set(skillIds)];
+        await Promise.all(uniqueSkillIds.map(async (skillId) => {
             try {
-                const existingCourse = await PlaceSkill.findOne({ where: { skillId, companyId, status: true } });
-                if (!existingCourse) {
-                    return PlaceSkill.create({ skillId, companyId, placementId: placement.id, userId: req.user.id });
-                };
+                await PlaceSkill.create({ skillId, companyId, placementId: placement.id, userId: req.user.id });
             } catch (error) {
                 console.error(error.message);
             }

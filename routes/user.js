@@ -2,6 +2,7 @@ const express = require("express");
 const { isAuthenticatedUser, isAutherizeRole } = require("../middleware/auth");
 const { registerUser, loginUser, logoutUser, myProfile, addAdmin, addStudent, allStudent, updateProfile, deleteStudent, getAdmins } = require("../controllers/user");
 const upload = require("../utils/upload");
+const xlxUpload = require("../utils/xlxUpload");
 const { getStudentById, exportAllStud, importStudent } = require("../controllers/student");
 
 
@@ -28,7 +29,7 @@ router.get("/admin/get", isAuthenticatedUser, isAutherizeRole("super"), getAdmin
 
 router.get("/export/students", isAuthenticatedUser, isAutherizeRole('admin'), exportAllStud);
 
-router.post("/import/students", isAuthenticatedUser, isAutherizeRole("admin"), upload.single("file"), importStudent);
+router.post("/import/students", isAuthenticatedUser, isAutherizeRole("admin"), xlxUpload.single("file"), importStudent);
 
 router.put("/update/profile", isAuthenticatedUser, upload.single("avatar"), updateProfile);
 

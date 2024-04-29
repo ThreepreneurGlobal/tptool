@@ -3,6 +3,7 @@ const { isAuthenticatedUser, isAutherizeRole } = require("../middleware/auth");
 const { createCollage, updateCollage, getAllCollages, getDropDownCollages, getCollageById, myCollage } = require("../controllers/org");
 const { addBranchInCollage, addCourseInCollage } = require("../controllers/collageSkilll");
 const { addCompanyInCollage } = require("../controllers/collageCompany");
+const upload = require("../utils/upload");
 
 
 const router = express.Router();
@@ -15,7 +16,7 @@ router.get("/get/:id", isAuthenticatedUser, isAutherizeRole("super"), getCollage
 
 router.get("/dd/get", isAuthenticatedUser, isAutherizeRole("super"), getDropDownCollages);
 
-router.put("/update", isAuthenticatedUser, isAutherizeRole("admin"), updateCollage);
+router.put("/update", isAuthenticatedUser, isAutherizeRole("admin"), upload.single("logo"), updateCollage);
 
 router.post("/branch/add", isAuthenticatedUser, isAutherizeRole("admin"), addBranchInCollage);
 

@@ -1,3 +1,4 @@
+const { rm } = require("fs");
 const User = require("../models/user");
 const Student = require("../models/student");
 const ErrorHandler = require("../utils/errHandle");
@@ -13,19 +14,20 @@ const Skill = require("../models/skill");
 exports.registerUser = TryCatch(async (req, resp, next) => {
     const { name, mobile, email, password } = req.body;
 
-    await User.create({ name, mobile, email, password, role: "super", url: name + email, designation: "tp" });
+    await User.create({ name, mobile, email, password, role: "super", designation: "tp" });
     resp.status(200).json({ success: true, message: "Super User Created Successfully...." });
 });
 
 exports.addAdmin = TryCatch(async (req, resp, next) => {
     const { name, mobile, email, password, orgId, designation, id_prf } = req.body;
 
-    const [user, created] = await User.findOrCreate({
-        where: { name, email, orgId },
-        defaults: { mobile, password, role: "admin", designation, id_prf, url: name + email }
-    });
-    created ? resp.status(200).json({ success: true, message: "Collage Admin Created Successfully...." }) :
-        resp.status(500).json({ success: false, message: `${user.name} Already Exists!` });
+    const existed = await User.findOne({ where: { name, email, orgId } });
+    if (existed) {
+        return next(new ErrorHandler(`${existed.name} Already Exists!`, 500));
+    };
+
+    await User.create({ name, mobile, email, password, orgId, designation, id_prf, role: "admin" });
+    resp.status(200).json({ success: true, message: "Collage Admin Created Successfully...." })
 });
 
 exports.loginUser = TryCatch(async (req, resp, next) => {
@@ -58,7 +60,7 @@ exports.myProfile = TryCatch(async (req, resp, next) => {
             exclude: ["password", "status", "created_at", "updated_at"]
         },
         include: [
-            { model: Org, foreignKey: "orgId", as: "collage", attributes: ['id', 'title', 'city', 'state'] },
+            { model: Org, foreignKey: "orgId", as: "collage", attributes: ['id', 'title', 'city', 'state', 'universityId'] },
             { model: Student, foreignKey: "userId", as: "student" }
         ],
     });
@@ -68,7 +70,11 @@ exports.myProfile = TryCatch(async (req, resp, next) => {
 
 exports.updateProfile = TryCatch(async (req, resp, next) => {
     const user = await User.findByPk(req.user.id);
-    const { avatar, gender, address, city, pin_code } = req.body;
+    const { gender, address, city, pin_code } = req.body;
+    const avatar = req.file.path;
+    if (avatar && user.avatar) {
+        rm(user.avatar, () => { console.log('OLD FILE REMOVED SUCCESSFULLY...'); });
+    };
 
     await user.update({ avatar, gender, address, city, pin_code });
     resp.status(200).json({ success: true, message: "Profile Updated Successfully..." });
@@ -78,19 +84,20 @@ exports.addStudent = TryCatch(async (req, resp, next) => {
     const { name, email, mobile, dob, gender, courseId, branchId, current_yr, batch, enroll,
         ed_gap, gap_desc, ten_per, ten_yr, twelve_per, twelve_yr, twelve_stream, universityId, } = req.body;
 
-    const [user, created] = await User.findOrCreate({
-        where: { email },
-        defaults: { name, mobile, gender, password: "Student@123", orgId: req.user.orgId }
-    });
-    if (created) {
-        await Student.create({
-            dob, courseId, branchId, current_yr, batch, enroll, ed_gap, gap_desc, ten_per, ten_yr,
-            twelve_per, twelve_yr, twelve_stream, userId: user.id, universityId
-        });
-        resp.status(201).json({ success: true, message: `${user.name} Added Successfully...` })
-    } else {
-        resp.status(403).json({ success: false, message: `${user.name} Already Existed!` })
+    const existed = await User.findOne({ where: { email, orgId: req.user.orgId, name } });
+    if (existed) {
+        return next(new ErrorHandler(`${existed.name} Already Exists!`, 500));
     };
+
+    const user = await User.create({ name, mobile, gender, password: "Student@123", orgId: req.user.orgId });
+    if (user) {
+        await Student.create({
+            dob, courseId, branchId, current_yr, batch, enroll, ed_gap, gap_desc, ten_per, 
+            ten_yr, twelve_per, twelve_yr, twelve_stream, userId: user.id, universityId
+        });
+    };
+
+    resp.status(201).json({ success: true, message: `${user.name} Added Successfully...` });
 });
 
 exports.deleteStudent = TryCatch(async (req, resp, next) => {

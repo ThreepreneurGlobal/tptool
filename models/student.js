@@ -58,38 +58,6 @@ const Student = Connect.define("students", {
         type: DataTypes.FLOAT,
         defaultValue: 0
     },
-    sem_01: {
-        type: DataTypes.FLOAT,
-        defaultValue: 0
-    },
-    sem_02: {
-        type: DataTypes.FLOAT,
-        defaultValue: 0
-    },
-    sem_03: {
-        type: DataTypes.FLOAT,
-        defaultValue: 0
-    },
-    sem_04: {
-        type: DataTypes.FLOAT,
-        defaultValue: 0
-    },
-    sem_05: {
-        type: DataTypes.FLOAT,
-        defaultValue: 0
-    },
-    sem_06: {
-        type: DataTypes.FLOAT,
-        defaultValue: 0
-    },
-    sem_07: {
-        type: DataTypes.FLOAT,
-        defaultValue: 0
-    },
-    sem_08: {
-        type: DataTypes.FLOAT,
-        defaultValue: 0
-    },
     ed_gap: {
         type: DataTypes.INTEGER,
         defaultValue: 0

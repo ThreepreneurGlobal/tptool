@@ -1,9 +1,11 @@
 const ExcelJS = require("exceljs");
+const XLSX = require("xlsx");
 const User = require("../models/user");
 const Student = require("../models/student");
 const ErrorHandler = require("../utils/errHandle");
 const TryCatch = require("../middleware/TryCatch");
 const Skill = require("../models/skill");
+const Org = require("../models/org");
 
 exports.getStudentById = TryCatch(async (req, resp, next) => {
     const student = await User.findOne({
@@ -19,6 +21,9 @@ exports.getStudentById = TryCatch(async (req, resp, next) => {
         ],
         attributes: { exclude: ["password"] }
     });
+    if (!student) {
+        return next(new ErrorHandler("Student Not Found!", 404));
+    }
 
     resp.status(200).json({ success: true, student });
 });
@@ -64,20 +69,42 @@ exports.exportAllStud = TryCatch(async (req, resp, next) => {
 });
 
 exports.importStudent = TryCatch(async (req, resp, next) => {
-    let users;
-    const workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.readFile(req.file.path);
+    const auth = await User.findByPk(req.user.id, {
+        include: [{
+            model: Org, foreignKey: "orgId", as: "collage", attributes: ['id', 'title', 'city', 'state', 'universityId']
+        }], attributes: ['id', 'name', 'role']
+    });
+    let users = [];
+    console.log(auth.collage.universityId);
+    const workbook = XLSX.readFile(req.file.path);
+    const sheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+    const arr = XLSX.utils.sheet_to_json(worksheet);
 
-    const worksheet = workbook.worksheets[0];
-    worksheet.eachRow({ includeEmpty: false }, async (row, idx) => {
-        if (idx !== 1) {
-            const [Name, Mail, Mobile, Ten, Twelve, Skills, Enroll_ID, Field, Year, Branch] = row.values;
-            users = await User.create({
-                name: Name, email: Mail, password: "Pass@321", mobile: Mobile, ten_per: Ten, twelve_per: Twelve,
-                skills: Skills, enroll: Enroll_ID, ed_field: Field, year: Year, branch: Branch
+    await Promise.all(arr.map(async (item) => {
+        const { Name, Mail, Mobile, Gender, City, IDProof, BirthDate, Batch, EnrollmentID, TenthPassing,
+            TenthPercentage, TwelvePassing, TwelveStream, TwelvePercentage, Disablity, EducationGap,
+            Course, Branch, CurrentYear } = item;
+        const existed = await User.findOne({ where: { name: Name, email: Mail } });
+        if (existed) {
+            console.log(`${existed.name} Already Exist!`);
+            return null;
+        };
+        const user = await User.create({
+            name: Name, email: Mail, password: "Studnet@123", mobile: Mobile, gender: Gender, city: City,
+            id_prf: IDProof, orgId: req.user.orgId
+        });
+        users.push(user);
+        if (user) {
+            await Student.create({
+                dob: BirthDate, batch: Batch, enroll: EnrollmentID, ten_yr: TenthPassing,
+                ten_per: TenthPercentage, twelve_yr: TwelvePassing, twelve_stream: TwelveStream,
+                twelve_per: TwelvePercentage, disablity: Disablity, ed_gap: EducationGap,
+                userId: user.id, courseId: Course, branchId: Branch, current_yr: CurrentYear,
+                universityId: auth.collage.universityId
             });
         };
-    });
-
-    resp.status(200).json({ success: true, message: `${users.length} Students Imported Successfully...` });
+    }));
+    users.length > 0 ? resp.status(200).json({ success: true, message: `${users.length} Students Imported Successfully...` }) :
+        resp.status(400).json({ success: true, message: `Students Not Imported Successfully...` });
 });

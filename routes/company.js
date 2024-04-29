@@ -1,7 +1,8 @@
 const express = require("express");
 const { isAutherizeRole, isAuthenticatedUser } = require("../middleware/auth");
-const { getAllCompanies, createComp, getCompById, addLocationCompany, removeLocation, getAllDDCompanies } = require("../controllers/company");
+const { getAllCompanies, createComp, getCompById, addLocationCompany, removeLocation, getAllDDCompanies, updateCompany } = require("../controllers/company");
 const { addCompanyInCollage } = require("../controllers/collageCompany");
+const upload = require("../utils/upload");
 
 
 const router = express.Router();
@@ -13,11 +14,13 @@ router.get("/dd/get", isAuthenticatedUser, getAllDDCompanies);
 
 router.get("/get/:id", isAuthenticatedUser, getCompById);
 
-router.post("/create", isAuthenticatedUser, isAutherizeRole("super"), createComp);
+router.post("/create", isAuthenticatedUser, isAutherizeRole("super", "admin"), createComp);
 
-router.put("/location/add/:id", isAuthenticatedUser, isAutherizeRole("super"), addLocationCompany);
+router.put("/location/add/:id", isAuthenticatedUser, isAutherizeRole("super", "admin"), addLocationCompany);
 
-router.put("/location/delete/:id", isAuthenticatedUser, isAutherizeRole("super"), removeLocation);
+router.put("/location/delete/:id", isAuthenticatedUser, isAutherizeRole("super", "admin"), removeLocation);
+
+router.put("/update/:id", isAuthenticatedUser, isAutherizeRole("super"), upload.single("logo"), updateCompany);
 
 
 // Relation Route Between Company and Collage

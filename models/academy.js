@@ -27,7 +27,8 @@ const Academy = Connect.define("academics", {
         type: DataTypes.STRING,
     },
     per: {
-        type: DataTypes.FLOAT
+        type: DataTypes.FLOAT,
+        defaultValue: 0
     },
     close_back: {
         type: DataTypes.INTEGER,
@@ -44,6 +45,9 @@ const Academy = Connect.define("academics", {
         type: DataTypes.STRING,
     },
     studId: {
+        type: DataTypes.INTEGER
+    },
+    userId: {
         type: DataTypes.INTEGER
     },
     orgId: {

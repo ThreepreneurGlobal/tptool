@@ -6,6 +6,7 @@ const academyRouter = require("./academy");
 const universityRouter = require("./university");
 const companyRouter = require("./company");
 const placementRouter = require("./placement");
+const appRouter = require("./application");
 
 const router = express.Router();
 
@@ -22,5 +23,7 @@ router.use("/university", universityRouter);
 router.use("/company", companyRouter);
 
 router.use("/placement", placementRouter);
+
+router.use("/app", appRouter);
 
 module.exports = router;

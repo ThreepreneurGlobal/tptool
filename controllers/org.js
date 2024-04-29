@@ -1,3 +1,4 @@
+const { rm } = require('fs');
 const TryCatch = require("../middleware/TryCatch");
 const Org = require("../models/org");
 const User = require("../models/user");
@@ -80,8 +81,14 @@ exports.getDropDownCollages = TryCatch(async (req, resp, next) => {
 exports.updateCollage = TryCatch(async (req, resp, next) => {
     let collage = await Org.findOne({ where: { id: req.user.orgId, status: true } });
     const { description, address, city, state, country, pin_code, phone, facebook, instagram, linkedin, youtube, web } = req.body;
+    const logo = req.file.path;
+    if(logo){
+        rm(collage.logo, ()=>{
+            console.log("OLD IMAGE DELETED...");
+        });
+    };
 
-    await collage.update({ description, address, city, state, pin_code, phone, country, facebook, instagram, linkedin, youtube, web });
+    await collage.update({ description, address, city, state, pin_code, phone, country, facebook, instagram, linkedin, youtube, web, logo });
     resp.status(200).json({ success: true, message: "Collage Profile Updated Successfully..." });
 });
 

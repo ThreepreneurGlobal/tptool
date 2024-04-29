@@ -1,4 +1,3 @@
-const { Op } = require("sequelize");
 const TryCatch = require("../middleware/TryCatch");
 const Skill = require("../models/skill");
 const ErrorHandler = require("../utils/errHandle");
@@ -29,7 +28,7 @@ exports.getAllSkills = TryCatch(async (req, resp, next) => {
         if (!apiObj[item.sub_category]) {
             apiObj[item.sub_category] = { label: item.sub_category.toUpperCase(), options: [] };
         };
-        apiObj[item.sub_category].options.push({ label: item.title, value: item.id });
+        apiObj[item.sub_category].options.push({ label: item.title && item.title.toUpperCase(), value: item.id });
     });
 
     const skills = Object.values(apiObj);
@@ -62,7 +61,7 @@ exports.getGenBranches = TryCatch(async (req, resp, next) => {
         if (!apiObj[item.sub_category]) {
             apiObj[item.sub_category] = { label: item.sub_category.toUpperCase(), options: [] };
         };
-        apiObj[item.sub_category].options.push({ label: item.title, value: item.id });
+        apiObj[item.sub_category].options.push({ label: item.title && item.title.toUpperCase(), value: item.id });
     });
 
     const branches = Object.values(apiObj);
@@ -90,9 +89,9 @@ exports.getAllCourses = TryCatch(async (req, resp, next) => {
 
     api.forEach((item) => {
         if (!apiObj[item.sub_category]) {
-            apiObj[item.sub_category] = { label: `${item.sub_category.toUpperCase()} COURSES`, options: [] }
+            apiObj[item.sub_category] = { label: item.sub_category.toUpperCase(), options: [] }
         };
-        apiObj[item.sub_category].options.push({ label: item.title, value: item.id });
+        apiObj[item.sub_category].options.push({ label: item.title && item.title.toUpperCase(), value: item.id });
     });
     const courses = Object.values(apiObj);
     resp.status(200).json({ success: true, courses });

@@ -71,21 +71,27 @@ const Company = Connect.define("companies", {
     },
     locations: {
         type: DataTypes.STRING,
-        get: function() {
+        get: function () {
             return JSON.parse(this.getDataValue("locations"));
         },
-        set: function(value) {
+        set: function (value) {
             return this.setDataValue("locations", JSON.stringify(value));
         }
     },
     features: {
         type: DataTypes.TEXT,
-        get: function() {
+        get: function () {
             return JSON.parse(this.getDataValue("features"));
         },
-        set: function(value) {
+        set: function (value) {
             return this.setDataValue("features", JSON.stringify(value));
         }
+    },
+    userId: {
+        type: DataTypes.INTEGER,
+    },
+    orgId: {
+        type: DataTypes.INTEGER
     },
     status: {
         type: DataTypes.BOOLEAN,
