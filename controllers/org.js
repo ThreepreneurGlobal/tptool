@@ -16,8 +16,8 @@ exports.createCollage = TryCatch(async (req, resp, next) => {
     const { title, reg_no, city, pin_code, email, universityId } = req.body;
 
     const [collage, created] = await Org.findOrCreate({
-        where: { title, reg_no },
-        defaults: { city, pin_code, email, universityId }
+        where: { reg_no },
+        defaults: { city, pin_code, email, universityId, title }
     });
     created ? resp.status(200).json({ success: true, message: `${collage.title} Created Successfully...` }) :
         resp.status(500).json({ success: false, message: `${collage.title} Already Exists!` });

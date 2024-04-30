@@ -99,7 +99,7 @@ exports.addLocationCompany = TryCatch(async (req, resp, next) => {
         const existLoc = company.locations.find(loc => (
             loc.city === item.city && loc.state === item.state
         ));
-        if (existLoc) { return next(new ErrorHandler("Location Already Exists!", 404)); };
+        if (existLoc) { return next(new ErrorHandler("Location Already Exists!", 403)); };
     };
 
     company.locations = company.locations.concat(locations);

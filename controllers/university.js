@@ -10,8 +10,8 @@ exports.createUniversity = TryCatch(async (req, resp, next) => {
     const { title, reg_no, city, pin_code, email, state, phone } = req.body;
 
     const [university, created] = await University.findOrCreate({
-        where: { title, reg_no },
-        defaults: { city, pin_code, email, state, phone }
+        where: { reg_no },
+        defaults: { city, pin_code, email, state, phone, title, }
     });
     created ? resp.status(200).json({ success: true, message: `${university.title} Created Successfully...` }) :
         resp.status(500).json({ success: false, message: `${university.title} Already Exists!` });

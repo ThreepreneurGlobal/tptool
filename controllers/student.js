@@ -34,38 +34,21 @@ exports.exportAllStud = TryCatch(async (req, resp, next) => {
         where: { orgId: req.user.orgId, status: true, role: "user" }
     });
 
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet("students");
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet(students.map((item) => ({
+        Name: item.name,
+        Mobile: item.mobile,
+        Mail_ID: item.email,
+        Gender: item.gender,
+        City: item.city,
+        ID_PROOF: item.id_prf
+    })));
 
-    worksheet.columns = [
-        { header: 'Name', key: "name", width: "30" },
-        { header: 'Mail ID', key: "email", width: "30" },
-        { header: '10%', key: "tenthPer", width: "30" },
-        { header: '12%', key: "twelvePer", width: "30" },
-        { header: 'Skills', key: "skills", width: "90" },
-        { header: 'Enroll ID', key: "enrollmentId", width: "30" },
-        { header: 'Field', key: "edField", width: "30" },
-        { header: 'Year', key: "year", width: "30" },
-        { header: 'Branch', key: "branch", width: "30" },
-    ];
-    students.forEach((item) => {
-        worksheet.addRow({
-            name: item.name,
-            email: item.email,
-            tenthPer: item.tenthPer,
-            twelvePer: item.twelvePer,
-            skills: item.skills,
-            enrollmentId: item.enrollmentId,
-            edField: item.edField,
-            year: item.year,
-            branch: item.branch,
-        });
-    });
-
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'students');
+    const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
     resp.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     resp.setHeader('Content-Disposition', `attachment; filename=students.xlsx`);
-    await workbook.xlsx.write(resp);
-    resp.end();
+    resp.end(buffer, 'binary');
 });
 
 exports.importStudent = TryCatch(async (req, resp, next) => {
