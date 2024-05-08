@@ -34,12 +34,18 @@ const Student = Connect.define("students", {
     ten_yr: {
         type: DataTypes.INTEGER,
     },
+    ten_board: {
+        type: DataTypes.STRING,
+    },
     ten_per: {
         type: DataTypes.FLOAT,
         defaultValue: 0
     },
     twelve_yr: {
         type: DataTypes.INTEGER,
+    },
+    twelve_board: {
+        type: DataTypes.STRING,
     },
     twelve_stream: {
         type: DataTypes.TEXT,
@@ -69,7 +75,15 @@ const Student = Connect.define("students", {
         type: DataTypes.BOOLEAN,
         defaultValue: false
     },
-    experience: { type: DataTypes.FLOAT },
+    experience: {
+        type: DataTypes.FLOAT,
+    },
+    job_interest: {
+        type: DataTypes.STRING,
+    },
+    internship_interest: {
+        type: DataTypes.STRING,
+    },
     userId: {
         type: DataTypes.INTEGER,
     },

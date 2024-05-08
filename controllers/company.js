@@ -69,8 +69,8 @@ exports.createComp = TryCatch(async (req, resp, next) => {
         await CollageCompany.create({ companyId: company.id, collageId: req.user.orgId });
     };
 
-    created ? resp.status(200).json({ success: true, message: `${company.title} Created Successfully...` }) :
-        resp.status(500).json({ success: false, message: `${company.title} Already Exists!` });
+    created ? resp.status(200).json({ success: true, message: `${company.title?.toUpperCase()} Created Successfully...` }) :
+        resp.status(500).json({ success: false, message: `${company.title?.toUpperCase()} Already Exists!` });
 });
 
 

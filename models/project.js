@@ -38,26 +38,8 @@ const Project = Connect.define("projects", {
     logo: {
         type: DataTypes.TEXT
     },
-    teams: {
-        type: DataTypes.INTEGER,
-        get() {
-            const rawValue = this.getDataValue('teams');
-            return rawValue ? JSON.parse(rawValue) : [];
-        },
-        set(value) {
-            this.setDataValue('teams', JSON.stringify(value));
-        }
-    },
-    skills: {
-        type: DataTypes.INTEGER,
-        get() {
-            const rawValue = this.getDataValue('skills');
-            return rawValue ? JSON.parse(rawValue) : [];
-        },
-        set(value) {
-            this.setDataValue('skills', JSON.stringify(value));
-        }
-    },
+    // teams: { },  Association with User work pending
+    // skills: { }, Association with Skill work pending
     studId: {
         type: DataTypes.INTEGER
     },

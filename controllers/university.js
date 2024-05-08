@@ -1,3 +1,4 @@
+const { rm } = require("fs");
 const TryCatch = require("../middleware/TryCatch");
 const University = require("../models/university");
 const User = require("../models/user");
@@ -13,19 +14,32 @@ exports.createUniversity = TryCatch(async (req, resp, next) => {
         where: { reg_no },
         defaults: { city, pin_code, email, state, phone, title, }
     });
-    created ? resp.status(200).json({ success: true, message: `${university.title} Created Successfully...` }) :
-        resp.status(500).json({ success: false, message: `${university.title} Already Exists!` });
+    created ? resp.status(200).json({ success: true, message: `${university.title?.toUpperCase()} Created Successfully...` }) :
+        resp.status(500).json({ success: false, message: `${university.title?.toUpperCase()} Already Exists!` });
 });
 
 exports.updateUniversity = TryCatch(async (req, resp, next) => {
-    const { city, pin_code, email, state, phone } = req.body;
+    const { description, address, phone, web, facebook, linkedin, youtube, instagram } = req.body;
+    const logo = req.file.path;
+    let university = await University.findOne({ where: { id: req.params.id, status: true } });
+    if (!university) {
+        return next(new ErrorHandler("University Not Found!", 404));
+    };
+    if (university.logo && logo) {
+        rm(university.logo, () => { console.log("OLD FILE REMOVED SUCCESSFULLY..."); });
+    };
+
+    await university.update({ description, address, phone, web, facebook, linkedin, youtube, instagram, logo });
+    resp.status(200).json({ success: true, message: `${university?.title?.toUpperCase()} Updated Successfully...` });
+});
+
+exports.getUniversityById = TryCatch(async (req, resp, next) => {
     let university = await University.findOne({ where: { id: req.params.id, status: true } });
     if (!university) {
         return next(new ErrorHandler("University Not Found!", 404));
     };
 
-    await university.update({ city, pin_code, email, state, phone });
-    resp.status(200).json({ success: true, message: `${university.title} Updated Successfully...` });
+    resp.status(200).json({ success: true, university });
 });
 
 exports.getAllUniversities = TryCatch(async (req, resp, next) => {

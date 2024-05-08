@@ -14,7 +14,7 @@ router.get("/dd/get", isAuthenticatedUser, getAllDDCompanies);
 
 router.get("/get/:id", isAuthenticatedUser, getCompById);
 
-router.post("/create", isAuthenticatedUser, isAutherizeRole("super", "admin"), createComp);
+router.post("/create", isAuthenticatedUser, isAutherizeRole("super", "admin"), upload.single("logo"), createComp);
 
 router.put("/location/add/:id", isAuthenticatedUser, isAutherizeRole("super", "admin"), addLocationCompany);
 

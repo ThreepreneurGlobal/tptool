@@ -16,7 +16,10 @@ const User = Connect.define("users", {
         allowNull: false
     },
     mobile: {
-        type: DataTypes.STRING,
+        type: DataTypes.INTEGER,
+        validate: {
+            len: [10, 10],
+        }
     },
     email: {
         type: DataTypes.STRING,
@@ -37,7 +40,12 @@ const User = Connect.define("users", {
     },
     address: { type: DataTypes.TEXT },
     city: { type: DataTypes.STRING },
-    pin_code: { type: DataTypes.STRING },
+    pin_code: { 
+        type: DataTypes.STRING,
+        validate: {
+            len: [6, 6],
+        }
+    },
     designation: {
         type: DataTypes.STRING,
         defaultValue: "student"
@@ -48,7 +56,6 @@ const User = Connect.define("users", {
     orgId: {
         type: DataTypes.INTEGER,
     },
-    url: { type: DataTypes.TEXT },
     facebook: { type: DataTypes.TEXT },
     twitter: { type: DataTypes.TEXT },
     instagram: { type: DataTypes.TEXT },

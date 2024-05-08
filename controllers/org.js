@@ -19,8 +19,8 @@ exports.createCollage = TryCatch(async (req, resp, next) => {
         where: { reg_no },
         defaults: { city, pin_code, email, universityId, title }
     });
-    created ? resp.status(200).json({ success: true, message: `${collage.title} Created Successfully...` }) :
-        resp.status(500).json({ success: false, message: `${collage.title} Already Exists!` });
+    created ? resp.status(200).json({ success: true, message: `${collage.title?.toUpperCase()} Created Successfully...` }) :
+        resp.status(500).json({ success: false, message: `${collage.title?.toUpperCase()} Already Exists!` });
 });
 
 exports.getAllCollages = TryCatch(async (req, resp, next) => {
@@ -82,8 +82,8 @@ exports.updateCollage = TryCatch(async (req, resp, next) => {
     let collage = await Org.findOne({ where: { id: req.user.orgId, status: true } });
     const { description, address, city, state, country, pin_code, phone, facebook, instagram, linkedin, youtube, web } = req.body;
     const logo = req.file.path;
-    if(logo){
-        rm(collage.logo, ()=>{
+    if (logo && collage.logo) {
+        rm(collage.logo, () => {
             console.log("OLD IMAGE DELETED...");
         });
     };
@@ -97,11 +97,14 @@ exports.myCollage = TryCatch(async (req, resp, next) => {
         where: { status: true, id: req.user.orgId },
         include: [
             { model: University, foreignKey: "universityId", as: "university", attributes: ["title", "id", "state", "email", "logo", "city", "country"] },
-            { model: Skill, through: CollageSkill, as: "branches", where: { sub_category: "branch", status: true } },
-            { model: Company, through: CollageCompany, as: "companies" },
-            { model: Skill, through: CollageSkill, as: "courses", where: { sub_category: ["degree", "diploma", "master"], status: true } },
+            { model: Skill, through: CollageSkill, as: "branches", where: { sub_category: "branch", status: true }, required: false },
+            { model: Company, through: CollageCompany, as: "companies", required: false },
+            { model: Skill, through: CollageSkill, as: "courses", where: { sub_category: ["degree", "diploma", "master"], status: true }, required: false },
         ],
     });
+    if (!collage) {
+        return next(new ErrorHandler("Collage Not Found!", 404));
+    }
 
     resp.status(200).json({ success: true, collage });
 });

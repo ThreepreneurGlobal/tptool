@@ -1,4 +1,4 @@
-const ExcelJS = require("exceljs");
+// const ExcelJS = require("exceljs");
 const XLSX = require("xlsx");
 const User = require("../models/user");
 const Student = require("../models/student");
@@ -38,10 +38,10 @@ exports.exportAllStud = TryCatch(async (req, resp, next) => {
     const worksheet = XLSX.utils.json_to_sheet(students.map((item) => ({
         Name: item.name,
         Mobile: item.mobile,
-        Mail_ID: item.email,
+        Mail: item.email,
         Gender: item.gender,
         City: item.city,
-        ID_PROOF: item.id_prf
+        IDProof: item.id_prf
     })));
 
     XLSX.utils.book_append_sheet(workbook, worksheet, 'students');
@@ -58,7 +58,6 @@ exports.importStudent = TryCatch(async (req, resp, next) => {
         }], attributes: ['id', 'name', 'role']
     });
     let users = [];
-    console.log(auth.collage.universityId);
     const workbook = XLSX.readFile(req.file.path);
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
