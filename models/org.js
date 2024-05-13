@@ -40,7 +40,7 @@ const Org = Connect.define("collages", {
         }
     },
     phone: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.STRING,
         validate: {
             len: [10, 10],
         }

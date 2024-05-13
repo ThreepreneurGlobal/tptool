@@ -6,7 +6,7 @@ const upload = require("../utils/upload");
 
 const router = express.Router();
 
-router.post("/create", isAuthenticatedUser, isAutherizeRole("super"), createUniversity);
+router.post("/create", isAuthenticatedUser, isAutherizeRole("super"), upload.single("logo"), createUniversity);
 
 router.get("/get", isAuthenticatedUser, isAutherizeRole("admin", "super"), getAllUniversities);
 

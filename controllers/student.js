@@ -67,13 +67,23 @@ exports.importStudent = TryCatch(async (req, resp, next) => {
         const { Name, Mail, Mobile, Gender, City, IDProof, BirthDate, Batch, EnrollmentID, TenthPassing,
             TenthPercentage, TwelvePassing, TwelveStream, TwelvePercentage, Disablity, EducationGap,
             Course, Branch, CurrentYear } = item;
+
+        // Genrate Password
+        const trimName = Name.replace(" ", "");
+        const nameWord = trimName.split(' ');
+        let password;
+        if (nameWord.length > 0) {
+            const first = nameWord[0];
+            password = (first.substring(0, 4)).charAt(0).toUpperCase() + first.substring(1, 4).toLowerCase() + "@123";
+        };
+        
         const existed = await User.findOne({ where: { name: Name, email: Mail } });
         if (existed) {
             console.log(`${existed.name} Already Exist!`);
             return null;
         };
         const user = await User.create({
-            name: Name, email: Mail, password: "Studnet@123", mobile: Mobile, gender: Gender, city: City,
+            name: Name, email: Mail, password, mobile: Mobile, gender: Gender, city: City,
             id_prf: IDProof, orgId: req.user.orgId
         });
         users.push(user);

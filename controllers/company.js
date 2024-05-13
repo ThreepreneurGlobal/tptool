@@ -41,14 +41,14 @@ exports.getAllDDCompanies = TryCatch(async (req, resp, next) => {
 exports.createComp = TryCatch(async (req, resp, next) => {
     const { title, description, reg_no, address, city, state, country, pin_code, phone, email, type,
         sub_type, team_size, web, facebook, linkedin, instagram, youtube, locations, features, skillIds } = req.body;
-    const logo = req.file.path;  // Logo Upload Pending
+    const logo = req.file && req.file.path;  // Logo Upload Pending
 
     const [company, created] = await Company.findOrCreate({
         where: { reg_no },
         defaults: {
             title, description, address, city, state, country, pin_code, phone, email, type,
             sub_type, team_size, web, facebook, linkedin, instagram, youtube, locations, features,
-            userId: req.user.id, orgId: req.user.orgId, logo,
+            userId: req.user.id, orgId: req.user.orgId, logo: logo ? logo : null,
         }
     });
 
@@ -126,28 +126,31 @@ exports.removeLocation = TryCatch(async (req, resp, next) => {
 exports.updateCompany = TryCatch(async (req, resp, next) => {
     const { description, address, city, state, country, pin_code, phone, email, type, sub_type,
         team_size, web, facebook, linkedin, instagram, youtube, locations, features, skillIds } = req.body;
-        const logo = req.file.path;
+    let logo = req.file && req.file.path;
     let company = await Company.findOne({ where: { status: true, id: req.params.id } });
     if (!company) {
         return next(new ErrorHandler("Company Not Found!", 404));
     };
-    if(logo && company.logo){
-        rm(company.logo, ()=>{
+    if (logo && company.logo) {
+        rm(company.logo, () => {
             console.log("OLD FILE REMOVED SUCCESSFULLY...");
         });
     };
 
     await company.update({
-        description, address, city, state, country, pin_code, phone, email, type, logo,
-        sub_type, team_size, web, facebook, linkedin, instagram, youtube, locations, features
+        address, city, state, country, pin_code, phone, email, type, logo: logo ? logo : company.logo,
+        sub_type, team_size, web, facebook, linkedin, instagram, youtube, locations, features, description
     });
 
-    const uniqueSkillIds = [...new Set(skillIds)];
+    // Check Unique ID's and Convert String to Number.
+    let uniqueSkillIds = [...new Set(skillIds.map(id => parseInt(id, 10)))];
+
+    // Check Exist Skills
     const existSkills = await CompanySkill.findAll({ where: { companyId: company.id } });
-    const existSkillIds = existSkills.map((skill) => skill.id);
+    const existSkillIds = existSkills.map((skill) => skill.skillId);
 
     const skillToAdd = uniqueSkillIds.filter(skillId => !existSkillIds.includes(skillId));
-    const skillToRemove = uniqueSkillIds.filter(skillId => !uniqueSkillIds.includes(skillId));
+    const skillToRemove = existSkillIds.filter(skillId => !uniqueSkillIds.includes(skillId));
 
     await Promise.all(skillToAdd.map(async (skillId) => {
         try {
@@ -156,6 +159,7 @@ exports.updateCompany = TryCatch(async (req, resp, next) => {
             console.error(error.message);
         }
     }));
+
     await CompanySkill.destroy({ where: { skillId: skillToRemove, companyId: company.id } });
     resp.status(200).json({ success: true, message: "Company Updated Successfully..." });
 });

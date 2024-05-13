@@ -96,6 +96,27 @@ exports.addPlacement = TryCatch(async (req, resp, next) => {
     resp.status(201).json({ success: true, message: 'Placement Created Successfully...' });
 });
 
+exports.updatePlacement = TryCatch(async (req, resp, next) => {
+    const { place_status, status_details, rereg_edate, rereg_etime, type } = req.body;
+    const placement = await Placement.findOne({ where: { status: true, id: req.params.id } });
+    if (!placement) {
+        return next(new ErrorHandler("Placement Not Found!", 404));
+    };
+
+    await placement.update({ place_status, status_details, rereg_edate, rereg_etime, type });
+    resp.status(200).json({ success: true, message: "Placement Updated Successfully..." });
+});
+
+exports.deletePlacement = TryCatch(async (req, resp, next) => {
+    const placement = await Placement.findOne({ where: { status: true, id: req.params.id } });
+    if (!placement) {
+        return next(new ErrorHandler("Placement Not Found!", 404));
+    };
+
+    await placement.update({ status: false });
+    resp.status(200).json({ success: true, message: "Placement Deleted Successfully..." });
+});
+
 
 
 // Association Placement and Positions

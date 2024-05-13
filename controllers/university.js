@@ -8,11 +8,12 @@ const ErrorHandler = require("../utils/errHandle");
 // University.sync();
 
 exports.createUniversity = TryCatch(async (req, resp, next) => {
-    const { title, reg_no, city, pin_code, email, state, phone } = req.body;
+    const { title, reg_no, city, pin_code, email, state, phone, country } = req.body;
+    const logo = req.file && req.file.path;
 
     const [university, created] = await University.findOrCreate({
         where: { reg_no },
-        defaults: { city, pin_code, email, state, phone, title, }
+        defaults: { city, pin_code, email, state, country, phone, title, logo: logo ? logo : null }
     });
     created ? resp.status(200).json({ success: true, message: `${university.title?.toUpperCase()} Created Successfully...` }) :
         resp.status(500).json({ success: false, message: `${university.title?.toUpperCase()} Already Exists!` });
@@ -20,7 +21,7 @@ exports.createUniversity = TryCatch(async (req, resp, next) => {
 
 exports.updateUniversity = TryCatch(async (req, resp, next) => {
     const { description, address, phone, web, facebook, linkedin, youtube, instagram } = req.body;
-    const logo = req.file.path;
+    const logo = req.file && req.file.path;
     let university = await University.findOne({ where: { id: req.params.id, status: true } });
     if (!university) {
         return next(new ErrorHandler("University Not Found!", 404));
@@ -29,8 +30,8 @@ exports.updateUniversity = TryCatch(async (req, resp, next) => {
         rm(university.logo, () => { console.log("OLD FILE REMOVED SUCCESSFULLY..."); });
     };
 
-    await university.update({ description, address, phone, web, facebook, linkedin, youtube, instagram, logo });
-    resp.status(200).json({ success: true, message: `${university?.title?.toUpperCase()} Updated Successfully...` });
+    await university.update({ description, address, phone, web, facebook, linkedin, youtube, instagram, logo: logo ? logo : university.logo });
+    resp.status(200).json({ success: true, message: `${university?.title?.toUpperCase()} Updated Successfully...`, });
 });
 
 exports.getUniversityById = TryCatch(async (req, resp, next) => {
@@ -52,9 +53,9 @@ exports.getAllUniversities = TryCatch(async (req, resp, next) => {
     };
     api.forEach((item) => {
         if (!apiObj[item.state]) {
-            apiObj[item.state] = { label: item.state.toUpperCase(), options: [] };
+            apiObj[item.state] = { label: item?.state?.toUpperCase(), options: [] };
         };
-        apiObj[item.state].options.push({ label: item.title, value: item.id });
+        apiObj[item.state].options.push({ label: item?.title?.toUpperCase(), value: item?.id });
     });
     const universities = Object.values(apiObj);
     resp.status(200).json({ success: true, universities });

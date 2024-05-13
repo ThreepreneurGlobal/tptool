@@ -39,9 +39,6 @@ exports.getAllSkills = TryCatch(async (req, resp, next) => {
 
 exports.getSuperSkills = TryCatch(async (req, resp, next) => {
     const items = await Skill.findAll({ where: { category: "skills", status: true } });
-    if (items.length === 0) {
-        return next(new ErrorHandler("Skills Not Found!", 404));
-    };
 
     const skills = await Promise.all(items.map(async (skill) => {
         const count = await CompanySkill.count({ where: { skillId: skill.id } });
@@ -95,9 +92,6 @@ exports.createBranch = TryCatch(async (req, resp, next) => {
 exports.getAllCourses = TryCatch(async (req, resp, next) => {
     const apiObj = {};
     const api = await Skill.findAll({ where: { category: "course", status: true, sub_category: ["degree", "diploma", "master"] } });
-    if (api.length === 0) {
-        return next(new ErrorHandler("Courses Not Found!", 404));
-    };
 
     api.forEach((item) => {
         if (!apiObj[item.sub_category]) {
@@ -111,9 +105,6 @@ exports.getAllCourses = TryCatch(async (req, resp, next) => {
 
 exports.getSuperCourses = TryCatch(async (req, resp, next) => {
     const items = await Skill.findAll({ where: { category: "course", status: true, sub_category: ["degree", "diploma", "master"] } });
-    if (items.length === 0) {
-        return next(new ErrorHandler("Courses Not Found!", 404));
-    };
 
     const courses = await Promise.all(items.map(async (skill) => {
         const count = await CollageSkill.count({ where: { skillId: skill.id } });

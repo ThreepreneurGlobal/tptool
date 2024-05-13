@@ -7,7 +7,6 @@ const Company = Connect.define("companies", {
         type: DataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true,
-        unique: true
     },
     title: {
         type: DataTypes.STRING,
@@ -33,7 +32,7 @@ const Company = Connect.define("companies", {
         type: DataTypes.STRING
     },
     phone: {
-        type: DataTypes.INTEGER
+        type: DataTypes.STRING
     },
     email: {
         type: DataTypes.STRING,

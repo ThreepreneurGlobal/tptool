@@ -16,16 +16,17 @@ exports.getAllApps = TryCatch(async (req, resp, next) => {
     const apps = await Application.findAll({
         where: { status: true },
         include: [
-            { model: Placement, foreignKey: "placementId", as: "placement", attributes: ["id", "title", "type", "exp_opening", "rereg_edate"] },
+            {
+                model: Placement, foreignKey: "placementId", as: "placement", attributes: ["id", "title", "type", "exp_opening", "rereg_edate"], include: [
+                    { model: PlacePosition, foreignKey: "placementId", as: "positions", attributes: ["id", "title"] }
+                ]
+            },
             { model: Company, foreignKey: "compId", as: "company", attributes: ["id", "title"] },
             { model: User, foreignKey: "userId", as: "user", attributes: ["id", "name", "email", "mobile"] },
             { model: Org, foreignKey: "orgId", as: "collage", attributes: ["id", "title", "city", "state"] },
         ],
         attributes: ['id', 'app_status', 'status_desc']
     });
-    if (apps.length <= 0) {
-        return next(new ErrorHandler("Applications Not Found!", 404));
-    };
 
     resp.status(200).json({ success: true, apps });
 });
@@ -34,7 +35,11 @@ exports.getAllCollageApps = TryCatch(async (req, resp, next) => {
     const apps = await Application.findAll({
         where: { status: true, orgId: req.user.orgId },
         include: [
-            { model: Placement, foreignKey: "placementId", as: "placement", attributes: ["id", "title", "type", "exp_opening", "rereg_edate"] },
+            {
+                model: Placement, foreignKey: "placementId", as: "placement", attributes: ["id", "title", "type", "exp_opening", "rereg_edate"], include: [{
+                    model: PlacePosition, foreignKey: "placementId", as: "positions", attributes: ["id", "title"]
+                }]
+            },
             { model: Company, foreignKey: "compId", as: "company", attributes: ["id", "title"] },
             {
                 model: User, foreignKey: "userId", as: "user", attributes: ["id", "name", "email", "id_prf"],
@@ -51,9 +56,6 @@ exports.getAllCollageApps = TryCatch(async (req, resp, next) => {
         ],
         attributes: ['id', 'app_status', 'status_desc'],
     });
-    if (apps.length <= 0) {
-        return next(new ErrorHandler("Applications Not Found!", 404));
-    };
 
     resp.status(200).json({ success: true, apps });
 });
@@ -92,13 +94,13 @@ exports.getApplicationById = TryCatch(async (req, resp, next) => {
 });
 
 exports.applyApp = TryCatch(async (req, resp, next) => {
-    const { placementId, compId } = req.body;
-    const existApp = await Application.findOne({ where: { placementId, userId: req.user.id } });
+    const { placementId, compId, positionId } = req.body;
+    const existApp = await Application.findOne({ where: { positionId, userId: req.user.id } });
     if (existApp) {
         return next(new ErrorHandler("Application Already Exists!", 403));
     };
 
-    await Application.create({ placementId, compId, userId: req.user.id, orgId: req.user.orgId });
+    await Application.create({ placementId, compId, positionId, userId: req.user.id, orgId: req.user.orgId });
     resp.status(201).json({ success: true, message: "Applied Application Successfully..." });
 });
 
@@ -111,6 +113,44 @@ exports.updateApp = TryCatch(async (req, resp, next) => {
 
     await application.update({ app_status, status_desc });
     resp.status(200).json({ success: true, message: "Application Updated Successfully..." });
+});
+
+exports.jobOffers = TryCatch(async (req, resp, next) => {
+    const applications = await Application.findAll({
+        where: { status: true, app_status: 'offers' }, attributes: ['id', 'app_status', 'status_desc', 'status'],
+        include: [
+            {
+                model: Placement, foreignKey: "placementId", as: "placement", attributes: ['id', 'title'], required: true,
+                include: [{
+                    model: PlacePosition, foreignKey: "placementId", as: "positions",
+                    attributes: ['id', 'title', 'type'], where: { type: 'job', status: true }, required: true
+                }]
+            },
+            { model: User, foreignKey: "userId", as: "user", attributes: ['id', 'name', 'email'] },
+            { model: Company, foreignKey: "compId", as: "company", attributes: ['id', 'title', 'email'] }
+        ]
+    });
+
+    resp.status(200).json({ success: true, applications });
+});
+
+exports.internOffers = TryCatch(async (req, resp, next) => {
+    const applications = await Application.findAll({
+        where: { status: true, app_status: 'offers' }, attributes: ['id', 'app_status', 'status_desc', 'status'],
+        include: [
+            {
+                model: Placement, foreignKey: "placementId", as: "placement", attributes: ['id', 'title'], required: true,
+                include: [{
+                    model: PlacePosition, foreignKey: "placementId", as: "positions",
+                    attributes: ['id', 'title', 'type'], where: { type: 'intern', status: true }, required: true
+                }]
+            },
+            { model: User, foreignKey: "userId", as: "user", attributes: ['id', 'name', 'email'] },
+            { model: Company, foreignKey: "compId", as: "company", attributes: ['id', 'title', 'email'] }
+        ]
+    });
+
+    resp.status(200).json({ success: true, applications });
 });
 
 

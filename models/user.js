@@ -16,7 +16,7 @@ const User = Connect.define("users", {
         allowNull: false
     },
     mobile: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.STRING,
         validate: {
             len: [10, 10],
         }

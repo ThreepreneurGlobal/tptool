@@ -31,9 +31,6 @@ exports.getAllCollages = TryCatch(async (req, resp, next) => {
         ],
         attributes: { exclude: ["universityId"] }
     });
-    if (collages.length === 0) {
-        return next(new ErrorHandler("No Collages Found", 404));
-    };
 
     resp.status(200).json({ success: true, collages: collages.reverse() });
 });
@@ -43,10 +40,10 @@ exports.getCollageById = TryCatch(async (req, resp, next) => {
         where: { status: true, id: req.params.id },
         include: [
             { model: University, foreignKey: "universityId", as: "university", attributes: ["title", "state", "id", "email", "logo"] },
-            { model: User, foreignKey: "orgId", as: "admins", where: { role: "admin" }, attributes: ["id", "name", "email", "id_prf", "designation"], where: { status: true } },
-            { model: Skill, through: CollageSkill, as: "branches", attributes: ["id", "title", "short_name", "sub_category"], where: { sub_category: "branch", status: true } },
-            { model: Company, through: CollageCompany, as: "companies", attributes: ["id", "title", "email", "logo", "type", "phone"], where: { status: true } },
-            { model: Skill, through: CollageSkill, as: "courses", attributes: ["id", "title", "short_name", "sub_category"], where: { sub_category: ["degree", "diploma", "master"], status: true } },
+            { model: User, foreignKey: "orgId", as: "admins", where: { role: "admin" }, attributes: ["id", "name", "email", "id_prf", "designation"], where: { status: true }, required: false },
+            { model: Skill, through: CollageSkill, as: "branches", attributes: ["id", "title", "short_name", "sub_category"], where: { sub_category: "branch", status: true }, required: false },
+            { model: Company, through: CollageCompany, as: "companies", attributes: ["id", "title", "email", "logo", "type", "phone"], where: { status: true }, required: false },
+            { model: Skill, through: CollageSkill, as: "courses", attributes: ["id", "title", "short_name", "sub_category"], where: { sub_category: ["degree", "diploma", "master"], status: true }, required: false },
         ],
         attributes: {
             exclude: ["universityId"],
@@ -62,15 +59,12 @@ exports.getCollageById = TryCatch(async (req, resp, next) => {
 exports.getDropDownCollages = TryCatch(async (req, resp, next) => {
     const apiObj = {};
     const api = await Org.findAll({ where: { status: true } });
-    if (api.length === 0) {
-        return next(new ErrorHandler("Collages Not Found!", 404));
-    };
 
     api.forEach((item) => {
         if (!apiObj[item.city]) {
-            apiObj[item.city] = { label: item.city.toUpperCase(), options: [] }
+            apiObj[item.city] = { label: item?.city?.toUpperCase(), options: [] }
         };
-        apiObj[item.city].options.push({ label: item.title, value: item.id });
+        apiObj[item.city].options.push({ label: item?.title?.toUpperCase(), value: item?.id });
     });
     const collages = Object.values(apiObj);
     resp.status(200).json({ success: true, collages });
@@ -81,14 +75,14 @@ exports.getDropDownCollages = TryCatch(async (req, resp, next) => {
 exports.updateCollage = TryCatch(async (req, resp, next) => {
     let collage = await Org.findOne({ where: { id: req.user.orgId, status: true } });
     const { description, address, city, state, country, pin_code, phone, facebook, instagram, linkedin, youtube, web } = req.body;
-    const logo = req.file.path;
+    const logo = req.file && req.file.path;
     if (logo && collage.logo) {
         rm(collage.logo, () => {
             console.log("OLD IMAGE DELETED...");
         });
     };
 
-    await collage.update({ description, address, city, state, pin_code, phone, country, facebook, instagram, linkedin, youtube, web, logo });
+    await collage.update({ description, address, city, state, pin_code, phone, country, facebook, instagram, linkedin, youtube, web, logo: logo ? logo : collage.logo });
     resp.status(200).json({ success: true, message: "Collage Profile Updated Successfully..." });
 });
 

@@ -71,12 +71,12 @@ exports.myProfile = TryCatch(async (req, resp, next) => {
 exports.updateProfile = TryCatch(async (req, resp, next) => {
     const user = await User.findByPk(req.user.id);
     const { gender, address, city, pin_code, url, facebook, twitter, instagram, linkedin, whatsapp } = req.body;
-    const avatar = req.file.path;
+    const avatar = req.file && req.file.path;
     if (avatar && user.avatar) {
         rm(user.avatar, () => { console.log('OLD FILE REMOVED SUCCESSFULLY...'); });
     };
 
-    await user.update({ avatar, gender, address, city, pin_code, url, facebook, twitter, instagram, linkedin, whatsapp });
+    await user.update({ avatar: avatar ? avatar : user.avatar, gender, address, city, pin_code, url, facebook, twitter, instagram, linkedin, whatsapp });
     resp.status(200).json({ success: true, message: "Profile Updated Successfully..." });
 });
 
@@ -84,12 +84,21 @@ exports.addStudent = TryCatch(async (req, resp, next) => {
     const { name, email, mobile, dob, gender, courseId, branchId, current_yr, batch, enroll,
         ed_gap, gap_desc, ten_per, ten_yr, twelve_per, twelve_yr, twelve_stream, universityId, } = req.body;
 
+    // Genrate Password
+    let password;
+    const trimName = name.replace(" ", "");
+    const nameWord = trimName.split(' ');
+    if (nameWord.length > 0) {
+        const first = nameWord[0];
+        password = (first.substring(0, 4)).charAt(0).toUpperCase() + first.substring(1, 4).toLowerCase() + "@123";
+    };
+
     const existed = await User.findOne({ where: { email, orgId: req.user.orgId, name } });
     if (existed) {
         return next(new ErrorHandler(`${existed.name} Already Exists!`, 500));
     };
 
-    const user = await User.create({ name, email, mobile, gender, password: "Student@123", orgId: req.user.orgId });
+    const user = await User.create({ name, email, mobile, gender, password, orgId: req.user.orgId });
     if (user) {
         await Student.create({
             dob, courseId, branchId, current_yr, batch, enroll, ed_gap, gap_desc, ten_per,
@@ -97,7 +106,7 @@ exports.addStudent = TryCatch(async (req, resp, next) => {
         });
     };
 
-    resp.status(201).json({ success: true, message: `${user.name?.toUpperCase()} Added Successfully...` });
+    resp.status(201).json({ success: true, message: `${user?.name?.toUpperCase()} Added Successfully...` });
 });
 
 exports.deleteStudent = TryCatch(async (req, resp, next) => {

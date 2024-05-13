@@ -22,6 +22,9 @@ const Application = Connect.define("applications", {
     compId: {
         type: DataTypes.INTEGER
     },
+    positionId: {
+        type: DataTypes.INTEGER
+    },
     placementId: {
         type: DataTypes.INTEGER
     },
