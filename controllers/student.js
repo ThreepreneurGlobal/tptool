@@ -30,25 +30,38 @@ exports.getStudentById = TryCatch(async (req, resp, next) => {
 
 
 exports.exportAllStud = TryCatch(async (req, resp, next) => {
-    const students = await User.findAll({
-        where: { orgId: req.user.orgId, status: true, role: "user" }
+    const users = await User.findAll({
+        where: { orgId: req.user.orgId, status: true, role: "user" },
+        include: [
+            { model: Student, foreignKey: "userId", as: "student", required: false }
+        ]
     });
 
     const workbook = XLSX.utils.book_new();
-    const worksheet = XLSX.utils.json_to_sheet(students.map((item) => ({
-        Name: item.name,
-        Mobile: item.mobile,
-        Mail: item.email,
-        Gender: item.gender,
-        City: item.city,
-        IDProof: item.id_prf
+    const worksheet = XLSX.utils.json_to_sheet(users.map((item) => ({
+        Name: item?.name,
+        Mobile: item?.mobile,
+        Mail: item?.email,
+        Gender: item?.gender,
+        Address: item?.address,
+        Pin_Code: item?.pin_code,
+        City: item?.city,
+        IDProof: item?.id_prf,
+        DOB: item?.student?.dob,
+        Batch: item?.student?.batch,
+        EnrollmentID: item?.student?.enroll,
+        Tenth_Year: item?.student?.ten_yr,
+        Tenth_Percentage: item?.student?.ten_per,
+        Twelth_Year: item?.student?.twelve_yr,
+        Twelth_Percentage: item?.student?.twelve_per,
     })));
 
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'students');
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
     const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+
     resp.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     resp.setHeader('Content-Disposition', `attachment; filename=students.xlsx`);
-    resp.end(buffer, 'binary');
+    resp.status(200).end(buffer, 'binary');
 });
 
 exports.importStudent = TryCatch(async (req, resp, next) => {
@@ -76,7 +89,7 @@ exports.importStudent = TryCatch(async (req, resp, next) => {
             const first = nameWord[0];
             password = (first.substring(0, 4)).charAt(0).toUpperCase() + first.substring(1, 4).toLowerCase() + "@123";
         };
-        
+
         const existed = await User.findOne({ where: { name: Name, email: Mail } });
         if (existed) {
             console.log(`${existed.name} Already Exist!`);

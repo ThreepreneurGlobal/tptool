@@ -1,14 +1,17 @@
 const express = require("express");
 const { isAuthenticatedUser, isAutherizeRole } = require("../middleware/auth");
+const upload = require("../utils/upload");
 const { createCollage, updateCollage, getAllCollages, getDropDownCollages, getCollageById, myCollage } = require("../controllers/org");
 const { addBranchInCollage, addCourseInCollage } = require("../controllers/collageSkilll");
 const { addCompanyInCollage } = require("../controllers/collageCompany");
-const upload = require("../utils/upload");
+const { getAdminStats } = require("../controllers/adminDash");
 
 
 const router = express.Router();
 
 router.post("/create", isAuthenticatedUser, isAutherizeRole("super"), createCollage);
+
+router.get("/dashboard", isAuthenticatedUser, isAutherizeRole("admin"), getAdminStats);
 
 router.get("/get", isAuthenticatedUser, isAutherizeRole("super"), getAllCollages);
 

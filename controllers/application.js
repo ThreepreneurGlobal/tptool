@@ -60,6 +60,12 @@ exports.getAllCollageApps = TryCatch(async (req, resp, next) => {
     resp.status(200).json({ success: true, apps });
 });
 
+exports.getMyApps = TryCatch(async (req, resp, next) => {
+    const apps = await Application.findAll({ where: { userId: req.user.id, status: true } });
+
+    resp.status(200).json({ success: true, apps });
+});
+
 exports.getApplicationById = TryCatch(async (req, resp, next) => {
     const application = await Application.findOne({
         where: { id: req.params.id, status: true },

@@ -40,7 +40,7 @@ exports.getCollageById = TryCatch(async (req, resp, next) => {
         where: { status: true, id: req.params.id },
         include: [
             { model: University, foreignKey: "universityId", as: "university", attributes: ["title", "state", "id", "email", "logo"] },
-            { model: User, foreignKey: "orgId", as: "admins", where: { role: "admin" }, attributes: ["id", "name", "email", "id_prf", "designation"], where: { status: true }, required: false },
+            { model: User, foreignKey: "orgId", as: "admins", attributes: ["id", "name", "email", "id_prf", "designation"], where: { status: true, role: "admin" }, required: false },
             { model: Skill, through: CollageSkill, as: "branches", attributes: ["id", "title", "short_name", "sub_category"], where: { sub_category: "branch", status: true }, required: false },
             { model: Company, through: CollageCompany, as: "companies", attributes: ["id", "title", "email", "logo", "type", "phone"], where: { status: true }, required: false },
             { model: Skill, through: CollageSkill, as: "courses", attributes: ["id", "title", "short_name", "sub_category"], where: { sub_category: ["degree", "diploma", "master"], status: true }, required: false },
