@@ -77,12 +77,28 @@ const Student = Connect.define("students", {
     },
     experience: {
         type: DataTypes.FLOAT,
+        defaultValue: 0
     },
-    job_interest: {
+    interested_in: {
+        type: DataTypes.STRING,
+        get: function () {
+            return JSON.parse(this.getDataValue("interested_in"));
+        },
+        set: function (value) {
+            return this.setDataValue("interested_in", JSON.stringify(value));
+        }
+    },
+    position: {
         type: DataTypes.STRING,
     },
-    internship_interest: {
+    langs: {
         type: DataTypes.STRING,
+        get: function () {
+            return JSON.parse(this.getDataValue("langs"));
+        },
+        set: function (value) {
+            return this.setDataValue("langs", JSON.stringify(value));
+        }
     },
     userId: {
         type: DataTypes.INTEGER,

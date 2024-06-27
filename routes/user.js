@@ -3,7 +3,7 @@ const { isAuthenticatedUser, isAutherizeRole } = require("../middleware/auth");
 const { registerUser, loginUser, logoutUser, myProfile, addAdmin, addStudent, allStudent, updateProfile, deleteStudent, getAdmins } = require("../controllers/user");
 const upload = require("../utils/upload");
 const xlxUpload = require("../utils/xlxUpload");
-const { getStudentById, exportAllStud, importStudent } = require("../controllers/student");
+const { getStudentById, exportAllStud, importStudent, updateStudentProfile } = require("../controllers/student");
 
 
 const router = express.Router();
@@ -32,6 +32,8 @@ router.get("/export/students", isAuthenticatedUser, isAutherizeRole('admin'), ex
 router.post("/import/students", isAuthenticatedUser, isAutherizeRole("admin"), xlxUpload.single("file"), importStudent);
 
 router.put("/update/profile", isAuthenticatedUser, upload.single("avatar"), updateProfile);
+
+router.put("/student/update", isAuthenticatedUser, updateStudentProfile);
 
 router.put("/delete/student/:id", isAuthenticatedUser, isAutherizeRole("admin"), deleteStudent);
 

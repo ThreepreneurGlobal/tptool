@@ -1,11 +1,12 @@
 const express = require("express");
 const { isAutherizeRole, isAuthenticatedUser } = require("../middleware/auth");
 const { createAcademy, getAllAcademy, getAllCollageAcademy, getAcademyById, updateAcademy, deleteAcademy } = require("../controllers/academy");
+const upload = require("../utils/upload");
 
 
 const router = express.Router();
 
-router.post("/create", isAuthenticatedUser, isAutherizeRole("admin"), createAcademy);
+router.post("/create", isAuthenticatedUser, isAutherizeRole("admin"), upload.single("marksheet"), createAcademy);
 
 router.get("/get", isAuthenticatedUser, isAutherizeRole("super"), getAllAcademy);
 

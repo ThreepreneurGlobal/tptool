@@ -6,14 +6,15 @@ const ErrorHandler = require("../utils/errHandle");
 // Academy.sync();
 
 exports.createAcademy = TryCatch(async (req, resp, next) => {
-    const { edu_year, sem, assignment, assignment_per, assignment_status, per, live_back, close_back, marksheet, academic_status, studId, } = req.body;
+    const { edu_year, sem, assignment, assignment_per, assignment_status, per, live_back, close_back, academic_status, studId, userId } = req.body;
+    const marksheet = req.file?.path;
 
-    const existed = await Academy.findOne({where: {edu_year, sem, studId, orgId: req.user.orgId}});
-    if(existed){
+    const existed = await Academy.findOne({ where: { edu_year, sem, studId, orgId: req.user.orgId } });
+    if (existed) {
         return next(new ErrorHandler(("Academic Record Already Existed!", 403)));
     };
 
-    const academy = await Academy.create({edu_year, sem, assignment, assignment_per, assignment_status, per, live_back, close_back, marksheet, academic_status, studId, orgId: req.user.orgId});
+    await Academy.create({ edu_year, sem, assignment, assignment_per, assignment_status, per, live_back, close_back, marksheet, academic_status, studId, orgId: req.user.orgId, userId });
 
     resp.status(201).json({ success: true, message: `Academy Record Created Successfully...` })
 });

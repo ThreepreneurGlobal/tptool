@@ -11,10 +11,14 @@ const CompanySkill = require("../models/companySkill");
 exports.createSkill = TryCatch(async (req, resp, next) => {
     const { title, short_name, description, sub_category } = req.body;
 
-    const [skill, created] = await Skill.findOrCreate({
-        where: { title, short_name },
-        defaults: { description, sub_category, category: "skills" }
+    let [skill, created] = await Skill.findOrCreate({
+        where: { short_name },
+        defaults: { title, description, sub_category, category: "skills" }
     });
+    if (req.user.role === "admin") {
+        await CollageSkill.create({ skillId: skill?.id, collageId: req.user.orgId });
+        await skill.update({ userId: req.user.id });
+    };
     created ? resp.status(201).json({ success: true, message: `${skill.title?.toUpperCase()} is Created Successfully...` }) :
         resp.status(403).json({ success: false, message: `${skill.title?.toUpperCase()} Already Exists!` });
 });
@@ -83,6 +87,10 @@ exports.createBranch = TryCatch(async (req, resp, next) => {
         where: { title, short_name },
         defaults: { description, category: "course", sub_category: "branch" }
     });
+    if (req.user.role === "admin") {
+        await CollageSkill.create({ skillId: branch?.id, collageId: req.user.orgId });
+        await branch.update({ userId: req.user.id });
+    }
     created ? resp.status(201).json({ success: true, message: `${branch.title?.toUpperCase()} is Created Successfully...` }) :
         resp.status(403).json({ success: false, message: `${branch.title?.toUpperCase()} Already Exists!` });
 });
@@ -121,6 +129,10 @@ exports.createCourse = TryCatch(async (req, resp, next) => {
         where: { title, short_name },
         defaults: { description, category: "course", sub_category }
     });
+    if (req.user.role === "admin") {
+        await CollageSkill.create({ skillId: course?.id, collageId: req.user.orgId });
+        await course.update({ userId: req.user.id });
+    };
     created ? resp.status(201).json({ success: true, message: `${course.title?.toUpperCase()} is Created Successfully...` }) :
         resp.status(403).json({ success: false, message: `${course.title?.toUpperCase()} Already Exists!` });
 });

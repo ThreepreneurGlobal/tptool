@@ -6,9 +6,17 @@ const ErrorHandler = require("../utils/errHandle");
 const TryCatch = require("../middleware/TryCatch");
 const Skill = require("../models/skill");
 const Org = require("../models/org");
+const Application = require("../models/aplication");
+const PlacePosition = require("../models/placePosition");
+const Company = require("../models/company");
+const Project = require("../models/project");
+const UserSkill = require("../models/studentSkill");
+const Academy = require("../models/academy");
+const DocumentModel = require("../models/document");
+
 
 exports.getStudentById = TryCatch(async (req, resp, next) => {
-    const student = await User.findOne({
+    const user = await User.findOne({
         where: { orgId: req.user.orgId, status: true, role: "user", designation: "student", id: req.params.id },
         include: [
             {
@@ -18,14 +26,79 @@ exports.getStudentById = TryCatch(async (req, resp, next) => {
                     { model: Skill, foreignKey: "branchId", attributes: ["id", "title", "short_name"], as: "branch", where: { sub_category: "branch" } },
                 ],
             },
+            {
+                model: Application, foreignKey: "userId", as: "apps", required: false, attributes: { exclude: ['orgId', 'compId', 'positionId', 'userId'] },
+                include: [
+                    { model: PlacePosition, foreignKey: "positionId", as: "position", required: true, attributes: ['id', 'title', 'type', 'locations'] },
+                    { model: Company, foreignKey: "compId", as: "company", required: true, attributes: ['id', 'title'] },
+                ]
+            },
+            { model: Skill, through: UserSkill, as: "skills", required: false, attributes: ['id', 'title', 'short_name'] }
         ],
         attributes: { exclude: ["password"] }
     });
-    if (!student) {
+    if (!user) {
         return next(new ErrorHandler("Student Not Found!", 404));
     }
 
+    // Applications Status Counting
+    const job_status = Application.rawAttributes.app_status.values;
+    const job_status_count = {};
+    const intern_status_count = {};
+    for (let status of job_status) {
+        job_status_count[status] = 0;
+        intern_status_count[status] = 0;
+    };
+
+    if (user?.apps) {
+        user?.apps?.forEach(app => {
+            const positionType = app?.position?.type;
+            if (positionType === "job" && job_status_count.hasOwnProperty(app.app_status)) {
+                job_status_count[app.app_status]++;
+            } else if (positionType === "intern" && intern_status_count.hasOwnProperty(app.app_status)) {
+                intern_status_count[app.app_status]++;
+            }
+        });
+    };
+
+    // Project List
+    const projects = await Project.findAll({ where: { status: true, studId: user?.id }, attributes: { exclude: ["studId"] } });
+
+    // Academic List
+    const academies = await Academy.findAll({
+        where: { status: true, userId: user?.id }, attributes: { exclude: ['studId', 'userId', 'orgId'] }
+    });
+
+    // Attachments List
+    const id_prfs = await DocumentModel.findAll({ where: { userId: user?.id, type: "id_prf" } });
+    const certificates = await DocumentModel.findAll({ where: { userId: user?.id, type: "certificate" } });
+
+    const student = {
+        user, job_status_count, intern_status_count, projects, academies, id_prfs, certificates
+    };
     resp.status(200).json({ success: true, student });
+});
+
+
+exports.updateStudentProfile = TryCatch(async (req, resp, next) => {
+    const { dob, ten_yr, ten_per, ten_board, twelve_yr, twelve_per, twelve_board,
+        twelve_stream, experience, interested_in, position, langs } = req.body;
+
+    if (dob && isNaN(Date.parse(dob))) {
+        return next(new ErrorHandler("Invalid Date of Birth format", 400));
+    };
+
+    const student = await Student.findOne({ where: { userId: req.user.id } });
+    if (!student) {
+        return next(new ErrorHandler("Student Not Found!", 404));
+    };
+
+    await student.update({
+        dob, ten_yr, ten_per, ten_board, twelve_yr, twelve_per, twelve_board, twelve_stream,
+        experience, interested_in, position, langs
+    });
+
+    resp.status(200).json({ success: true, message: 'STUDENT PROFILE UPDATED SUCCESSFULLY...' });
 });
 
 

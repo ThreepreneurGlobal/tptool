@@ -20,13 +20,13 @@ const Project = Connect.define("projects", {
     },
     start: {
         type: DataTypes.DATEONLY,
-        // defaultValue: Date.now
+        defaultValue: Date.now
     },
     end: {
         type: DataTypes.DATEONLY
     },
     proj_status: {
-        type: DataTypes.STRING,
+        type: DataTypes.ENUM("working", "completed", "testing"),
         defaultValue: "working"
     },
     demo_img: {
@@ -38,8 +38,6 @@ const Project = Connect.define("projects", {
     logo: {
         type: DataTypes.TEXT
     },
-    // teams: { },  Association with User work pending
-    // skills: { }, Association with Skill work pending
     studId: {
         type: DataTypes.INTEGER
     },

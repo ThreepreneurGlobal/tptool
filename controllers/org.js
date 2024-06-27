@@ -76,8 +76,8 @@ exports.updateCollage = TryCatch(async (req, resp, next) => {
     let collage = await Org.findOne({ where: { id: req.user.orgId, status: true } });
     const { description, address, city, state, country, pin_code, phone, facebook, instagram, linkedin, youtube, web } = req.body;
     const logo = req.file && req.file.path;
-    if (logo && collage.logo) {
-        rm(collage.logo, () => {
+    if (logo && collage?.logo) {
+        rm(collage?.logo, () => {
             console.log("OLD IMAGE DELETED...");
         });
     };

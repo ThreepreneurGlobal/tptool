@@ -1,3 +1,4 @@
+const { rm } = require("fs");
 const TryCatch = require("../middleware/TryCatch");
 const Company = require("../models/company");
 const Placement = require("../models/placement");
@@ -51,7 +52,6 @@ exports.getCollagePlacementById = TryCatch(async (req, resp, next) => {
             { model: Company, foreignKey: "companyId", as: "company" },
             { model: User, foreignKey: "userId", as: "admin", attributes: ["id", "name", "email"] },
         ],
-        attributes: { exclude: ['attach_tpo', 'attach_student'] }
     });
 
     resp.status(200).json({ success: true, placement });
@@ -62,13 +62,14 @@ exports.addPlacement = TryCatch(async (req, resp, next) => {
     const { title, type, exp_opening, place_status, status_details, selection_details, other_details,
         contact_per, company_contact, reg_stime, reg_sdate, reg_etime, reg_edate, rereg_etime, rereg_edate,
         reg_details, add_comment, history, companyId, positions, skillIds, criteria } = req.body;
-    const attach_student = req.files['attach_student'][0].path;
-    const attach_tpo = req.files['attach_tpo'][0].path;
+    const attach_student = req.files['attach_student'] && req.files['attach_student'][0].path;
+    const attach_tpo = req.files['attach_tpo'] && req.files['attach_tpo'][0].path;
 
     const placement = await Placement.create({
         title, type, exp_opening, place_status, status_details, selection_details, other_details, contact_per,
         company_contact, reg_stime, reg_sdate, reg_etime, reg_edate, rereg_etime, rereg_edate, reg_details,
-        add_comment, history, criteria, companyId, userId: req.user.id, collageId: req.user.orgId, attach_student, attach_tpo,
+        add_comment, history, criteria, companyId, userId: req.user.id, collageId: req.user.orgId,
+        attach_student: attach_student ? attach_student : null, attach_tpo: attach_tpo ? attach_tpo : null,
     });
 
     if (placement) {
@@ -97,13 +98,73 @@ exports.addPlacement = TryCatch(async (req, resp, next) => {
 });
 
 exports.updatePlacement = TryCatch(async (req, resp, next) => {
-    const { place_status, status_details, rereg_edate, rereg_etime, type } = req.body;
     const placement = await Placement.findOne({ where: { status: true, id: req.params.id } });
     if (!placement) {
         return next(new ErrorHandler("Placement Not Found!", 404));
     };
 
-    await placement.update({ place_status, status_details, rereg_edate, rereg_etime, type });
+    const { title, type, exp_opening, place_status, status_details, selection_details, other_details,
+        contact_per, company_contact, reg_stime, reg_sdate, reg_etime, reg_edate, rereg_etime, rereg_edate,
+        reg_details, add_comment, history, companyId, positions, skillIds, criteria } = req.body;
+    const attach_student = req.files['attach_student'] && req.files['attach_student'][0].path;
+    const attach_tpo = req.files['attach_tpo'] && req.files['attach_tpo'][0].path;
+
+    if (attach_student && placement?.attach_student) {
+        rm(placement?.attach_student, () => { console.log("OLD STUDENT FILE DELETED..."); });
+    };
+    if (attach_tpo && placement?.attach_tpo) {
+        rm(placement?.attach_tpo, () => { console.log("OLD TPO FILE DELETED..."); });
+    };
+
+    await placement.update({
+        title, type, exp_opening, place_status, status_details, selection_details, other_details, contact_per,
+        company_contact, reg_stime, reg_sdate, reg_etime, reg_edate, rereg_etime, rereg_edate, reg_details,
+        add_comment, history, criteria, companyId, userId: req.user.id, collageId: req.user.orgId,
+        attach_student: attach_student ? attach_student : placement?.attach_student,
+        attach_tpo: attach_tpo ? attach_tpo : placement?.attach_tpo,
+    });
+
+    const existingPositions = await PlacePosition.findAll({ where: { placementId: placement?.id } });
+
+    // Update, delete, or add positions based on the request
+    for (const pos of positions) {
+        const existPosition = existingPositions.find(p => p.id === pos.id);
+        if (existPosition) {
+            existPosition.title = pos.title;
+            existPosition.type = pos.type;
+            existPosition.locations = pos.locations;
+
+            await existPosition.save();
+        } else {
+            await PlacePosition.create({
+                title: pos.title, type: pos.type, locations: pos.locations,
+                companyId, placementId: placement.id
+            });
+        };
+    };
+
+    // Delete positions that are not in the updated list
+    const positionsToDelete = existingPositions.filter(p => !positions.some(pos => pos.id === p.id));
+    for (const pos of positionsToDelete) {
+        await pos.destroy();
+    };
+
+    // Handle skills (assuming PlaceSkill model is correctly implemented)
+    const existingSkills = await PlaceSkill.findAll({ where: { placementId: placement.id } });
+    const existingSkillIds = existingSkills.map(skill => skill.skillId);
+
+    // Remove skills that are not in the updated list
+    const skillToRemove = existingSkills.filter(skill => !skillIds.includes(skill.skillId));
+    for (const skill of skillToRemove) {
+        await skill.destroy();
+    };
+
+    // Add new skills
+    const skillToAdd = skillIds.filter(skillId => !existingSkillIds.includes(skillId));
+    for (const skillId of skillToAdd) {
+        await PlaceSkill.create({ skillId, companyId, placementId: placement.id });
+    };
+
     resp.status(200).json({ success: true, message: "Placement Updated Successfully..." });
 });
 
@@ -131,7 +192,7 @@ Company.hasMany(Placement, { foreignKey: "companyId", as: "placements" });
 Placement.belongsTo(User, { foreignKey: "userId", as: "admin" });
 User.hasMany(Placement, { foreignKey: "userId", as: "placements" });
 
-//Association Placement and User
+//Association Placement and Collage
 Placement.belongsTo(Org, { foreignKey: "collageId", as: "collage" });
 Org.hasMany(Placement, { foreignKey: "collageId", as: "placements" });
 

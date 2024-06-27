@@ -44,6 +44,17 @@ exports.getUniversityById = TryCatch(async (req, resp, next) => {
 });
 
 exports.getAllUniversities = TryCatch(async (req, resp, next) => {
+    const universities = await University.findAll({
+        where: { status: true },
+        include: [
+            { model: Collage, foreignKey: "universityId", as: "collages", attributes: ["title", "city", "id", "pin_code"] }
+        ]
+    });
+
+    resp.status(200).json({ success: true, universities });
+});
+
+exports.getGenAllUni = TryCatch(async (req, resp, next) => {
     let apiObj = {};
     const api = await University.findAll({
         where: { status: true },
@@ -58,16 +69,6 @@ exports.getAllUniversities = TryCatch(async (req, resp, next) => {
         apiObj[item.state].options.push({ label: item?.title?.toUpperCase(), value: item?.id });
     });
     const universities = Object.values(apiObj);
-    resp.status(200).json({ success: true, universities });
-});
-
-exports.getGenAllUni = TryCatch(async (req, resp, next) => {
-    const universities = await University.findAll({
-        where: { status: true },
-        include: [
-            { model: Collage, foreignKey: "universityId", as: "collages", attributes: ["title", "city", "id", "pin_code"] }
-        ]
-    });
 
     resp.status(200).json({ success: true, universities });
 });

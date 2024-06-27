@@ -175,3 +175,7 @@ User.hasMany(Application, { foreignKey: "userId", as: "apps" });
 // Association Application and Collage
 Application.belongsTo(Org, { foreignKey: "orgId", as: "collage" });
 Org.hasMany(Application, { foreignKey: "orgId", as: "apps" });
+
+// Association Application and Position
+Application.belongsTo(PlacePosition, { foreignKey: "positionId", as: "position" });
+PlacePosition.hasOne(Application, { foreignKey: "positionId", as: "app" });

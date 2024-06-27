@@ -15,7 +15,8 @@ router.get("/collage/get/:id", isAuthenticatedUser, getCollagePlacementById);
 router.post("/create", isAuthenticatedUser, isAutherizeRole("admin"),
     upload.fields([{ name: "attach_student" }, { name: "attach_tpo" }]), addPlacement);
 
-router.put("/update/:id", isAuthenticatedUser, isAutherizeRole("admin"), updatePlacement);
+router.put("/update/:id", isAuthenticatedUser, isAutherizeRole("admin"),
+    upload.fields([{ name: "attach_student" }, { name: "attach_tpo" }]), updatePlacement);
 
 router.put("/delete/:id", isAuthenticatedUser, isAutherizeRole("admin"), deletePlacement);
 

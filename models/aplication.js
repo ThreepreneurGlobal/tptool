@@ -10,7 +10,9 @@ const Application = Connect.define("applications", {
         unique: true
     },
     app_status: {
-        type: DataTypes.STRING,
+        type: DataTypes.ENUM('pending', 'offers', 'approved but not shortlisted', 'eligible but not registered',
+            'interview but not offered', 'registered but not approved', 'shortlisted but absent',
+            'shortlisted but not inverview'),
         defaultValue: "pending"
     },
     status_desc: {

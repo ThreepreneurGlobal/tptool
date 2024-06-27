@@ -2,28 +2,22 @@ const { DataTypes } = require("sequelize");
 const Connect = require("../utils/connect");
 
 
-const Skill = Connect.define("skills", {
+const DocumentModel = Connect.define("documents", {
     id: {
         type: DataTypes.INTEGER,
-        autoIncrement: true,
         primaryKey: true,
+        autoIncrement: true,
         unique: true
     },
     title: {
         type: DataTypes.STRING,
+    },
+    url: {
+        type: DataTypes.TEXT,
         allowNull: false
     },
-    short_name: {
-        type: DataTypes.STRING
-    },
-    description: {
-        type: DataTypes.TEXT
-    },
-    category: {
-        type: DataTypes.STRING
-    },
-    sub_category: {
-        type: DataTypes.STRING
+    type: {
+        type: DataTypes.ENUM("certificate", "id_prf")
     },
     userId: {
         type: DataTypes.INTEGER
@@ -34,4 +28,5 @@ const Skill = Connect.define("skills", {
     }
 }, { timestamps: true, createdAt: "created_at", updatedAt: "updated_at" });
 
-module.exports = Skill;
+
+module.exports = DocumentModel;

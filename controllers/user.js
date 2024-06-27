@@ -86,9 +86,9 @@ exports.addStudent = TryCatch(async (req, resp, next) => {
 
     // Genrate Password
     let password;
-    const trimName = name.replace(" ", "");
-    const nameWord = trimName.split(' ');
-    if (nameWord.length > 0) {
+    const trimName = name?.replace(" ", "");
+    const nameWord = trimName?.split(' ');
+    if (nameWord?.length > 0) {
         const first = nameWord[0];
         password = (first.substring(0, 4)).charAt(0).toUpperCase() + first.substring(1, 4).toLowerCase() + "@123";
     };
@@ -129,8 +129,8 @@ exports.allStudent = TryCatch(async (req, resp, next) => {
             {
                 model: Student, foreignKey: "userId", as: "student",
                 include: [
-                    { model: Skill, foreignKey: "courseId", attributes: ["id", "short_name"], as: "course", where: { sub_category: ["degree", "master", "diploma"] } },
-                    { model: Skill, foreignKey: "branchId", attributes: ["id", "short_name"], as: "branch", where: { sub_category: "branch" } },
+                    { model: Skill, foreignKey: "courseId", attributes: ["id", "short_name", "title"], as: "course", where: { sub_category: ["degree", "master", "diploma"] } },
+                    { model: Skill, foreignKey: "branchId", attributes: ["id", "short_name", "title"], as: "branch", where: { sub_category: "branch" } },
                 ],
                 attributes: ["dob", "batch", "current_yr", "enroll", "ten_per", "twelve_per", "diploma",
                     "diploma_per", "ed_gap", "experience", "id"]

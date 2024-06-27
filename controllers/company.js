@@ -5,10 +5,12 @@ const Company = require("../models/company");
 const CompanySkill = require("../models/companySkill");
 const Skill = require("../models/skill");
 const ErrorHandler = require("../utils/errHandle");
+const Location = require("../models/location");
 
 // Company.sync({ alter: true, force: true });
 // CollageCompany.sync({ alter: true, force: true });
 // CompanySkill.sync({ force: true, alter: true });
+// Location.sync({ force: true, alter: true });
 
 exports.getAllCompanies = TryCatch(async (req, resp, next) => {
     const companies = await Company.findAll({
@@ -39,16 +41,16 @@ exports.getAllDDCompanies = TryCatch(async (req, resp, next) => {
 });
 
 exports.createComp = TryCatch(async (req, resp, next) => {
-    const { title, description, reg_no, address, city, state, country, pin_code, phone, email, type,
-        sub_type, team_size, web, facebook, linkedin, instagram, youtube, locations, features, skillIds } = req.body;
-    const logo = req.file && req.file.path;  // Logo Upload Pending
+    const { title, description, reg_no, address, city, state, country, pin_code, phone, email, type, work_types,
+        sub_type, team_size, web, facebook, linkedin, instagram, youtube, locations, domains, skillIds } = req.body;
+    const logo = req.file && req.file.path;
 
     const [company, created] = await Company.findOrCreate({
         where: { reg_no },
         defaults: {
             title, description, address, city, state, country, pin_code, phone, email, type,
-            sub_type, team_size, web, facebook, linkedin, instagram, youtube, locations, features,
-            userId: req.user.id, orgId: req.user.orgId, logo: logo ? logo : null,
+            sub_type, team_size, web, facebook, linkedin, instagram, youtube, locations, domains,
+            userId: req.user.id, orgId: req.user.orgId, logo, work_types
         }
     });
 
@@ -124,8 +126,8 @@ exports.removeLocation = TryCatch(async (req, resp, next) => {
 
 
 exports.updateCompany = TryCatch(async (req, resp, next) => {
-    const { description, address, city, state, country, pin_code, phone, email, type, sub_type,
-        team_size, web, facebook, linkedin, instagram, youtube, locations, features, skillIds } = req.body;
+    const { description, address, city, state, country, pin_code, phone, email, type, sub_type, work_types,
+        team_size, web, facebook, linkedin, instagram, youtube, locations, domains, skillIds } = req.body;
     let logo = req.file && req.file.path;
     let company = await Company.findOne({ where: { status: true, id: req.params.id } });
     if (!company) {
@@ -138,8 +140,8 @@ exports.updateCompany = TryCatch(async (req, resp, next) => {
     };
 
     await company.update({
-        address, city, state, country, pin_code, phone, email, type, logo: logo ? logo : company.logo,
-        sub_type, team_size, web, facebook, linkedin, instagram, youtube, locations, features, description
+        address, city, state, country, pin_code, phone, email, type, logo: logo ? logo : company.logo, work_types,
+        sub_type, team_size, web, facebook, linkedin, instagram, youtube, locations, domains, description
     });
 
     // Check Unique ID's and Convert String to Number.

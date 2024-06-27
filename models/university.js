@@ -72,6 +72,9 @@ const University = Connect.define("universities", {
     instagram: {
         type: DataTypes.TEXT
     },
+    userId: {
+        type: DataTypes.INTEGER
+    },
     // branches:{}, Its a Array with Association Skills, but its pending work.
     status: {
         type: DataTypes.BOOLEAN,
