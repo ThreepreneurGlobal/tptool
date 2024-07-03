@@ -39,7 +39,7 @@ exports.getCollageById = TryCatch(async (req, resp, next) => {
     const collage = await Org.findOne({
         where: { status: true, id: req.params.id },
         include: [
-            { model: University, foreignKey: "universityId", as: "university", attributes: ["title", "state", "id", "email", "logo"] },
+            { model: University, foreignKey: "universityId", as: "university", attributes: ["title", "state", "id", "email", "logo", "city"] },
             { model: User, foreignKey: "orgId", as: "admins", attributes: ["id", "name", "email", "id_prf", "designation"], where: { status: true, role: "admin" }, required: false },
             { model: Skill, through: CollageSkill, as: "branches", attributes: ["id", "title", "short_name", "sub_category"], where: { sub_category: "branch", status: true }, required: false },
             { model: Company, through: CollageCompany, as: "companies", attributes: ["id", "title", "email", "logo", "type", "phone"], where: { status: true }, required: false },

@@ -1,11 +1,13 @@
 const express = require("express");
-const { isAuthenticatedUser } = require("../middleware/auth");
-const { getAllOpts, createOption, getOptById } = require("../controllers/option");
+const { isAuthenticatedUser, isAutherizeRole } = require("../middleware/auth");
+const { getAllOpts, createOption, getOptById, getDrpOpts } = require("../controllers/option");
 
 
 const router = express.Router();
 
 router.get("/get", isAuthenticatedUser, getAllOpts);
+
+router.get("/drp/get", isAuthenticatedUser, isAutherizeRole("admin", "super"), getDrpOpts);
 
 router.post("/create", isAuthenticatedUser, createOption);
 

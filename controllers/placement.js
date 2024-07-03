@@ -26,12 +26,27 @@ exports.getAllPlacements = TryCatch(async (req, resp, next) => {
         attributes: { exclude: ["userId", "companyId", "status", "created_at", "updated_at", "collageId"] }
     });
 
-    resp.status(200).json({ success: true, placements });
+    resp.status(200).json({ success: true, placements: placements.reverse() });
+});
+
+exports.getPlacementById = TryCatch(async (req, resp, next) => {
+    const placement = await Placement.findOne({
+        where: { id: req.params.id, status: true },
+        include: [
+            { model: PlacePosition, foreignKey: "placementId", as: "positions", attributes: ["locations", "id", "title", "type"] },
+            { model: Skill, through: PlaceSkill, as: "courses", attributes: ["id", "title", "short_name", "sub_category"] },
+            { model: Company, foreignKey: "companyId", as: "company" },
+            { model: User, foreignKey: "userId", as: "admin", attributes: ["id", "name", "email"] },
+            { model: Org, foreignKey: "collageId", as: "collage", attributes: ["id", "title", "city", "state", "phone", "email", "logo", "web"] },
+        ],
+    });
+
+    resp.status(200).json({ success: true, placement });
 });
 
 exports.getCollagePlacement = TryCatch(async (req, resp, next) => {
     const placements = await Placement.findAll({
-        where: { status: true, collageId: req.user.orgId },
+        where: { status: true, collageId: req.user.orgId, },
         include: [
             { model: PlacePosition, foreignKey: "placementId", as: "positions", attributes: ["locations", "id", "title", "type"] },
             { model: Skill, through: PlaceSkill, as: "courses", attributes: ["id", "short_name"] },
@@ -40,7 +55,7 @@ exports.getCollagePlacement = TryCatch(async (req, resp, next) => {
         attributes: { exclude: ["userId", "companyId", "status", "created_at", "updated_at"] }
     });
 
-    resp.status(200).json({ success: true, placements });
+    resp.status(200).json({ success: true, placements: placements.reverse() });
 });
 
 exports.getCollagePlacementById = TryCatch(async (req, resp, next) => {
@@ -173,6 +188,10 @@ exports.deletePlacement = TryCatch(async (req, resp, next) => {
     if (!placement) {
         return next(new ErrorHandler("Placement Not Found!", 404));
     };
+    const positions = await PlacePosition.findAll({ where: { placementId: placement?.id } });
+    await Promise.all(positions.map(async (position) => {
+        await position.update({ status: false });
+    }));
 
     await placement.update({ status: false });
     resp.status(200).json({ success: true, message: "Placement Deleted Successfully..." });

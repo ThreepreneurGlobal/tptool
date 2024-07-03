@@ -24,7 +24,7 @@ const Student = Connect.define("students", {
     branchId: {
         type: DataTypes.INTEGER
     },
-    current_yr: { type: DataTypes.INTEGER },
+    current_yr: { type: DataTypes.STRING },
     enroll: {
         type: DataTypes.STRING
     },

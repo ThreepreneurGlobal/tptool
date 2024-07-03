@@ -17,14 +17,21 @@ exports.getOptById = TryCatch(async (req, resp, next) => {
 });
 
 exports.createOption = TryCatch(async (req, resp, next) => {
-    const { title, category } = req.body;
+    const { title, category, color } = req.body;
 
     const exist = await Option.findOne({ where: { title: title?.toLowerCase(), category: category?.toLowerCase(), status: true } });
     if (exist) return next(new ErrorHandler(`${exist?.title?.toUpperCase()} ALREADY EXISTS!`, 400));
 
-    const option = await Option.create({ title: title?.toLowerCase(), category: category?.toLowerCase() });
+    const option = await Option.create({ title: title?.toLowerCase(), category: category?.toLowerCase(), color });
     if (req.user.role !== "super") {
         await option.update({ userId: req.user.id });
     }
     resp.status(201).json({ success: true, message: 'OPTION CREATED SUCCESSFULLY.' });
+});
+
+exports.getDrpOpts = TryCatch(async (req, resp, next) => {
+    const { category } = req.query;
+    const options = await Option.findAll({ where: { status: true, category } });
+
+    resp.status(200).json({ success: true, options });
 });

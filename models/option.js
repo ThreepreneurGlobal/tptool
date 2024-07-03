@@ -18,6 +18,9 @@ const Option = Connect.define("options", {
     sub_category: {
         type: DataTypes.STRING
     },
+    color: {
+        type: DataTypes.STRING
+    },
     userId: {
         type: DataTypes.INTEGER
     },
@@ -27,5 +30,5 @@ const Option = Connect.define("options", {
     }
 }, { timestamps: true, createdAt: "created_at", updatedAt: "updated_at" });
 
-// Option.sync({});
+// Option.sync({ alter: true, force: true });
 module.exports = Option;

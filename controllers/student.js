@@ -79,7 +79,7 @@ exports.getStudentById = TryCatch(async (req, resp, next) => {
     resp.status(200).json({ success: true, student });
 });
 
-
+// For Student Self
 exports.updateStudentProfile = TryCatch(async (req, resp, next) => {
     const { dob, ten_yr, ten_per, ten_board, twelve_yr, twelve_per, twelve_board,
         twelve_stream, experience, interested_in, position, langs } = req.body;
@@ -101,6 +101,26 @@ exports.updateStudentProfile = TryCatch(async (req, resp, next) => {
     resp.status(200).json({ success: true, message: 'STUDENT PROFILE UPDATED SUCCESSFULLY...' });
 });
 
+// For Admin 
+exports.editCollageStudent = TryCatch(async (req, resp, next) => {
+    const { name, email, mobile, dob, gender, courseId, branchId, current_yr, batch, enroll,
+        ed_gap, gap_desc, ten_per, ten_yr, twelve_per, twelve_yr, twelve_stream, universityId, } = req.body;
+
+    let user = await User.findOne({ where: { id: req.params.id, status: true, orgId: req.user.orgId } });
+    if (!user) {
+        return next(new ErrorHandler("Student Not Found!", 404));
+    };
+
+    await user.update({ name, email, mobile, gender, });
+    if (user && user.role === "user") {
+        const student = await Student.findOne({ where: { userId: user.id, status: true} });
+        await student.update({
+            dob, courseId, branchId, current_yr, batch, enroll, ed_gap, gap_desc, ten_per,
+            ten_yr, twelve_per, twelve_yr, twelve_stream, universityId,
+        });
+    };
+    resp.status(201).json({ success: true, message: `${user?.name?.toUpperCase()} Profile Updated Successfully...` });
+});
 
 exports.exportAllStud = TryCatch(async (req, resp, next) => {
     const users = await User.findAll({
@@ -135,54 +155,4 @@ exports.exportAllStud = TryCatch(async (req, resp, next) => {
     resp.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     resp.setHeader('Content-Disposition', `attachment; filename=students.xlsx`);
     resp.status(200).end(buffer, 'binary');
-});
-
-exports.importStudent = TryCatch(async (req, resp, next) => {
-    const auth = await User.findByPk(req.user.id, {
-        include: [{
-            model: Org, foreignKey: "orgId", as: "collage", attributes: ['id', 'title', 'city', 'state', 'universityId']
-        }], attributes: ['id', 'name', 'role']
-    });
-    let users = [];
-    const workbook = XLSX.readFile(req.file.path);
-    const sheetName = workbook.SheetNames[0];
-    const worksheet = workbook.Sheets[sheetName];
-    const arr = XLSX.utils.sheet_to_json(worksheet);
-
-    await Promise.all(arr.map(async (item) => {
-        const { Name, Mail, Mobile, Gender, City, IDProof, BirthDate, Batch, EnrollmentID, TenthPassing,
-            TenthPercentage, TwelvePassing, TwelveStream, TwelvePercentage, Disablity, EducationGap,
-            Course, Branch, CurrentYear } = item;
-
-        // Genrate Password
-        const trimName = Name.replace(" ", "");
-        const nameWord = trimName.split(' ');
-        let password;
-        if (nameWord.length > 0) {
-            const first = nameWord[0];
-            password = (first.substring(0, 4)).charAt(0).toUpperCase() + first.substring(1, 4).toLowerCase() + "@123";
-        };
-
-        const existed = await User.findOne({ where: { name: Name, email: Mail } });
-        if (existed) {
-            console.log(`${existed.name} Already Exist!`);
-            return null;
-        };
-        const user = await User.create({
-            name: Name, email: Mail, password, mobile: Mobile, gender: Gender, city: City,
-            id_prf: IDProof, orgId: req.user.orgId
-        });
-        users.push(user);
-        if (user) {
-            await Student.create({
-                dob: BirthDate, batch: Batch, enroll: EnrollmentID, ten_yr: TenthPassing,
-                ten_per: TenthPercentage, twelve_yr: TwelvePassing, twelve_stream: TwelveStream,
-                twelve_per: TwelvePercentage, disablity: Disablity, ed_gap: EducationGap,
-                userId: user.id, courseId: Course, branchId: Branch, current_yr: CurrentYear,
-                universityId: auth.collage.universityId
-            });
-        };
-    }));
-    users.length > 0 ? resp.status(200).json({ success: true, message: `${users.length} Students Imported Successfully...` }) :
-        resp.status(400).json({ success: true, message: `Students Not Imported Successfully...` });
 });

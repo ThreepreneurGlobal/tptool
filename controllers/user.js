@@ -38,12 +38,12 @@ exports.loginUser = TryCatch(async (req, resp, next) => {
 
     const user = await User.findOne({ where: { email } });
     if (!user) {
-        return next(new ErrorHandler("Please Enter Valid Email or Password!", 401));
+        return next(new ErrorHandler("Please Enter Valid Email and Password!", 401));
     };
 
     const isPassMatch = await user.comparePass(password);
     if (!isPassMatch) {
-        return next(new ErrorHandler("Please Enter Valid Email or Password!", 401));
+        return next(new ErrorHandler("Please Enter Valid Email and Password!", 401));
     };
 
     sendToken(user, 200, resp);
