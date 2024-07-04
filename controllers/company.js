@@ -50,7 +50,7 @@ exports.createComp = TryCatch(async (req, resp, next) => {
         defaults: {
             title, description, address, city, state, country, pin_code, phone, email, type,
             sub_type, team_size, web, facebook, linkedin, instagram, youtube, locations, domains,
-            userId: req.user.id, orgId: req.user.orgId, logo, work_types
+            userId: req.user.id, orgId: req.user.orgId, logo: logo ? logo : null, work_types
         }
     });
 

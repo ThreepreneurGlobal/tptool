@@ -1,11 +1,9 @@
-// const ExcelJS = require("exceljs");
 const XLSX = require("xlsx");
 const User = require("../models/user");
 const Student = require("../models/student");
 const ErrorHandler = require("../utils/errHandle");
 const TryCatch = require("../middleware/TryCatch");
 const Skill = require("../models/skill");
-const Org = require("../models/org");
 const Application = require("../models/aplication");
 const PlacePosition = require("../models/placePosition");
 const Company = require("../models/company");

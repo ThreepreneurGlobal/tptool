@@ -1,10 +1,14 @@
 const XLSX = require("xlsx");
+const moment = require("moment");
+const { rm } = require("fs");
 const TryCatch = require("../middleware/TryCatch");
 const ErrorHandler = require("../utils/errHandle");
+const Org = require("../models/org");
 const Skill = require("../models/skill");
 const CollageSkill = require("../models/collageSkill");
 const Student = require("../models/student");
 const User = require("../models/user");
+const { excelToJSDate } = require("../utils/feature01");
 
 
 exports.generateTemplate = TryCatch(async (req, resp, next) => {
@@ -79,6 +83,20 @@ exports.importStudent = TryCatch(async (req, resp, next) => {
             password = (first.substring(0, 4)).charAt(0).toUpperCase() + first.substring(1, 4).toLowerCase() + "@123";
         };
 
+        //DOB Format
+        let formattedDate = null;
+        if (BirthDate) {
+            let parseDate;
+            if (typeof BirthDate === "number") {
+                parseDate = excelToJSDate(BirthDate);
+            } else {
+                parseDate = moment(BirthDate, ["MM-DD-YYYY", "DD-MM-YYYY", "YYYY-MM-DD", "MM/DD/YYYY", "DD/MM/YYYY", "YYYY/MM/DD"]);
+            };
+            if (moment(parseDate).isValid()) {
+                formattedDate = moment(parseDate).format('YYYY-MM-DD');
+            } else { console.error('Invalid Birth Date! ' + BirthDate) };
+        };
+
         const existed = await User.findOne({ where: { name: Name, email: Mail } });
         if (existed) {
             console.log(`${existed.name} Already Exist!`);
@@ -91,7 +109,7 @@ exports.importStudent = TryCatch(async (req, resp, next) => {
         users.push(user);
         if (user) {
             await Student.create({
-                dob: BirthDate, batch: Batch, enroll: EnrollmentID, ten_yr: TenthPassing,
+                dob: formattedDate, batch: Batch, enroll: EnrollmentID, ten_yr: TenthPassing,
                 ten_per: TenthPercentage, twelve_yr: TwelvePassing, twelve_stream: TwelveStream,
                 twelve_per: TwelvePercentage, disablity: Disablity, ed_gap: EducationGap,
                 userId: user.id, courseId: Course_Code, branchId: Branch_Code, current_yr: CurrentYear,
@@ -99,6 +117,8 @@ exports.importStudent = TryCatch(async (req, resp, next) => {
             });
         };
     }));
+
+    rm(req.file.path, () => { console.log('XLSX FILE DELETED...') });
     users.length > 0 ? resp.status(200).json({ success: true, message: `${users.length} Students Imported Successfully...` }) :
         resp.status(400).json({ success: true, message: `Students Not Imported Successfully...` });
 });

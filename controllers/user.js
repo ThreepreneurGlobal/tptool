@@ -152,6 +152,15 @@ exports.getAdmins = TryCatch(async (req, resp, next) => {
     resp.status(200).json({ success: true, admins });
 });
 
+exports.getAdminById = TryCatch(async (req, resp, next) => {
+    const admin = await User.findOne({
+        where: { id: req.params.id, status: true }, attributes: { exclude: ['password'] },
+        include: [{ model: Org, foreignKey: "orgId", as: "collage", attributes: ['id', 'title', 'city'] }]
+    });
+
+    resp.status(200).json({ success: true, admin });
+});
+
 
 //User to Student Association
 User.hasOne(Student, { foreignKey: "userId", as: "student" });
