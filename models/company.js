@@ -69,7 +69,7 @@ const Company = Connect.define("companies", {
         type: DataTypes.TEXT
     },
     locations: {
-        type: DataTypes.STRING,
+        type: DataTypes.TEXT,
         get: function () {
             return JSON.parse(this.getDataValue("locations"));
         },
@@ -87,7 +87,7 @@ const Company = Connect.define("companies", {
         }
     },
     work_types: {
-        type: DataTypes.STRING,
+        type: DataTypes.TEXT,
         get: function () {
             return JSON.parse(this.getDataValue("work_types"));
         },

@@ -31,3 +31,23 @@ exports.createLocation = TryCatch(async (req, resp, next) => {
 
     resp.status(201).json({ success: true, message: 'CITY CREATED SUCCESSFULLY...' });
 });
+
+exports.getDrpLocations = TryCatch(async (req, resp, next) => {
+    let apiObj = {};
+    const apis = await Location.findAll({ where: { status: true } });
+    if (apis.length === 0) {
+        return next(new ErrorHandler("Locations Not Found!", 404));
+    };
+
+    apis.forEach((item) => {
+        if (!apiObj[item.state]) {
+            apiObj[item.state] = { label: item.state.toUpperCase(), options: [] };
+        };
+        apiObj[item.state].options.push({
+            label: item?.city?.toUpperCase(), value: { city: item?.city, state: item?.state }
+        });
+    });
+
+    const locations = Object.values(apiObj);
+    resp.status(200).json({ success: true, locations });
+});

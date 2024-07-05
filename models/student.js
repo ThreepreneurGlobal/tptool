@@ -80,7 +80,7 @@ const Student = Connect.define("students", {
         defaultValue: 0
     },
     interested_in: {
-        type: DataTypes.STRING,
+        type: DataTypes.TEXT,
         get: function () {
             return JSON.parse(this.getDataValue("interested_in"));
         },
@@ -92,7 +92,7 @@ const Student = Connect.define("students", {
         type: DataTypes.STRING,
     },
     langs: {
-        type: DataTypes.STRING,
+        type: DataTypes.TEXT,
         get: function () {
             return JSON.parse(this.getDataValue("langs"));
         },

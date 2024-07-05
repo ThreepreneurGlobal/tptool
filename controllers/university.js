@@ -54,11 +54,9 @@ exports.getAllUniversities = TryCatch(async (req, resp, next) => {
     resp.status(200).json({ success: true, universities });
 });
 
-exports.getGenAllUni = TryCatch(async (req, resp, next) => {
+exports.getDrpUniversities = TryCatch(async (req, resp, next) => {
     let apiObj = {};
-    const api = await University.findAll({
-        where: { status: true },
-    });
+    const api = await University.findAll({ where: { status: true }, });
     if (api.length === 0) {
         return next(new ErrorHandler("No Universities Found", 404));
     };

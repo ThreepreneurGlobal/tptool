@@ -1,7 +1,7 @@
 const express = require("express");
 const { isAuthenticatedUser, isAutherizeRole } = require("../middleware/auth");
 const upload = require("../utils/upload");
-const { createCollage, updateCollage, getAllCollages, getDropDownCollages, getCollageById, myCollage } = require("../controllers/org");
+const { createCollage, updateCollage, getAllCollages, getDropDownCollages, getCollageById, myCollage, collageCourseDrp } = require("../controllers/org");
 const { addBranchInCollage, addCourseInCollage } = require("../controllers/collageSkilll");
 const { addCompanyInCollage } = require("../controllers/collageCompany");
 const { getAdminStats } = require("../controllers/adminDash");
@@ -28,6 +28,8 @@ router.post("/course/add", isAuthenticatedUser, isAutherizeRole("admin"), addCou
 router.post("/company/add", isAuthenticatedUser, isAutherizeRole("admin"), addCompanyInCollage);
 
 router.put("/get/mycollage", isAuthenticatedUser, isAutherizeRole("admin"), myCollage);
+
+router.get("/course/dd/get", isAuthenticatedUser, isAutherizeRole("admin", "super"), collageCourseDrp);
 
 
 module.exports = router;

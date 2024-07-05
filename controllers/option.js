@@ -35,3 +35,13 @@ exports.getDrpOpts = TryCatch(async (req, resp, next) => {
 
     resp.status(200).json({ success: true, options });
 });
+
+exports.editOpt = TryCatch(async (req, resp, next) => {
+    const { title, category, color } = req.body;
+    
+    const option = await Option.findOne({ where: { id: req.params.id, status: true } });
+    if (!option) return next(new ErrorHandler("Option Not Found!", 404));
+
+    await option.update({ title, category, color });
+    resp.status(201).json({ success: true, message: 'OPTION UPDATED SUCCESSFULLY.' });
+});

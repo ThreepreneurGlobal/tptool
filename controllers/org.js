@@ -104,6 +104,30 @@ exports.myCollage = TryCatch(async (req, resp, next) => {
 });
 
 
+exports.collageCourseDrp = TryCatch(async (req, resp, next) => {
+    const apiObj = {};
+    const apis = await Org.findOne({
+        where: { id: req.user.orgId, status: true },
+        include: [
+            { model: Skill, through: CollageSkill, as: "courses", where: { sub_category: ["degree", "diploma", "master"], status: true }, required: true },
+        ]
+    });
+    if (apis?.courses > 1) {
+        return next(new ErrorHandler("Courses Not Found!", 404));
+    };
+
+    apis?.courses.forEach((item) => {
+        if (!apiObj[item.sub_category]) {
+            apiObj[item.sub_category] = { label: item?.sub_category?.toUpperCase(), options: [] };
+        };
+        apiObj[item.sub_category].options.push({ label: item?.title?.toUpperCase(), value: item?.id });
+    });
+
+    const courses = Object.values(apiObj);
+    resp.status(200).json({ success: true, courses });
+});
+
+
 
 
 //User to Collage Association

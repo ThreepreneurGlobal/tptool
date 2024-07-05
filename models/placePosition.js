@@ -13,7 +13,7 @@ const PlacePosition = Connect.define("placepositions", {
         type: DataTypes.STRING
     },
     locations: {
-        type: DataTypes.STRING,
+        type: DataTypes.TEXT,
         get: function () {
             return JSON.parse(this.getDataValue("locations"));
         },

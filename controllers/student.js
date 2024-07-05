@@ -111,7 +111,7 @@ exports.editCollageStudent = TryCatch(async (req, resp, next) => {
 
     await user.update({ name, email, mobile, gender, });
     if (user && user.role === "user") {
-        const student = await Student.findOne({ where: { userId: user.id, status: true} });
+        const student = await Student.findOne({ where: { userId: user.id, status: true } });
         await student.update({
             dob, courseId, branchId, current_yr, batch, enroll, ed_gap, gap_desc, ten_per,
             ten_yr, twelve_per, twelve_yr, twelve_stream, universityId,
@@ -124,7 +124,13 @@ exports.exportAllStud = TryCatch(async (req, resp, next) => {
     const users = await User.findAll({
         where: { orgId: req.user.orgId, status: true, role: "user" },
         include: [
-            { model: Student, foreignKey: "userId", as: "student", required: false }
+            {
+                model: Student, foreignKey: "userId", as: "student", required: false,
+                include: [
+                    { model: Skill, foreignKey: "courseId", attributes: ["id", "title"], as: "course", where: { sub_category: ["degree", "master", "diploma"] } },
+                    { model: Skill, foreignKey: "branchId", attributes: ["id", "title"], as: "branch", where: { sub_category: "branch" } },
+                ]
+            }
         ]
     });
 
@@ -140,6 +146,8 @@ exports.exportAllStud = TryCatch(async (req, resp, next) => {
         IDProof: item?.id_prf,
         DOB: item?.student?.dob,
         Batch: item?.student?.batch,
+        Course: item?.student?.course?.title,
+        Branch: item?.student?.branch?.title,
         EnrollmentID: item?.student?.enroll,
         Tenth_Year: item?.student?.ten_yr,
         Tenth_Percentage: item?.student?.ten_per,
@@ -154,3 +162,4 @@ exports.exportAllStud = TryCatch(async (req, resp, next) => {
     resp.setHeader('Content-Disposition', `attachment; filename=students.xlsx`);
     resp.status(200).end(buffer, 'binary');
 });
+

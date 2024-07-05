@@ -1,6 +1,6 @@
 const express = require("express");
 const { isAutherizeRole, isAuthenticatedUser } = require("../middleware/auth");
-const { createUniversity, getAllUniversities, getGenAllUni, updateUniversity, getUniversityById } = require("../controllers/university");
+const { createUniversity, getAllUniversities, updateUniversity, getUniversityById, getDrpUniversities } = require("../controllers/university");
 const upload = require("../utils/upload");
 
 
@@ -10,7 +10,7 @@ router.post("/create", isAuthenticatedUser, isAutherizeRole("super"), upload.sin
 
 router.get("/get", isAuthenticatedUser, isAutherizeRole("admin", "super"), getAllUniversities);
 
-router.get("/gen/get", isAuthenticatedUser, isAutherizeRole("admin", "super"), getGenAllUni);
+router.get("/dd/get", isAuthenticatedUser, isAutherizeRole("admin", "super"), getDrpUniversities);
 
 router.put("/update/:id", isAuthenticatedUser, isAutherizeRole("super"), upload.single("logo"), updateUniversity);
 

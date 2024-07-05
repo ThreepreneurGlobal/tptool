@@ -2,7 +2,7 @@ const express = require("express");
 const { isAutherizeRole, isAuthenticatedUser } = require("../middleware/auth");
 const { getAllCompanies, createComp, getCompById, addLocationCompany, removeLocation, getAllDDCompanies, updateCompany } = require("../controllers/company");
 const { addCompanyInCollage } = require("../controllers/collageCompany");
-const { getAllLocations, createLocation, getLocById } = require("../controllers/location");
+const { getAllLocations, createLocation, getLocById, getDrpLocations } = require("../controllers/location");
 const upload = require("../utils/upload");
 
 
@@ -31,9 +31,11 @@ router.post("/collage/add", isAuthenticatedUser, isAutherizeRole("admin"), addCo
 // Company Location
 router.get("/location/get", isAuthenticatedUser, getAllLocations);
 
+router.get("/location/dd/get", isAuthenticatedUser, isAutherizeRole("admin", "super"), getDrpLocations);
+
 router.get("/location/get/:id", isAuthenticatedUser, getLocById);
 
-router.post("/location/create", isAuthenticatedUser, createLocation);
+router.post("/location/create", isAuthenticatedUser, isAutherizeRole("super", "admin"), createLocation);
 
 
 module.exports = router;
