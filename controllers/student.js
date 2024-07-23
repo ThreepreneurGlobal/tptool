@@ -43,9 +43,11 @@ exports.getStudentById = TryCatch(async (req, resp, next) => {
     const job_status = Application.rawAttributes.app_status.values;
     const job_status_count = {};
     const intern_status_count = {};
-    for (let status of job_status) {
-        job_status_count[status] = 0;
-        intern_status_count[status] = 0;
+    if (job_status?.length > 0) {
+        for (let status of job_status) {
+            job_status_count[status] = 0;
+            intern_status_count[status] = 0;
+        };
     };
 
     if (user?.apps) {

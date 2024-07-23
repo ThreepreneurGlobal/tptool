@@ -2,7 +2,7 @@ const express = require("express");
 const { isAuthenticatedUser, isAutherizeRole } = require("../middleware/auth");
 const upload = require("../utils/upload");
 const { createCollage, updateCollage, getAllCollages, getDropDownCollages, getCollageById, myCollage, collageCourseDrp } = require("../controllers/org");
-const { addBranchInCollage, addCourseInCollage } = require("../controllers/collageSkilll");
+const { addBranchInCollage, addCourseInCollage, removeBranchInCollage, removeCourseInCollage } = require("../controllers/collageSkilll");
 const { addCompanyInCollage } = require("../controllers/collageCompany");
 const { getAdminStats } = require("../controllers/adminDash");
 
@@ -24,6 +24,10 @@ router.put("/update", isAuthenticatedUser, isAutherizeRole("admin"), upload.sing
 router.post("/branch/add", isAuthenticatedUser, isAutherizeRole("admin"), addBranchInCollage);
 
 router.post("/course/add", isAuthenticatedUser, isAutherizeRole("admin"), addCourseInCollage);
+
+router.post("/branch/remove/:id", isAuthenticatedUser, isAutherizeRole("admin"), removeBranchInCollage);
+
+router.post("/course/remove/:id", isAuthenticatedUser, isAutherizeRole("admin"), removeCourseInCollage);
 
 router.post("/company/add", isAuthenticatedUser, isAutherizeRole("admin"), addCompanyInCollage);
 
