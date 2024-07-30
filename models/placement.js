@@ -38,9 +38,15 @@ const Placement = Connect.define("placements", {
     },
     contact_per: {
         type: DataTypes.STRING,
+        validate: {
+            len: [10, 15]
+        }
     },
     company_contact: {
         type: DataTypes.STRING,
+        validate: {
+            len: [10, 15]
+        }
     },
     reg_stime: {
         type: DataTypes.TIME,

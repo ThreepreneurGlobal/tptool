@@ -97,23 +97,23 @@ exports.importStudent = TryCatch(async (req, resp, next) => {
             } else { console.error('Invalid Birth Date! ' + BirthDate) };
         };
 
-        const existed = await User.findOne({ where: { name: Name, email: Mail } });
+        const existed = await User.findOne({ where: { name: Name?.toLowerCase(), email: Mail } });
         if (existed) {
             console.log(`${existed.name} Already Exist!`);
             return null;
         };
         const user = await User.create({
-            name: Name, email: Mail, password, mobile: Mobile, gender: Gender, city: City,
-            id_prf: IDProof, orgId: req.user.orgId
+            name: Name?.toLowerCase(), email: Mail, password, mobile: Mobile, gender: Gender?.toLowerCase(),
+            city: City?.toLowerCase(), id_prf: IDProof, orgId: req.user.orgId
         });
         users.push(user);
         if (user) {
             await Student.create({
                 dob: formattedDate, batch: Batch, enroll: EnrollmentID, ten_yr: TenthPassing,
-                ten_per: TenthPercentage, twelve_yr: TwelvePassing, twelve_stream: TwelveStream,
-                twelve_per: TwelvePercentage, disablity: Disablity, ed_gap: EducationGap,
-                userId: user.id, courseId: Course_Code, branchId: Branch_Code, current_yr: CurrentYear,
-                universityId: auth.collage.universityId
+                ten_per: TenthPercentage, twelve_yr: TwelvePassing, twelve_stream: TwelveStream?.toLowerCase(),
+                twelve_per: TwelvePercentage, disablity: Disablity?.toLowerCase() === "yes" ? true : false,
+                ed_gap: EducationGap, userId: user.id, courseId: Course_Code, branchId: Branch_Code,
+                current_yr: CurrentYear, universityId: auth.collage.universityId
             });
         };
     }));

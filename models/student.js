@@ -33,6 +33,7 @@ const Student = Connect.define("students", {
     },
     ten_yr: {
         type: DataTypes.INTEGER,
+        // type: DataTypes.DATEONLY,
     },
     ten_board: {
         type: DataTypes.STRING,
@@ -43,6 +44,7 @@ const Student = Connect.define("students", {
     },
     twelve_yr: {
         type: DataTypes.INTEGER,
+        // type: DataTypes.DATEONLY,
     },
     twelve_board: {
         type: DataTypes.STRING,

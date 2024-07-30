@@ -111,6 +111,9 @@ exports.getAllCourses = TryCatch(async (req, resp, next) => {
 exports.getDrpCourses = TryCatch(async (req, resp, next) => {
     const apiObj = {};
     const api = await Skill.findAll({ where: { category: "course", status: true, sub_category: ["degree", "diploma", "master"] } });
+    if (api.length === 0) {
+        return next(new ErrorHandler("Courses Not Found!", 404));
+    };
 
     api.forEach((item) => {
         if (!apiObj[item.sub_category]) {

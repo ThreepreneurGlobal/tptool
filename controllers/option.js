@@ -20,13 +20,13 @@ exports.createOption = TryCatch(async (req, resp, next) => {
     const { title, category, color } = req.body;
 
     const exist = await Option.findOne({ where: { title: title?.toLowerCase(), category: category?.toLowerCase(), status: true } });
-    if (exist) return next(new ErrorHandler(`${exist?.title?.toUpperCase()} ALREADY EXISTS!`, 400));
+    if (exist) return next(new ErrorHandler(`${exist?.title?.toUpperCase()} OPTION ALREADY EXISTS!`, 400));
 
     const option = await Option.create({ title: title?.toLowerCase(), category: category?.toLowerCase(), color });
     if (req.user.role !== "super") {
         await option.update({ userId: req.user.id });
     }
-    resp.status(201).json({ success: true, message: 'OPTION CREATED SUCCESSFULLY.' });
+    resp.status(201).json({ success: true, message: `${option?.title?.toUpperCase()} OPTION CREATED SUCCESSFULLY.` });
 });
 
 exports.getDrpOpts = TryCatch(async (req, resp, next) => {
@@ -38,7 +38,7 @@ exports.getDrpOpts = TryCatch(async (req, resp, next) => {
 
 exports.editOpt = TryCatch(async (req, resp, next) => {
     const { title, category, color } = req.body;
-    
+
     const option = await Option.findOne({ where: { id: req.params.id, status: true } });
     if (!option) return next(new ErrorHandler("Option Not Found!", 404));
 

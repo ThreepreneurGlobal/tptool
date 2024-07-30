@@ -42,7 +42,7 @@ const University = Connect.define("universities", {
     phone: {
         type: DataTypes.STRING,
         validate: {
-            len: [10, 10],
+            len: [10, 15]
         }
     },
     email: {

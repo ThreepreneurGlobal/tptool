@@ -32,7 +32,10 @@ const Company = Connect.define("companies", {
         type: DataTypes.STRING
     },
     phone: {
-        type: DataTypes.STRING
+        type: DataTypes.STRING,
+        validate: {
+            len: [10, 15]
+        }
     },
     email: {
         type: DataTypes.STRING,

@@ -18,13 +18,13 @@ const User = Connect.define("users", {
     mobile: {
         type: DataTypes.STRING,
         validate: {
-            len: [10, 10],
+            len: [10, 15]
         }
     },
     email: {
         type: DataTypes.STRING,
         allowNull: false,
-        validate:{
+        validate: {
             isEmail: true,
         }
     },
@@ -40,7 +40,7 @@ const User = Connect.define("users", {
     },
     address: { type: DataTypes.TEXT },
     city: { type: DataTypes.STRING },
-    pin_code: { 
+    pin_code: {
         type: DataTypes.STRING,
         validate: {
             len: [6, 6],
