@@ -24,7 +24,7 @@ const Student = Connect.define("students", {
     branchId: {
         type: DataTypes.INTEGER
     },
-    current_yr: { type: DataTypes.INTEGER },
+    current_yr: { type: DataTypes.STRING },
     enroll: {
         type: DataTypes.STRING
     },
@@ -33,6 +33,10 @@ const Student = Connect.define("students", {
     },
     ten_yr: {
         type: DataTypes.INTEGER,
+        // type: DataTypes.DATEONLY,
+    },
+    ten_board: {
+        type: DataTypes.STRING,
     },
     ten_per: {
         type: DataTypes.FLOAT,
@@ -40,6 +44,10 @@ const Student = Connect.define("students", {
     },
     twelve_yr: {
         type: DataTypes.INTEGER,
+        // type: DataTypes.DATEONLY,
+    },
+    twelve_board: {
+        type: DataTypes.STRING,
     },
     twelve_stream: {
         type: DataTypes.TEXT,
@@ -69,7 +77,31 @@ const Student = Connect.define("students", {
         type: DataTypes.BOOLEAN,
         defaultValue: false
     },
-    experience: { type: DataTypes.FLOAT },
+    experience: {
+        type: DataTypes.FLOAT,
+        defaultValue: 0
+    },
+    interested_in: {
+        type: DataTypes.TEXT,
+        get: function () {
+            return JSON.parse(this.getDataValue("interested_in"));
+        },
+        set: function (value) {
+            return this.setDataValue("interested_in", JSON.stringify(value));
+        }
+    },
+    position: {
+        type: DataTypes.STRING,
+    },
+    langs: {
+        type: DataTypes.TEXT,
+        get: function () {
+            return JSON.parse(this.getDataValue("langs"));
+        },
+        set: function (value) {
+            return this.setDataValue("langs", JSON.stringify(value));
+        }
+    },
     userId: {
         type: DataTypes.INTEGER,
     },

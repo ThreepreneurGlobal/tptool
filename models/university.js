@@ -16,7 +16,11 @@ const University = Connect.define("universities", {
     description: {
         type: DataTypes.TEXT
     },
-    reg_no: { type: DataTypes.STRING, unique: true },
+    reg_no: {
+        type: DataTypes.STRING,
+        unique: true,
+        allowNull: false
+    },
     address: {
         type: DataTypes.TEXT
     },
@@ -30,10 +34,16 @@ const University = Connect.define("universities", {
         type: DataTypes.STRING
     },
     pin_code: {
-        type: DataTypes.STRING
+        type: DataTypes.STRING,
+        validate: {
+            len: [6, 6],
+        }
     },
     phone: {
-        type: DataTypes.INTEGER
+        type: DataTypes.STRING,
+        validate: {
+            len: [10, 15]
+        }
     },
     email: {
         type: DataTypes.STRING,
@@ -46,16 +56,6 @@ const University = Connect.define("universities", {
     },
     type: {
         type: DataTypes.STRING
-    },
-    branches: {
-        type: DataTypes.INTEGER,
-        get() {
-            const rawValue = this.getDataValue('branches');
-            return rawValue ? JSON.parse(rawValue) : [];
-        },
-        set(value) {
-            this.setDataValue('branches', JSON.stringify(value));
-        }
     },
     web: {
         type: DataTypes.TEXT
@@ -72,6 +72,10 @@ const University = Connect.define("universities", {
     instagram: {
         type: DataTypes.TEXT
     },
+    userId: {
+        type: DataTypes.INTEGER
+    },
+    // branches:{}, Its a Array with Association Skills, but its pending work.
     status: {
         type: DataTypes.BOOLEAN,
         defaultValue: true

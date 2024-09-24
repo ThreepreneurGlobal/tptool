@@ -5,10 +5,12 @@ const Company = require("../models/company");
 const CompanySkill = require("../models/companySkill");
 const Skill = require("../models/skill");
 const ErrorHandler = require("../utils/errHandle");
+const Location = require("../models/location");
 
 // Company.sync({ alter: true, force: true });
 // CollageCompany.sync({ alter: true, force: true });
 // CompanySkill.sync({ force: true, alter: true });
+// Location.sync({ force: true, alter: true });
 
 exports.getAllCompanies = TryCatch(async (req, resp, next) => {
     const companies = await Company.findAll({
@@ -39,16 +41,16 @@ exports.getAllDDCompanies = TryCatch(async (req, resp, next) => {
 });
 
 exports.createComp = TryCatch(async (req, resp, next) => {
-    const { title, description, reg_no, address, city, state, country, pin_code, phone, email, type,
-        sub_type, team_size, web, facebook, linkedin, instagram, youtube, locations, features, skillIds } = req.body;
-    const logo = req.file.path;  // Logo Upload Pending
+    const { title, description, reg_no, address, city, state, country, pin_code, phone, email, type, work_types,
+        sub_type, team_size, web, facebook, linkedin, instagram, youtube, locations, domains, skillIds } = req.body;
+    const logo = req.file && req.file.path;
 
     const [company, created] = await Company.findOrCreate({
         where: { reg_no },
         defaults: {
             title, description, address, city, state, country, pin_code, phone, email, type,
-            sub_type, team_size, web, facebook, linkedin, instagram, youtube, locations, features,
-            userId: req.user.id, orgId: req.user.orgId, logo,
+            sub_type, team_size, web, facebook, linkedin, instagram, youtube, locations, domains,
+            userId: req.user.id, orgId: req.user.orgId, logo: logo ? logo : null, work_types
         }
     });
 
@@ -69,8 +71,8 @@ exports.createComp = TryCatch(async (req, resp, next) => {
         await CollageCompany.create({ companyId: company.id, collageId: req.user.orgId });
     };
 
-    created ? resp.status(200).json({ success: true, message: `${company.title} Created Successfully...` }) :
-        resp.status(500).json({ success: false, message: `${company.title} Already Exists!` });
+    created ? resp.status(200).json({ success: true, message: `${company.title?.toUpperCase()} Created Successfully...` }) :
+        resp.status(500).json({ success: false, message: `${company.title?.toUpperCase()} Already Exists!` });
 });
 
 
@@ -124,30 +126,33 @@ exports.removeLocation = TryCatch(async (req, resp, next) => {
 
 
 exports.updateCompany = TryCatch(async (req, resp, next) => {
-    const { description, address, city, state, country, pin_code, phone, email, type, sub_type,
-        team_size, web, facebook, linkedin, instagram, youtube, locations, features, skillIds } = req.body;
-        const logo = req.file.path;
+    const { description, address, city, state, country, pin_code, phone, email, type, sub_type, work_types,
+        team_size, web, facebook, linkedin, instagram, youtube, locations, domains, skillIds } = req.body;
+    let logo = req.file && req.file.path;
     let company = await Company.findOne({ where: { status: true, id: req.params.id } });
     if (!company) {
         return next(new ErrorHandler("Company Not Found!", 404));
     };
-    if(logo && company.logo){
-        rm(company.logo, ()=>{
+    if (logo && company.logo) {
+        rm(company.logo, () => {
             console.log("OLD FILE REMOVED SUCCESSFULLY...");
         });
     };
 
     await company.update({
-        description, address, city, state, country, pin_code, phone, email, type, logo,
-        sub_type, team_size, web, facebook, linkedin, instagram, youtube, locations, features
+        address, city, state, country, pin_code, phone, email, type, logo: logo ? logo : company.logo, work_types,
+        sub_type, team_size, web, facebook, linkedin, instagram, youtube, locations, domains, description
     });
 
-    const uniqueSkillIds = [...new Set(skillIds)];
+    // Check Unique ID's and Convert String to Number.
+    let uniqueSkillIds = [...new Set(skillIds.map(id => parseInt(id, 10)))];
+
+    // Check Exist Skills
     const existSkills = await CompanySkill.findAll({ where: { companyId: company.id } });
-    const existSkillIds = existSkills.map((skill) => skill.id);
+    const existSkillIds = existSkills.map((skill) => skill.skillId);
 
     const skillToAdd = uniqueSkillIds.filter(skillId => !existSkillIds.includes(skillId));
-    const skillToRemove = uniqueSkillIds.filter(skillId => !uniqueSkillIds.includes(skillId));
+    const skillToRemove = existSkillIds.filter(skillId => !uniqueSkillIds.includes(skillId));
 
     await Promise.all(skillToAdd.map(async (skillId) => {
         try {
@@ -156,6 +161,7 @@ exports.updateCompany = TryCatch(async (req, resp, next) => {
             console.error(error.message);
         }
     }));
+
     await CompanySkill.destroy({ where: { skillId: skillToRemove, companyId: company.id } });
     resp.status(200).json({ success: true, message: "Company Updated Successfully..." });
 });

@@ -38,12 +38,12 @@ exports.loginUser = TryCatch(async (req, resp, next) => {
 
     const user = await User.findOne({ where: { email } });
     if (!user) {
-        return next(new ErrorHandler("Please Enter Valid Email or Password!", 401));
+        return next(new ErrorHandler("Please Enter Valid Email and Password!", 401));
     };
 
     const isPassMatch = await user.comparePass(password);
     if (!isPassMatch) {
-        return next(new ErrorHandler("Please Enter Valid Email or Password!", 401));
+        return next(new ErrorHandler("Please Enter Valid Email and Password!", 401));
     };
 
     sendToken(user, 200, resp);
@@ -70,13 +70,13 @@ exports.myProfile = TryCatch(async (req, resp, next) => {
 
 exports.updateProfile = TryCatch(async (req, resp, next) => {
     const user = await User.findByPk(req.user.id);
-    const { gender, address, city, pin_code } = req.body;
-    const avatar = req.file.path;
+    const { gender, address, city, pin_code, url, facebook, twitter, instagram, linkedin, whatsapp } = req.body;
+    const avatar = req.file && req.file.path;
     if (avatar && user.avatar) {
         rm(user.avatar, () => { console.log('OLD FILE REMOVED SUCCESSFULLY...'); });
     };
 
-    await user.update({ avatar, gender, address, city, pin_code });
+    await user.update({ avatar: avatar ? avatar : user.avatar, gender, address, city, pin_code, url, facebook, twitter, instagram, linkedin, whatsapp });
     resp.status(200).json({ success: true, message: "Profile Updated Successfully..." });
 });
 
@@ -84,26 +84,38 @@ exports.addStudent = TryCatch(async (req, resp, next) => {
     const { name, email, mobile, dob, gender, courseId, branchId, current_yr, batch, enroll,
         ed_gap, gap_desc, ten_per, ten_yr, twelve_per, twelve_yr, twelve_stream, universityId, } = req.body;
 
+    // Genrate Password
+    let password;
+    const trimName = name?.replace(" ", "");
+    const nameWord = trimName?.split(' ');
+    if (nameWord?.length > 0) {
+        const first = nameWord[0];
+        password = (first.substring(0, 4)).charAt(0).toUpperCase() + first.substring(1, 4).toLowerCase() + "@123";
+    };
+
     const existed = await User.findOne({ where: { email, orgId: req.user.orgId, name } });
     if (existed) {
         return next(new ErrorHandler(`${existed.name} Already Exists!`, 500));
     };
 
-    const user = await User.create({ name, mobile, gender, password: "Student@123", orgId: req.user.orgId });
+    const user = await User.create({ name, email, mobile, gender, password, orgId: req.user.orgId });
     if (user) {
         await Student.create({
-            dob, courseId, branchId, current_yr, batch, enroll, ed_gap, gap_desc, ten_per, 
+            dob, courseId, branchId, current_yr, batch, enroll, ed_gap, gap_desc, ten_per,
             ten_yr, twelve_per, twelve_yr, twelve_stream, userId: user.id, universityId
         });
     };
 
-    resp.status(201).json({ success: true, message: `${user.name} Added Successfully...` });
+    resp.status(201).json({ success: true, message: `${user?.name?.toUpperCase()} Added Successfully...` });
 });
 
 exports.deleteStudent = TryCatch(async (req, resp, next) => {
     const student = await User.findOne({ where: { id: req.params.id, status: true, orgId: req.user.orgId } });
     if (!student) {
         return next(new ErrorHandler("Student Not Found!", 404));
+    };
+    if (student.avatar) {
+        rm(student.avatar, () => { console.log('FILE REMOVED SUCCESSFULLY...'); });
     };
 
     await student.update({ status: false });
@@ -117,8 +129,8 @@ exports.allStudent = TryCatch(async (req, resp, next) => {
             {
                 model: Student, foreignKey: "userId", as: "student",
                 include: [
-                    { model: Skill, foreignKey: "courseId", attributes: ["id", "title"], as: "course", where: { sub_category: ["degree", "master", "diploma"] } },
-                    { model: Skill, foreignKey: "branchId", attributes: ["id", "title"], as: "branch", where: { sub_category: "branch" } },
+                    { model: Skill, foreignKey: "courseId", attributes: ["id", "short_name", "title"], as: "course", where: { sub_category: ["degree", "master", "diploma"] } },
+                    { model: Skill, foreignKey: "branchId", attributes: ["id", "short_name", "title"], as: "branch", where: { sub_category: "branch" } },
                 ],
                 attributes: ["dob", "batch", "current_yr", "enroll", "ten_per", "twelve_per", "diploma",
                     "diploma_per", "ed_gap", "experience", "id"]
@@ -138,6 +150,15 @@ exports.getAdmins = TryCatch(async (req, resp, next) => {
     });
 
     resp.status(200).json({ success: true, admins });
+});
+
+exports.getAdminById = TryCatch(async (req, resp, next) => {
+    const admin = await User.findOne({
+        where: { id: req.params.id, status: true }, attributes: { exclude: ['password'] },
+        include: [{ model: Org, foreignKey: "orgId", as: "collage", attributes: ['id', 'title', 'city'] }]
+    });
+
+    resp.status(200).json({ success: true, admin });
 });
 
 

@@ -2,27 +2,20 @@ const { DataTypes } = require("sequelize");
 const Connect = require("../utils/connect");
 
 
-const Skill = Connect.define("skills", {
+const Location = Connect.define("locations", {
     id: {
         type: DataTypes.INTEGER,
-        autoIncrement: true,
         primaryKey: true,
+        autoIncrement: true,
         unique: true
     },
-    title: {
-        type: DataTypes.STRING,
-        allowNull: false
-    },
-    short_name: {
+    city: {
         type: DataTypes.STRING
     },
-    description: {
-        type: DataTypes.TEXT
-    },
-    category: {
+    state: {
         type: DataTypes.STRING
     },
-    sub_category: {
+    country: {
         type: DataTypes.STRING
     },
     userId: {
@@ -34,4 +27,5 @@ const Skill = Connect.define("skills", {
     }
 }, { timestamps: true, createdAt: "created_at", updatedAt: "updated_at" });
 
-module.exports = Skill;
+
+module.exports = Location;

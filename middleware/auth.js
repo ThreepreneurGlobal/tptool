@@ -21,7 +21,7 @@ exports.isAuthenticatedUser = TryCatch(async (req, resp, next) => {
 exports.isAutherizeRole = (...roles) => {
     return (req, resp, next) => {
         if (!roles.includes(req.user.role)) {
-            return next(new ErrorHandler(`ROLE : ${req.user.role && req.user.role.toUpperCase()} IS NOT ALLOWED TO ACCESS THIS RESOURCE!`, 403));
+            return next(new ErrorHandler(`ROLE : ${req.user.role?.toUpperCase()} IS NOT ALLOWED TO ACCESS THIS RESOURCE!`, 403));
         };
 
         next();

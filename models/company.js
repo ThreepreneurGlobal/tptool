@@ -7,7 +7,6 @@ const Company = Connect.define("companies", {
         type: DataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true,
-        unique: true
     },
     title: {
         type: DataTypes.STRING,
@@ -33,7 +32,10 @@ const Company = Connect.define("companies", {
         type: DataTypes.STRING
     },
     phone: {
-        type: DataTypes.INTEGER
+        type: DataTypes.STRING,
+        validate: {
+            len: [10, 15]
+        }
     },
     email: {
         type: DataTypes.STRING,
@@ -70,7 +72,7 @@ const Company = Connect.define("companies", {
         type: DataTypes.TEXT
     },
     locations: {
-        type: DataTypes.STRING,
+        type: DataTypes.TEXT,
         get: function () {
             return JSON.parse(this.getDataValue("locations"));
         },
@@ -78,13 +80,22 @@ const Company = Connect.define("companies", {
             return this.setDataValue("locations", JSON.stringify(value));
         }
     },
-    features: {
+    domains: {
         type: DataTypes.TEXT,
         get: function () {
-            return JSON.parse(this.getDataValue("features"));
+            return JSON.parse(this.getDataValue("domains"));
         },
         set: function (value) {
-            return this.setDataValue("features", JSON.stringify(value));
+            return this.setDataValue("domains", JSON.stringify(value));
+        }
+    },
+    work_types: {
+        type: DataTypes.TEXT,
+        get: function () {
+            return JSON.parse(this.getDataValue("work_types"));
+        },
+        set: function (value) {
+            return this.setDataValue("work_types", JSON.stringify(value));
         }
     },
     userId: {

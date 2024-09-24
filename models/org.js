@@ -16,7 +16,11 @@ const Org = Connect.define("collages", {
     description: {
         type: DataTypes.TEXT
     },
-    reg_no: { type: DataTypes.STRING, unique: true },
+    reg_no: {
+        type: DataTypes.STRING,
+        unique: true,
+        allowNull: false
+    },
     address: {
         type: DataTypes.TEXT
     },
@@ -30,10 +34,16 @@ const Org = Connect.define("collages", {
         type: DataTypes.STRING
     },
     pin_code: {
-        type: DataTypes.STRING
+        type: DataTypes.STRING,
+        validate: {
+            len: [6, 6],
+        }
     },
     phone: {
-        type: DataTypes.INTEGER
+        type: DataTypes.STRING,
+        validate: {
+            len: [10, 15]
+        }
     },
     email: {
         type: DataTypes.STRING,

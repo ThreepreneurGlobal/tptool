@@ -14,7 +14,7 @@ exports.addBranchInCollage = TryCatch(async (req, resp, next) => {
 
     //Check Existing Courses
     const existCourses = await CollageSkill.findAll({ where: { skillId: skillIds, collageId: req.user.orgId, status: true } });
-    if (existCourses.length>0) {
+    if (existCourses.length > 0) {
         return next(new ErrorHandler("Branch Already Exists!", 400));
     }
     // Course Id's
@@ -43,7 +43,7 @@ exports.addCourseInCollage = TryCatch(async (req, resp, next) => {
 
     //Check Existing Courses
     const existCourses = await CollageSkill.findAll({ where: { skillId: skillIds, collageId: req.user.orgId, status: true } });
-    if (existCourses.length>0) {
+    if (existCourses.length > 0) {
         return next(new ErrorHandler("Course Already Exists!", 400));
     }
     // Course Id's
@@ -62,6 +62,38 @@ exports.addCourseInCollage = TryCatch(async (req, resp, next) => {
         }
     }));
     resp.status(200).json({ success: true, message: "Course Added Successfully..." });
+});
+
+exports.removeBranchInCollage = TryCatch(async (req, resp, next) => {
+    const { skillId } = req.params.id;
+    const skill = await CollageSkill.findOne({ where: { skillId, collageId: req.user.orgId } });
+    if (!skill) {
+        return next(new ErrorHandler('BRANCH NOT FOUND IN COLLAGE', 404));
+    };
+
+    const skillTitle = await Skill.findOne({ where: { id: skill.skillId, success: true } });
+    if (!skill) {
+        return next(new ErrorHandler('BRANCH NOT FOUND', 404));
+    };
+
+    await skill.update({ status: false });
+    resp.status(200).json({ success: true, message: `${skillTitle?.title?.toUpperCase()} REMOVED SUCCESSFULLY...` });
+});
+
+exports.removeCourseInCollage = TryCatch(async (req, resp, next) => {
+    const { skillId } = req.params.id;
+    const skill = await CollageSkill.findOne({ where: { skillId, collageId: req.user.orgId } });
+    if (!skill) {
+        return next(new ErrorHandler('COURSE NOT FOUND IN COLLAGE', 404));
+    };
+
+    const skillTitle = await Skill.findOne({ where: { id: skill.skillId, success: true } });
+    if (!skill) {
+        return next(new ErrorHandler('COURSE NOT FOUND', 404));
+    };
+
+    await skill.update({ status: false });
+    resp.status(200).json({ success: true, message: `${skillTitle?.title?.toUpperCase()} REMOVED SUCCESSFULLY...` });
 });
 
 

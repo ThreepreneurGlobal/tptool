@@ -20,13 +20,13 @@ const Project = Connect.define("projects", {
     },
     start: {
         type: DataTypes.DATEONLY,
-        // defaultValue: Date.now
+        defaultValue: Date.now
     },
     end: {
         type: DataTypes.DATEONLY
     },
     proj_status: {
-        type: DataTypes.STRING,
+        type: DataTypes.ENUM("working", "completed", "testing"),
         defaultValue: "working"
     },
     demo_img: {
@@ -37,26 +37,6 @@ const Project = Connect.define("projects", {
     },
     logo: {
         type: DataTypes.TEXT
-    },
-    teams: {
-        type: DataTypes.INTEGER,
-        get() {
-            const rawValue = this.getDataValue('teams');
-            return rawValue ? JSON.parse(rawValue) : [];
-        },
-        set(value) {
-            this.setDataValue('teams', JSON.stringify(value));
-        }
-    },
-    skills: {
-        type: DataTypes.INTEGER,
-        get() {
-            const rawValue = this.getDataValue('skills');
-            return rawValue ? JSON.parse(rawValue) : [];
-        },
-        set(value) {
-            this.setDataValue('skills', JSON.stringify(value));
-        }
     },
     studId: {
         type: DataTypes.INTEGER

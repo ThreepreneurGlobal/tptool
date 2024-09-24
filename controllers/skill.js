@@ -2,6 +2,8 @@ const TryCatch = require("../middleware/TryCatch");
 const Skill = require("../models/skill");
 const ErrorHandler = require("../utils/errHandle");
 const Student = require("../models/student");
+const CollageSkill = require("../models/collageSkill");
+const CompanySkill = require("../models/companySkill");
 
 // Skill.sync();
 
@@ -9,16 +11,31 @@ const Student = require("../models/student");
 exports.createSkill = TryCatch(async (req, resp, next) => {
     const { title, short_name, description, sub_category } = req.body;
 
-    const [skill, created] = await Skill.findOrCreate({
-        where: { title, short_name },
-        defaults: { description, sub_category, category: "skills" }
+    let [skill, created] = await Skill.findOrCreate({
+        where: { short_name },
+        defaults: { title, description, sub_category, category: "skills" }
     });
-    created ? resp.status(201).json({ success: true, message: `${skill.title} is Created Successfully...` }) :
-        resp.status(403).json({ success: false, message: `${skill.title} Already Exists!` });
+    if (req.user.role === "admin") {
+        await CollageSkill.create({ skillId: skill?.id, collageId: req.user.orgId });
+        await skill.update({ userId: req.user.id });
+    };
+    created ? resp.status(201).json({ success: true, message: `${skill.title?.toUpperCase()} is Created Successfully...` }) :
+        resp.status(403).json({ success: false, message: `${skill.title?.toUpperCase()} Already Exists!` });
 });
 
 
 exports.getAllSkills = TryCatch(async (req, resp, next) => {
+    const items = await Skill.findAll({ where: { category: "skills", status: true } });
+
+    const skills = await Promise.all(items.map(async (skill) => {
+        const count = await CompanySkill.count({ where: { skillId: skill.id } });
+        return { ...skill.toJSON(), count };
+    }));
+
+    resp.status(200).json({ success: true, skills });
+});
+
+exports.getDrpSkills = TryCatch(async (req, resp, next) => {
     const apiObj = {};
     const api = await Skill.findAll({ where: { category: "skills", status: true } });
     if (api.length === 0) {
@@ -35,23 +52,19 @@ exports.getAllSkills = TryCatch(async (req, resp, next) => {
     resp.status(200).json({ success: true, skills });
 });
 
-exports.getSuperSkills = TryCatch(async (req, resp, next) => {
-    const skills = await Skill.findAll({ where: { category: "skills", status: true } });
-    if (skills.length === 0) {
-        return next(new ErrorHandler("Skills Not Found!", 404));
-    };
-
-    resp.status(200).json({ success: true, skills });
-});
-
 
 //Branch
 exports.getAllBranches = TryCatch(async (req, resp, next) => {
-    const branches = await Skill.findAll({ where: { category: "course", status: true, sub_category: "branch" } });
+    const items = await Skill.findAll({ where: { category: "course", status: true, sub_category: "branch" } });
+
+    const branches = await Promise.all(items.map(async (skill) => {
+        const count = await CollageSkill.count({ where: { skillId: skill.id } });
+        return { ...skill.toJSON(), count };
+    }));
     resp.status(200).json({ success: true, branches });
 });
 
-exports.getGenBranches = TryCatch(async (req, resp, next) => {
+exports.getDrpBranches = TryCatch(async (req, resp, next) => {
     const apiObj = {};
     const api = await Skill.findAll({ where: { sub_category: "branch", status: true } });
     if (api.length === 0) {
@@ -74,13 +87,28 @@ exports.createBranch = TryCatch(async (req, resp, next) => {
         where: { title, short_name },
         defaults: { description, category: "course", sub_category: "branch" }
     });
-    created ? resp.status(201).json({ success: true, message: `${branch.title} is Created Successfully...` }) :
-        resp.status(403).json({ success: false, message: `${branch.title} Already Exists!` });
+    if (req.user.role === "admin") {
+        await CollageSkill.create({ skillId: branch?.id, collageId: req.user.orgId });
+        await branch.update({ userId: req.user.id });
+    }
+    created ? resp.status(201).json({ success: true, message: `${branch.title?.toUpperCase()} is Created Successfully...` }) :
+        resp.status(403).json({ success: false, message: `${branch.title?.toUpperCase()} Already Exists!` });
 });
 
 
 //Course
 exports.getAllCourses = TryCatch(async (req, resp, next) => {
+    const items = await Skill.findAll({ where: { category: "course", status: true, sub_category: ["degree", "diploma", "master"] } });
+
+    const courses = await Promise.all(items.map(async (skill) => {
+        const count = await CollageSkill.count({ where: { skillId: skill.id } });
+        return { ...skill.toJSON(), count };
+    }));
+
+    resp.status(200).json({ success: true, courses });
+});
+
+exports.getDrpCourses = TryCatch(async (req, resp, next) => {
     const apiObj = {};
     const api = await Skill.findAll({ where: { category: "course", status: true, sub_category: ["degree", "diploma", "master"] } });
     if (api.length === 0) {
@@ -91,18 +119,9 @@ exports.getAllCourses = TryCatch(async (req, resp, next) => {
         if (!apiObj[item.sub_category]) {
             apiObj[item.sub_category] = { label: item.sub_category.toUpperCase(), options: [] }
         };
-        apiObj[item.sub_category].options.push({ label: item.title && item.title.toUpperCase(), value: item.id });
+        apiObj[item.sub_category].options.push({ label: item?.title?.toUpperCase(), value: item.id });
     });
     const courses = Object.values(apiObj);
-    resp.status(200).json({ success: true, courses });
-});
-
-exports.getSuperCourses = TryCatch(async (req, resp, next) => {
-    const courses = await Skill.findAll({ where: { category: "course", status: true, sub_category: ["degree", "diploma", "master"] } });
-    if (courses.length === 0) {
-        return next(new ErrorHandler("Courses Not Found!", 404));
-    };
-
     resp.status(200).json({ success: true, courses });
 });
 
@@ -113,8 +132,12 @@ exports.createCourse = TryCatch(async (req, resp, next) => {
         where: { title, short_name },
         defaults: { description, category: "course", sub_category }
     });
-    created ? resp.status(201).json({ success: true, message: `${course.title} is Created Successfully...` }) :
-        resp.status(403).json({ success: false, message: `${course.title} Already Exists!` });
+    if (req.user.role === "admin") {
+        await CollageSkill.create({ skillId: course?.id, collageId: req.user.orgId });
+        await course.update({ userId: req.user.id });
+    };
+    created ? resp.status(201).json({ success: true, message: `${course.title?.toUpperCase()} is Created Successfully...` }) :
+        resp.status(403).json({ success: false, message: `${course.title?.toUpperCase()} Already Exists!` });
 });
 
 
@@ -136,7 +159,7 @@ exports.updateSkill = TryCatch(async (req, resp, next) => {
     };
 
     await skill.update({ category, short_name, description, sub_category });
-    resp.status(200).json({ success: true, message: `${skill.title} Updated Successfully...` });
+    resp.status(200).json({ success: true, message: `${skill.title?.toUpperCase()} Updated Successfully...` });
 });
 
 
@@ -152,8 +175,8 @@ exports.deleteSkill = TryCatch(async (req, resp, next) => {
 
 
 //Student - Skill {Branch/Course} Association
-Student.belongsTo(Skill, { foreignKey: "courseId", as:"course" });
+Student.belongsTo(Skill, { foreignKey: "courseId", as: "course" });
 // Skill.hasOne(Skill, { foreignKey: "course" });
 
-Student.belongsTo(Skill, { foreignKey: "branchId", as:"branch" });
+Student.belongsTo(Skill, { foreignKey: "branchId", as: "branch" });
 // Skill.hasOne(Skill, { foreignKey: "branch" });
