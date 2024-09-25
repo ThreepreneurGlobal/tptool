@@ -60,8 +60,8 @@ exports.myProfile = TryCatch(async (req, resp, next) => {
             exclude: ["password", "status", "created_at", "updated_at"]
         },
         include: [
-            { model: Org, foreignKey: "orgId", as: "collage", attributes: ['id', 'title', 'city', 'state', 'universityId'] },
-            { model: Student, foreignKey: "userId", as: "student" }
+            { model: Org, foreignKey: "orgId", as: "collage", attributes: ['id', 'title', 'city', 'state', 'universityId'], required: false },
+            { model: Student, foreignKey: "userId", as: "student", required: false }
         ],
     });
 
