@@ -4,7 +4,7 @@ const sendToken = (user, statusCode, resp) => {
 
     resp.cookie('token', token, {
         expires: new Date(Date.now() + process.env.COOKIE_EXP * 24 * 60 * 60 * 1000),
-        httpOnly: true
+        httpOnly: true, sameSite: 'None', secure: true
     })
         .status(statusCode).json({ success: true, role: user.role, message: `Welcome ${user?.name?.toUpperCase()}...` });
     // .json({ success: true, role: user.role, token });
