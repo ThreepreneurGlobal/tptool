@@ -6,7 +6,7 @@ const Connect = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.
     // logging: (msg)=>{
     //     console.log(msg);
     // },
-    logging: false,
+    logging: true,
 });
 
 try {
