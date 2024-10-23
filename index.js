@@ -13,7 +13,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cors({
     credentials: true, origin: [
-        'http://localhost:5173', 'https://tp.threepreneur.in'
+        'http://localhost:5173', process.env.CORS_URL01
     ]
 }));
 app.use(cookieParser());
