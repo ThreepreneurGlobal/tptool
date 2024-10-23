@@ -7,7 +7,6 @@ const sendToken = (user, statusCode, resp) => {
         httpOnly: true, sameSite: 'none', secure: true,
     })
         .status(statusCode).json({ success: true, role: user.role, message: `Welcome ${user?.name?.toUpperCase()}...` });
-    // .json({ success: true, role: user.role, token });
 };
 
 module.exports = sendToken;
