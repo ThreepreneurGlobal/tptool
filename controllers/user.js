@@ -50,7 +50,7 @@ exports.loginUser = TryCatch(async (req, resp, next) => {
 });
 
 exports.logoutUser = TryCatch(async (req, resp, next) => {
-    resp.cookie("token", null, { expires: new Date(Date.now()), httpOnly: true })
+    resp.cookie("token", null, { expires: new Date(Date.now()), httpOnly: true, sameSite: 'none', secure: true, path: '/', })
         .status(200).json({ success: true, message: "Logged Out Successfully..." });
 });
 
