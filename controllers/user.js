@@ -144,5 +144,5 @@ export const studentById = TryCatch(async (req, resp, next) => {
 
 
 //User to Student Association
-User.hasOne(Student, { foreignKey: "userId", as: "student" });
-Student.belongsTo(User, { foreignKey: "userId", as: "user" });
+// User.hasOne(Student, { foreignKey: "userId", as: "student" });
+// Student.belongsTo(User, { foreignKey: "userId", as: "user" });
