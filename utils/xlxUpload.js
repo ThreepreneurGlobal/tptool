@@ -1,6 +1,6 @@
-const multer = require("multer");
-const path = require("path");
-const ErrorHandler = require("./errHandle");
+import multer from 'multer';
+import path from 'path';
+import { ErrorHandler } from './trycatch.js';
 
 
 const storage = multer.diskStorage({
@@ -32,4 +32,5 @@ const xlxUpload = multer({
     }
 });
 
-module.exports = xlxUpload;
+
+export default xlxUpload;

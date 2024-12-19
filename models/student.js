@@ -1,5 +1,6 @@
-const { DataTypes } = require("sequelize");
-const Connect = require("../utils/connect");
+import { DataTypes } from 'sequelize';
+
+import Connect from '../utils/connect.js';
 
 
 const Student = Connect.define("students", {
@@ -12,30 +13,26 @@ const Student = Connect.define("students", {
     dob: {
         type: DataTypes.DATEONLY
     },
-    courseId: {
-        type: DataTypes.INTEGER
+    course: {
+        type: DataTypes.STRING
     },
-    course_desc: {
-        type: DataTypes.TEXT
+    branch: {
+        type: DataTypes.STRING
     },
     batch: {
-        type: DataTypes.INTEGER
-    },
-    branchId: {
-        type: DataTypes.INTEGER
+        type: DataTypes.DATEONLY
     },
     current_yr: { type: DataTypes.STRING },
     enroll: {
         type: DataTypes.STRING
     },
-    universityId: {
-        type: DataTypes.INTEGER
-    },
     ten_yr: {
-        type: DataTypes.INTEGER,
-        // type: DataTypes.DATEONLY,
+        type: DataTypes.DATEONLY,
     },
     ten_board: {
+        type: DataTypes.STRING,
+    },
+    ten_stream: {
         type: DataTypes.STRING,
     },
     ten_per: {
@@ -43,14 +40,13 @@ const Student = Connect.define("students", {
         defaultValue: 0
     },
     twelve_yr: {
-        type: DataTypes.INTEGER,
-        // type: DataTypes.DATEONLY,
+        type: DataTypes.DATEONLY,
     },
     twelve_board: {
         type: DataTypes.STRING,
     },
     twelve_stream: {
-        type: DataTypes.TEXT,
+        type: DataTypes.STRING,
     },
     twelve_per: {
         type: DataTypes.FLOAT,
@@ -61,6 +57,9 @@ const Student = Connect.define("students", {
     },
     diploma_stream: {
         type: DataTypes.STRING
+    },
+    diploma_yr: {
+        type: DataTypes.DATEONLY,
     },
     diploma_per: {
         type: DataTypes.FLOAT,
@@ -73,7 +72,7 @@ const Student = Connect.define("students", {
     gap_desc: {
         type: DataTypes.TEXT,
     },
-    disablity: {
+    disability: {
         type: DataTypes.BOOLEAN,
         defaultValue: false
     },
@@ -90,9 +89,6 @@ const Student = Connect.define("students", {
             return this.setDataValue("interested_in", JSON.stringify(value));
         }
     },
-    position: {
-        type: DataTypes.STRING,
-    },
     langs: {
         type: DataTypes.TEXT,
         get: function () {
@@ -102,7 +98,7 @@ const Student = Connect.define("students", {
             return this.setDataValue("langs", JSON.stringify(value));
         }
     },
-    userId: {
+    user_id: {
         type: DataTypes.INTEGER,
     },
     status: {
@@ -113,4 +109,5 @@ const Student = Connect.define("students", {
     timestamps: true, createdAt: "created_at", updatedAt: "updated_at"
 });
 
-module.exports = Student;
+
+export default Student;

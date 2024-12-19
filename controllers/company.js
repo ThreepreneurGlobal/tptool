@@ -1,172 +1,210 @@
-const { rm } = require("fs");
-const TryCatch = require("../middleware/TryCatch");
-const CollageCompany = require("../models/collageCompany");
-const Company = require("../models/company");
-const CompanySkill = require("../models/companySkill");
-const Skill = require("../models/skill");
-const ErrorHandler = require("../utils/errHandle");
-const Location = require("../models/location");
+import fs from 'fs';
+import { Op, Sequelize } from 'sequelize';
 
-// Company.sync({ alter: true, force: true });
-// CollageCompany.sync({ alter: true, force: true });
-// CompanySkill.sync({ force: true, alter: true });
-// Location.sync({ force: true, alter: true });
+import Company from '../models/company.js';
+import CompanySkill from '../models/company_skill.js';
+import Placement from '../models/placement.js';
+import Skill from '../models/skill.js';
+import TryCatch, { ErrorHandler } from '../utils/trycatch.js';
 
-exports.getAllCompanies = TryCatch(async (req, resp, next) => {
-    const companies = await Company.findAll({
-        where: { status: true },
-        attributes: ["id", "title", "email", "locations", "reg_no", "type",]
-    });
 
-    resp.status(200).json({ success: true, companies });
-});
+export const createCompany = TryCatch(async (req, resp, next) => {
+    const {
+        title, description, reg_no, phone, phone_alt, email, email_alt, type, team_size,
+        work_domains, work_types, web, facebook, linkedin, youtube, instagram, skills,
+    } = req.body;
+    console.log(req.body);
+    const logo = req.file?.path;
 
-exports.getAllDDCompanies = TryCatch(async (req, resp, next) => {
-    let apiObj = {};
-    const api = await Company.findAll({
-        where: { status: true },
-        attributes: ["id", "title", "type",]
-    });
-    if (api.length === 0) {
-        return next(new ErrorHandler("Companies Not Found!", 404));
+    const existed = await Company.findOne({ where: { [Op.or]: [{ title }, { reg_no }, { email }] } });
+    if (existed) {
+        return next(new ErrorHandler('Company Already Exists!', 400));
     };
-    api.forEach((item) => {
-        if (!apiObj[item.type]) {
-            apiObj[item.type] = { label: item.type.toUpperCase(), options: [] }
-        };
-        apiObj[item.type].options.push({ label: item.title.toUpperCase(), value: item.id });
-    });
-    const companies = Object.values(apiObj);
-    resp.status(200).json({ success: true, companies });
-});
 
-exports.createComp = TryCatch(async (req, resp, next) => {
-    const { title, description, reg_no, address, city, state, country, pin_code, phone, email, type, work_types,
-        sub_type, team_size, web, facebook, linkedin, instagram, youtube, locations, domains, skillIds } = req.body;
-    const logo = req.file && req.file.path;
-
-    const [company, created] = await Company.findOrCreate({
-        where: { reg_no },
-        defaults: {
-            title, description, address, city, state, country, pin_code, phone, email, type,
-            sub_type, team_size, web, facebook, linkedin, instagram, youtube, locations, domains,
-            userId: req.user.id, orgId: req.user.orgId, logo: logo ? logo : null, work_types
-        }
+    const company = await Company.create({
+        title, description, reg_no, phone, phone_alt, email, email_alt, type, team_size, work_domains,
+        work_types, web, facebook, linkedin, youtube, instagram, logo: logo ? logo : null,
     });
 
-    if (company) {
-        // Remove Duplicate from SkillID's Array
-        const uniqueSkillIds = [...new Set(skillIds)];
-        await Promise.all(uniqueSkillIds.map(async (skillId) => {
-            try {
-                await CompanySkill.create({ skillId, companyId: company.id, userId: req.user.id });
-            } catch (error) {
-                console.error(error.message);
-            }
+    if (!company) {
+        return next(new ErrorHandler('Company Not Created!', 500));
+    };
+
+    if (Array.isArray(skills) && skills.length > 0) {
+        await Promise.all(skills?.map(async (skill) => {
+            await CompanySkill.create({ skill_id: Number(skill), company_id: company?.id });
         }));
     };
 
-    // Only for Collage Admin
-    if (req.user.role === "admin") {
-        await CollageCompany.create({ companyId: company.id, collageId: req.user.orgId });
-    };
-
-    created ? resp.status(200).json({ success: true, message: `${company.title?.toUpperCase()} Created Successfully...` }) :
-        resp.status(500).json({ success: false, message: `${company.title?.toUpperCase()} Already Exists!` });
+    resp.status(201).json({ success: true, message: 'Company Created...' });
 });
 
 
-exports.getCompById = TryCatch(async (req, resp, next) => {
+export const getCompanies = TryCatch(async (req, resp, next) => {
+    const companies = await Company.findAll({
+        where: { status: true },
+        attributes: ['id', 'title', 'reg_no', 'email', 'phone', 'type', 'web', 'logo'],
+    });
+
+    if (companies.length <= 0) {
+        return next(new ErrorHandler('Companies Not Found!', 404));
+    };
+
+    resp.status(200).json({ success: true, companies });
+});
+
+
+export const getCompanyById = TryCatch(async (req, resp, next) => {
     const company = await Company.findOne({
-        where: { status: true, id: req.params.id },
+        where: { id: req.params.id, status: true },
         include: [
-            { model: Skill, through: CompanySkill, as: "skills", attributes: ["id", "title", "short_name"] }
+            {
+                model: Skill, through: { model: CompanySkill, attributes: ['id'] },
+                as: 'skills', attributes: ['id', 'title', 'category']
+            }
         ]
     });
     if (!company) {
-        return next(new ErrorHandler("Company Not Found!", 404));
+        return next(new ErrorHandler('Company Not Found!', 404));
     };
 
     resp.status(200).json({ success: true, company });
 });
 
-exports.addLocationCompany = TryCatch(async (req, resp, next) => {
-    const { locations } = req.body;
-    let company = await Company.findOne({ where: { status: true, id: req.params.id } });
+
+export const editCompany = TryCatch(async (req, resp, next) => {
+    const {
+        title, description, reg_no, phone, phone_alt, email, email_alt, type, team_size,
+        work_domains, work_types, web, facebook, linkedin, youtube, instagram, skills,
+    } = req.body;
+    const logo = req.file?.path;
+
+    const company = await Company.findOne({
+        where: { id: req.params.id, status: true },
+    });
     if (!company) {
-        return next(new ErrorHandler("Company Not Found!", 404));
+        return next(new ErrorHandler('Company Not Found!', 404));
     };
 
-    for (const item of locations) {
-        const existLoc = company.locations.find(loc => (
-            loc.city === item.city && loc.state === item.state
-        ));
-        if (existLoc) { return next(new ErrorHandler("Location Already Exists!", 403)); };
-    };
-
-    company.locations = company.locations.concat(locations);
-    await company.save();
-    resp.status(200).json({ success: true, message: "Location Added in Company Successfully..." });
-});
-
-
-exports.removeLocation = TryCatch(async (req, resp, next) => {
-    const { city, state } = req.body;
-    let company = await Company.findOne({ where: { status: true, id: req.params.id } });
-    if (!company) {
-        return next(new ErrorHandler("Company Not Found!", 404));
-    };
-
-    company.locations = company.locations.filter(loc => (
-        loc.city !== city || loc.state !== state
-    ));
-    await company.save();
-    resp.status(200).json({ success: true, message: "Location Removed in Company Successfully..." });
-});
-
-
-exports.updateCompany = TryCatch(async (req, resp, next) => {
-    const { description, address, city, state, country, pin_code, phone, email, type, sub_type, work_types,
-        team_size, web, facebook, linkedin, instagram, youtube, locations, domains, skillIds } = req.body;
-    let logo = req.file && req.file.path;
-    let company = await Company.findOne({ where: { status: true, id: req.params.id } });
-    if (!company) {
-        return next(new ErrorHandler("Company Not Found!", 404));
-    };
-    if (logo && company.logo) {
-        rm(company.logo, () => {
-            console.log("OLD FILE REMOVED SUCCESSFULLY...");
-        });
+    if (company?.logo && logo) {
+        fs.rm(company?.logo, () => console.log('OLD COMPANY LOGO DELETED!'));
     };
 
     await company.update({
-        address, city, state, country, pin_code, phone, email, type, logo: logo ? logo : company.logo, work_types,
-        sub_type, team_size, web, facebook, linkedin, instagram, youtube, locations, domains, description
+        title, description, reg_no, phone, phone_alt, email, email_alt, type, team_size, work_domains,
+        work_types, web, facebook, linkedin, youtube, instagram, logo: logo ? logo : company?.logo,
     });
 
-    // Check Unique ID's and Convert String to Number.
-    let uniqueSkillIds = [...new Set(skillIds.map(id => parseInt(id, 10)))];
+    //Exist Skill
+    const existSkills = await CompanySkill.findAll({
+        where: { company_id: company.id }, attributes: ['skill_id', 'id']
+    });
+    const existSkillIds = existSkills.map(skill => skill?.skill_id);
 
-    // Check Exist Skills
-    const existSkills = await CompanySkill.findAll({ where: { companyId: company.id } });
-    const existSkillIds = existSkills.map((skill) => skill.skillId);
+    const newSkillIds = Array.isArray(skills) ? skills?.map(skill => Number(skill)) : [];
+    const skillsToAdd = newSkillIds?.filter(skillId => !existSkillIds?.includes(skillId));
+    const skillsToRemove = existSkillIds?.filter(skillId => !newSkillIds?.includes(skillId));
 
-    const skillToAdd = uniqueSkillIds.filter(skillId => !existSkillIds.includes(skillId));
-    const skillToRemove = existSkillIds.filter(skillId => !uniqueSkillIds.includes(skillId));
+    //Remove Old Skills
+    if (skillsToRemove?.length > 0) {
+        await CompanySkill.destroy({ where: { company_id: company?.id, skill_id: skillsToRemove } });
+    };
 
-    await Promise.all(skillToAdd.map(async (skillId) => {
-        try {
-            await CompanySkill.create({ skillId, companyId: company.id, userId: req.user.id });
-        } catch (error) {
-            console.error(error.message);
-        }
-    }));
+    //Add New Skills
+    if (skillsToAdd?.length > 0) {
+        await Promise.all(skillsToAdd?.map(async (skillId) => {
+            await CompanySkill.create({ company_id: company.id, skill_id: skillId });
+        }));
+    };
 
-    await CompanySkill.destroy({ where: { skillId: skillToRemove, companyId: company.id } });
-    resp.status(200).json({ success: true, message: "Company Updated Successfully..." });
+    resp.status(200).json({ success: true, message: 'Company Updated...' });
 });
 
 
-// Company and Skills Associations 
-Company.belongsToMany(Skill, { through: CompanySkill, as: "skills" });
-Skill.belongsToMany(Company, { through: CompanySkill, as: "companies" });
+export const companyTypeOpts = TryCatch(async (req, resp, next) => {
+    const data = await Company.findAll({
+        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('type')), 'type']], raw: true,
+    });
+
+    const comp_types = data?.filter(item => item?.type !== null && item?.type !== '')
+        .map(item => ({
+            label: item?.type?.toUpperCase(),
+            value: item?.type
+        }));
+    resp.status(200).json({ success: true, comp_types });
+});
+
+
+export const companyWorkOpts = TryCatch(async (req, resp, next) => {
+    const data = await Company.findAll({
+        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('work_types')), 'work_types']], raw: true,
+    });
+
+    const rawData = data?.map(item => item?.work_types).filter(Boolean)
+        .flatMap(types => {
+            try {
+                const parseData = JSON.parse(types);
+                if (Array.isArray(parseData)) {
+                    return parseData?.filter(type => type && type?.trim() !== '');
+                };
+                return [];
+            } catch (error) {
+                console.error(error);
+                return [];
+            }
+        })
+        .filter((value, idx, self) => self.indexOf(value) === idx);
+
+    const work_opts = rawData?.map(type => ({ label: type?.toUpperCase(), value: type }));
+    resp.status(200).json({ success: true, work_opts });
+});
+
+
+export const companyDomainOpts = TryCatch(async (req, resp, next) => {
+    const data = await Company.findAll({
+        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('work_domains')), 'work_domains']], raw: true,
+    });
+
+    const rawData = data?.map(item => item?.work_domains).filter(Boolean)
+        .flatMap(domains => {
+            try {
+                const parseData = JSON.parse(domains);
+                if (Array.isArray(parseData)) {
+                    return parseData?.filter(domain => domain && domain?.trim() !== '');
+                };
+                return [];
+            } catch (error) {
+                console.error(error);
+                return [];
+            }
+        })
+        .filter((value, idx, self) => self.indexOf(value) === idx);
+
+    const domain_opts = rawData?.map(domain => ({ label: domain?.toUpperCase(), value: domain }));
+    resp.status(200).json({ success: true, domain_opts });
+});
+
+
+export const companyOpts = TryCatch(async (req, resp, next) => {
+    const apiObj = {};
+    const api = await Company.findAll({ where: { status: true }, attributes: ['id', 'title', 'type'] });
+    if (api.length <= 0) {
+        return next(new ErrorHandler('Companies Not Found!', 404));
+    };
+
+    api?.forEach((item) => {
+        if (!apiObj[item?.type]) {
+            apiObj[item?.type] = { label: item?.type?.toUpperCase(), options: [] };
+        };
+        apiObj[item?.type]?.options?.push({ label: item?.title?.toUpperCase(), value: item?.id });
+    });
+
+    const companies = Object.values(apiObj);
+    resp.status(200).json({ success: true, companies });
+});
+
+
+
+// Placement-Company Relation
+Placement.belongsTo(Company, { foreignKey: 'company_id', as: 'company', targetKey: 'id' });
+Company.hasMany(Placement, { foreignKey: 'company_id', as: 'placements' });

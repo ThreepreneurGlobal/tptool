@@ -1,7 +1,6 @@
-const ErrorHandler = require("../utils/errHandle");
+import { ErrorHandler } from "../utils/trycatch.js";
 
-
-module.exports = (err, req, resp, next) => {
+const ErrorMiddleware = (err, req, resp, next) => {
     err.statusCode = err.statusCode || 500;
     err.message = err.message || "Internal Server Error!";
 
@@ -19,3 +18,6 @@ module.exports = (err, req, resp, next) => {
 
     resp.status(err.statusCode).json({ success: false, message: err.message });
 };
+
+
+export default ErrorMiddleware;

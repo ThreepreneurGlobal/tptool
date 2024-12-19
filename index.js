@@ -1,11 +1,12 @@
-const express = require("express");
-const cors = require("cors");
-const cookieParser = require("cookie-parser");
-require("dotenv").config({ path: "./.env" });
+import cookieParser from 'cookie-parser';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import express from 'express';
 
-const ErrMiddleware = require("./middleware/errMiddleware");
-const route = require("./routes/index");
-require("./controllers/schedule");
+dotenv.config({ path: './.env' });
+
+import ErrorMiddleware from './middlewares/error.js';
+import router from './routes/index.js';
 
 const app = express();
 
@@ -13,20 +14,25 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cors({
     credentials: true, origin: [
-        'http://localhost:5173', process.env.CORS_URL01
+        'http://localhost:5173', process.env.CORS_URL01,
     ]
 }));
 app.use(cookieParser());
+
+// Upload Files
 app.use("/upload", express.static("upload"));
 
+// Welcome Page
 app.get("/", (req, resp) => {
-    resp.send("<h1>Welcome to the TPConnect API's!</h1>");
+    resp.send("<h1>Welcome to the TP API's!</h1>");
 });
 
-app.use("/api/v1", route);
+// Routes
+app.use('/v1', router);
 
-// Error Middleware
-app.use(ErrMiddleware);
 
-app.listen(process.env.PORT);
-console.warn(`Server Started : http://localhost:${process.env.PORT}`);
+//Error Middleware
+app.use(ErrorMiddleware);
+
+app.listen(process.env.PORT,
+    () => console.warn(`Server Started : http://localhost:${process.env.PORT}`));

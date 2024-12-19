@@ -1,26 +1,30 @@
-const express = require("express");
-const { isAutherizeRole, isAuthenticatedUser } = require("../middleware/auth");
-const { getAllPlacements, addPlacement, getCollagePlacement, getCollagePlacementById, updatePlacement, deletePlacement, getPlacementById } = require("../controllers/placement");
-const upload = require("../utils/upload");
+import express from 'express';
+
+import { createPlacement, editPlacement, getDriveOpts, getPlacementById, getPlacements, getPositionOpts, getStatusOpts } from '../controllers/placement.js';
+import { isAuthenticatedUser, isAutherizeRole } from '../middlewares/auth.js';
+import upload from '../utils/upload.js';
 
 
 const router = express.Router();
 
-router.get("/get", isAuthenticatedUser, isAutherizeRole("super"), getAllPlacements);
+// Auth Routes
+router.use(isAuthenticatedUser);
 
-router.get("/get/:id",isAuthenticatedUser,isAutherizeRole("super"), getPlacementById);
+router.get('/get', isAutherizeRole('admin'), getPlacements);
 
-router.get("/collage/get", isAuthenticatedUser, isAutherizeRole("admin", "user"), getCollagePlacement);
+router.get('/get/:id', isAutherizeRole('admin'), getPlacementById);
 
-router.get("/collage/get/:id", isAuthenticatedUser, getCollagePlacementById);
+router.post('/create', isAutherizeRole('admin'),
+    upload.fields([{ name: 'attach_student' }, { name: 'attach_tpo' }]), createPlacement);
 
-router.post("/create", isAuthenticatedUser, isAutherizeRole("admin"),
-    upload.fields([{ name: "attach_student" }, { name: "attach_tpo" }]), addPlacement);
+router.put('/update/:id', isAutherizeRole('admin'),
+    upload.fields([{ name: 'attach_student' }, { name: 'attach_tpo' }]), editPlacement);
 
-router.put("/update/:id", isAuthenticatedUser, isAutherizeRole("admin"),
-    upload.fields([{ name: "attach_student" }, { name: "attach_tpo" }]), updatePlacement);
+router.get('/status/opts', isAutherizeRole('admin'), getStatusOpts);
 
-router.put("/delete/:id", isAuthenticatedUser, isAutherizeRole("admin"), deletePlacement);
+router.get('/drive/opts', isAutherizeRole('admin'), getDriveOpts);
+
+router.get('/position/opts', isAutherizeRole('admin'), getPositionOpts);
 
 
-module.exports = router;
+export default router;
