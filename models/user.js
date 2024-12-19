@@ -1,7 +1,8 @@
-const { DataTypes } = require("sequelize");
-const bcrypt = require("bcryptjs");
-const jwt = require('jsonwebtoken');
-const Connect = require("../utils/connect");
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import { DataTypes } from 'sequelize';
+
+import Connect from '../utils/connect.js';
 
 
 const User = Connect.define("users", {
@@ -17,9 +18,6 @@ const User = Connect.define("users", {
     },
     mobile: {
         type: DataTypes.STRING,
-        validate: {
-            len: [10, 15]
-        }
     },
     email: {
         type: DataTypes.STRING,
@@ -42,9 +40,6 @@ const User = Connect.define("users", {
     city: { type: DataTypes.STRING },
     pin_code: {
         type: DataTypes.STRING,
-        validate: {
-            len: [6, 6],
-        }
     },
     designation: {
         type: DataTypes.STRING,
@@ -53,17 +48,13 @@ const User = Connect.define("users", {
     id_prf: {
         type: DataTypes.STRING
     },
-    orgId: {
-        type: DataTypes.INTEGER,
-    },
     facebook: { type: DataTypes.TEXT },
     twitter: { type: DataTypes.TEXT },
     instagram: { type: DataTypes.TEXT },
     linkedin: { type: DataTypes.TEXT },
     whatsapp: { type: DataTypes.TEXT },
     role: {
-        // type:DataTypes.ENUM("user","admin"),
-        type: DataTypes.STRING,
+        type: DataTypes.ENUM('admin', 'super', 'user'),
         defaultValue: "user"
     },
     status: {
@@ -72,11 +63,6 @@ const User = Connect.define("users", {
     }
 }, { timestamps: true, createdAt: "created_at", updatedAt: "updated_at" });
 
-User.addHook("beforeCreate", async (user) => {
-    if (user.changed("url")) {
-        user.url = await bcrypt.hash(user.url, 10);
-    };
-});
 
 User.addHook("beforeCreate", async (user) => {
     if (user.changed("password")) {
@@ -92,4 +78,5 @@ User.prototype.getJWToken = function () {
     return jwt.sign({ id: this.id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRE });
 };
 
-module.exports = User;
+
+export default User;

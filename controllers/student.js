@@ -1,167 +1,141 @@
-const XLSX = require("xlsx");
-const User = require("../models/user");
-const Student = require("../models/student");
-const ErrorHandler = require("../utils/errHandle");
-const TryCatch = require("../middleware/TryCatch");
-const Skill = require("../models/skill");
-const Application = require("../models/aplication");
-const PlacePosition = require("../models/placePosition");
-const Company = require("../models/company");
-const Project = require("../models/project");
-const UserSkill = require("../models/studentSkill");
-const Academy = require("../models/academy");
-const DocumentModel = require("../models/document");
+import { Op } from 'sequelize';
+import XLSX from 'xlsx';
+
+import Student from '../models/student.js';
+import User from '../models/user.js';
+import TryCatch, { ErrorHandler } from '../utils/trycatch.js';
 
 
-exports.getStudentById = TryCatch(async (req, resp, next) => {
-    const user = await User.findOne({
-        where: { orgId: req.user.orgId, status: true, role: "user", designation: "student", id: req.params.id },
-        include: [
-            {
-                model: Student, foreignKey: "userId", as: "student",
-                include: [
-                    { model: Skill, foreignKey: "courseId", attributes: ["id", "title", "short_name"], as: "course", where: { sub_category: ["degree", "master", "diploma"] } },
-                    { model: Skill, foreignKey: "branchId", attributes: ["id", "title", "short_name"], as: "branch", where: { sub_category: "branch" } },
-                ],
-            },
-            {
-                model: Application, foreignKey: "userId", as: "apps", required: false, attributes: { exclude: ['orgId', 'compId', 'positionId', 'userId'] },
-                include: [
-                    { model: PlacePosition, foreignKey: "positionId", as: "position", required: true, attributes: ['id', 'title', 'type', 'locations'] },
-                    { model: Company, foreignKey: "compId", as: "company", required: true, attributes: ['id', 'title'] },
-                ]
-            },
-            { model: Skill, through: UserSkill, as: "skills", required: false, attributes: ['id', 'title', 'short_name'] }
-        ],
-        attributes: { exclude: ["password"] }
-    });
-    if (!user) {
-        return next(new ErrorHandler("Student Not Found!", 404));
-    }
+export const generateTemplate = TryCatch(async (req, resp, next) => {
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.aoa_to_sheet([[
+        'ID NO.', 'Name', 'Mail ID', 'Contact', 'Course', 'Branch', 'Batch', 'Studying', 'Enrollment',
+        'Birth Date', 'Gender', 'Tenth Passing', 'Tenth Board/University', 'Tenth Stream', 'Tenth Score',
+        'Twelve Passing', 'Twelve Board/University', 'Twelve Stream', 'Twelve Score', 'Diploma Passing',
+        'Diploma Name', 'Diploma Stream', 'Diploma Score', 'Disability', 'Gap (Yrs)', 'Gap Description',
+    ]]);
 
-    // Applications Status Counting
-    const job_status = Application.rawAttributes.app_status.values;
-    const job_status_count = {};
-    const intern_status_count = {};
-    if (job_status?.length > 0) {
-        for (let status of job_status) {
-            job_status_count[status] = 0;
-            intern_status_count[status] = 0;
-        };
-    };
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'data');
 
-    if (user?.apps) {
-        user?.apps?.forEach(app => {
-            const positionType = app?.position?.type;
-            if (positionType === "job" && job_status_count.hasOwnProperty(app.app_status)) {
-                job_status_count[app.app_status]++;
-            } else if (positionType === "intern" && intern_status_count.hasOwnProperty(app.app_status)) {
-                intern_status_count[app.app_status]++;
-            }
-        });
-    };
+    // Send workbook to client
+    const fileBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "buffer" });
 
-    // Project List
-    const projects = await Project.findAll({ where: { status: true, studId: user?.id }, attributes: { exclude: ["studId"] } });
-
-    // Academic List
-    const academies = await Academy.findAll({
-        where: { status: true, userId: user?.id }, attributes: { exclude: ['studId', 'userId', 'orgId'] }
-    });
-
-    // Attachments List
-    const id_prfs = await DocumentModel.findAll({ where: { userId: user?.id, type: "id_prf" } });
-    const certificates = await DocumentModel.findAll({ where: { userId: user?.id, type: "certificate" } });
-
-    const student = {
-        user, job_status_count, intern_status_count, projects, academies, id_prfs, certificates
-    };
-    resp.status(200).json({ success: true, student });
+    resp.setHeader('Content-Disposition', 'attachment; filename=students.xlsx');
+    resp.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    resp.send(fileBuffer);
+    // resp.status(200).end(fileBuffer, 'binary');
+    resp.status(200).end();
 });
 
-// For Student Self
-exports.updateStudentProfile = TryCatch(async (req, resp, next) => {
-    const { dob, ten_yr, ten_per, ten_board, twelve_yr, twelve_per, twelve_board,
-        twelve_stream, experience, interested_in, position, langs } = req.body;
 
-    if (dob && isNaN(Date.parse(dob))) {
-        return next(new ErrorHandler("Invalid Date of Birth format", 400));
+export const exportStudent = TryCatch(async (req, resp, next) => {
+    const { ids } = req.body;
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+        return next(new ErrorHandler('Students Not Found!', 404));
     };
 
-    const student = await Student.findOne({ where: { userId: req.user.id } });
-    if (!student) {
-        return next(new ErrorHandler("Student Not Found!", 404));
-    };
-
-    await student.update({
-        dob, ten_yr, ten_per, ten_board, twelve_yr, twelve_per, twelve_board, twelve_stream,
-        experience, interested_in, position, langs
-    });
-
-    resp.status(200).json({ success: true, message: 'STUDENT PROFILE UPDATED SUCCESSFULLY...' });
-});
-
-// For Admin 
-exports.editCollageStudent = TryCatch(async (req, resp, next) => {
-    const { name, email, mobile, dob, gender, courseId, branchId, current_yr, batch, enroll,
-        ed_gap, gap_desc, ten_per, ten_yr, twelve_per, twelve_yr, twelve_stream, universityId, } = req.body;
-
-    let user = await User.findOne({ where: { id: req.params.id, status: true, orgId: req.user.orgId } });
-    if (!user) {
-        return next(new ErrorHandler("Student Not Found!", 404));
-    };
-
-    await user.update({ name, email, mobile, gender, });
-    if (user && user.role === "user") {
-        const student = await Student.findOne({ where: { userId: user.id, status: true } });
-        await student.update({
-            dob, courseId, branchId, current_yr, batch, enroll, ed_gap, gap_desc, ten_per,
-            ten_yr, twelve_per, twelve_yr, twelve_stream, universityId,
-        });
-    };
-    resp.status(201).json({ success: true, message: `${user?.name?.toUpperCase()} Profile Updated Successfully...` });
-});
-
-exports.exportAllStud = TryCatch(async (req, resp, next) => {
     const users = await User.findAll({
-        where: { orgId: req.user.orgId, status: true, role: "user" },
+        where: { id: { [Op.in]: ids }, status: true, role: 'user' },
+        attributes: ['id', 'name', 'email', 'mobile', 'gender', 'address', 'city', 'pin_code', 'id_prf'],
         include: [
             {
-                model: Student, foreignKey: "userId", as: "student", required: false,
-                include: [
-                    { model: Skill, foreignKey: "courseId", attributes: ["id", "title"], as: "course", where: { sub_category: ["degree", "master", "diploma"] } },
-                    { model: Skill, foreignKey: "branchId", attributes: ["id", "title"], as: "branch", where: { sub_category: "branch" } },
-                ]
+                model: Student, foreignKey: 'user_id', as: 'student', required: true,
+                attributes: { exclude: ['interested_in', 'langs', 'user_id', 'status', 'created_at', 'updated_at'] }
             }
         ]
     });
 
     const workbook = XLSX.utils.book_new();
-    const worksheet = XLSX.utils.json_to_sheet(users.map((item) => ({
-        Name: item?.name,
-        Mobile: item?.mobile,
-        Mail: item?.email,
-        Gender: item?.gender,
-        Address: item?.address,
-        Pin_Code: item?.pin_code,
-        City: item?.city,
-        IDProof: item?.id_prf,
-        DOB: item?.student?.dob,
-        Batch: item?.student?.batch,
-        Course: item?.student?.course?.title,
-        Branch: item?.student?.branch?.title,
-        EnrollmentID: item?.student?.enroll,
-        Tenth_Year: item?.student?.ten_yr,
-        Tenth_Percentage: item?.student?.ten_per,
-        Twelth_Year: item?.student?.twelve_yr,
-        Twelth_Percentage: item?.student?.twelve_per,
+    const worksheet = XLSX.utils.json_to_sheet(users.map(item => ({
+        'ID NO.': item?.id_prf,
+        'Name': item?.name,
+        'Mail ID': item?.email,
+        'Contact': item?.mobile,
+        'Course': item?.student?.course,
+        'Branch': item?.student?.branch,
+        'Batch': item?.student?.batch,
+        'Studying': item?.student?.current_yr,
+        'Enrollment': item?.student?.enroll,
+        'Birth Date': item?.student?.dob,
+        'Gender': item?.gender,
+        'Tenth Passing': item?.student?.ten_yr,
+        'Tenth Board/University': item?.student?.ten_board,
+        'Tenth Stream': item?.student?.ten_stream,
+        'Tenth Score': item?.student?.ten_per,
+        'Twelve Passing': item?.student?.twelve_yr,
+        'Twelve Board/University': item?.student?.twelve_board,
+        'Twelve Stream': item?.student?.twelve_stream,
+        'Twelve Score': item?.student?.twelve_per,
+        'Diploma Passing': item?.student?.diploma_yr,
+        'Diploma Name': item?.student?.ten_board,
+        'Diploma Stream': item?.student?.diploma_stream,
+        'Diploma Score': item?.student?.diploma_per,
+        'Disability': item?.student?.disability === false ? 'no' : 'yes',
+        'Experience (Yrs)': item?.student?.experience,
+        'Address': item?.address,
+        'City': item?.city,
+        'Pin Code': item?.pin_code,
+        'Gap (Yrs)': item?.student?.ed_gap,
+        'Gap Description': item?.student?.gap_desc,
     })));
 
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'data');
     const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
 
     resp.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    resp.setHeader('Content-Disposition', `attachment; filename=students.xlsx`);
+    resp.setHeader('Content-Disposition', 'attachment; filename=students.xlsx');
     resp.status(200).end(buffer, 'binary');
 });
 
+
+export const getStudents = TryCatch(async (req, resp, next) => {
+    const { course, branch, batch, current_yr, gender } = req.query;
+    const whereClause = { status: true };
+    const whereUserClause = { status: true, role: 'user' };
+
+    if (course) {
+        const courseArr = Array.isArray(course) ? course : [course];
+        whereClause.course = { [Op.in]: courseArr };
+    };
+    if (branch) {
+        const branchArr = Array.isArray(branch) ? branch : [branch];
+        whereClause.branch = { [Op.in]: branchArr };
+    };
+    if (batch) {
+        const year = parseInt(batch, 10);
+        if (!isNaN(year)) {
+            whereClause.batch = {
+                [Op.gte]: new Date(year, 0, 1, 0, 0, 0, 0),
+                [Op.lt]: new Date(year + 1, 0, 1, 0, 0, 0, 0),
+            };
+        };
+    };
+    if (current_yr) {
+        whereClause.current_yr = current_yr;
+    };
+    if (gender) {
+        whereUserClause.gender = gender;
+    };
+
+    const users = await User.findAll({
+        where: whereUserClause, attributes: ['id', 'name', 'mobile', 'email', 'gender', 'id_prf'],
+        include: [
+            {
+                model: Student, foreignKey: 'user_id', as: 'student', required: true, where: whereClause,
+                attributes: ['id', 'dob', 'course', 'branch', 'batch', 'ten_per', 'twelve_per', 'experience', 'current_yr']
+            }
+        ],
+    });
+
+    if (users.length <= 0) {
+        return next(new ErrorHandler('Students Not Found!', 404));
+    };
+
+    resp.status(200).json({ success: true, users });
+});
+
+
+//User to Student Association
+User.hasOne(Student, { foreignKey: "user_id", as: "student" });
+Student.belongsTo(User, { foreignKey: "user_id", as: "user" });

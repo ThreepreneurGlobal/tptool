@@ -1,48 +1,43 @@
-const express = require("express");
-const { isAuthenticatedUser, isAutherizeRole } = require("../middleware/auth");
-const { registerUser, loginUser, logoutUser, myProfile, addAdmin, addStudent, allStudent, updateProfile, deleteStudent, getAdmins, getAdminById } = require("../controllers/user");
-const upload = require("../utils/upload");
-const xlxUpload = require("../utils/xlxUpload");
-const { getStudentById, exportAllStud, updateStudentProfile, editCollageStudent } = require("../controllers/student");
-const { generateTemplate, importStudent } = require("../controllers/importStudent");
+import express from 'express';
+
+import { importStudent } from '../controllers/import.js';
+import { exportStudent, generateTemplate, getStudents } from '../controllers/student.js';
+import { createAdmin, createStudent, loginUser, logoutUser, myProfile, studentById, updateProfile } from '../controllers/user.js';
+import { isAuthenticatedUser, isAutherizeRole } from '../middlewares/auth.js';
+import upload from '../utils/upload.js';
+import xlxUpload from '../utils/xlxUpload.js';
 
 
 const router = express.Router();
 
-// Only For Super Admin
-router.post("/register", registerUser);
 
-router.post("/login", loginUser);
+router.post('/admin/create', createAdmin);
 
-router.get("/logout", isAuthenticatedUser, logoutUser);
+router.post('/login', loginUser);
 
-router.get("/myprofile", isAuthenticatedUser, myProfile);
+// Auth Routes
+router.use(isAuthenticatedUser);
 
-router.post("/admin/add", isAuthenticatedUser, isAutherizeRole("super"), addAdmin);
+// User
+router.get('/myprofile', myProfile);
 
-router.post("/student/add", isAuthenticatedUser, isAutherizeRole("admin"), addStudent);
+router.get('/logout', logoutUser);
 
-router.put("/student/update/:id", isAuthenticatedUser, isAutherizeRole("admin"), editCollageStudent);
-
-router.get("/get/students", isAuthenticatedUser, isAutherizeRole("admin"), allStudent);
-
-router.get("/get/student/:id", isAuthenticatedUser, isAutherizeRole("admin"), getStudentById);
-
-router.get("/admin/get", isAuthenticatedUser, isAutherizeRole("super"), getAdmins);
-
-router.get("/admin/get/:id", isAuthenticatedUser, isAutherizeRole("super"), getAdminById);
-
-router.get("/student/excel/generate", isAuthenticatedUser, isAutherizeRole("admin"), generateTemplate);
-
-router.get("/export/students", isAuthenticatedUser, isAutherizeRole('admin'), exportAllStud);
-
-router.post("/import/students", isAuthenticatedUser, isAutherizeRole("admin"), xlxUpload.single("file"), importStudent);
-
-router.put("/update/profile", isAuthenticatedUser, upload.single("avatar"), updateProfile);
-
-router.put("/student/update", isAuthenticatedUser, updateStudentProfile);
-
-router.put("/delete/student/:id", isAuthenticatedUser, isAutherizeRole("admin"), deleteStudent);
+router.put('/update/myprofile', upload.single('avatar'), updateProfile);
 
 
-module.exports = router;
+// Student
+router.post('/student/create', isAutherizeRole('admin'), createStudent);
+
+router.get('/student/get', isAutherizeRole('admin'), getStudents);
+
+router.get('/student/get/:id', isAutherizeRole('admin'), studentById);
+
+router.post('/student/import', isAutherizeRole('admin'), xlxUpload.single('file'), importStudent);
+
+router.post('/student/export', isAutherizeRole('admin'), exportStudent);
+
+router.get('/student/template', isAutherizeRole('admin'), generateTemplate);
+
+
+export default router;

@@ -1,38 +1,24 @@
-const express = require("express");
-const userRouter = require("./user");
-const orgRouter = require("./org");
-const skillRouter = require("./skill");
-const academyRouter = require("./academy");
-const universityRouter = require("./university");
-const companyRouter = require("./company");
-const placementRouter = require("./placement");
-const appRouter = require("./application");
-const projectRouter = require("./project");
-const docRouter = require("./document");
-const optRouter = require("./option");
+import express from 'express';
+
+import collegeRouter from './college.js';
+import companyRouter from './company.js';
+import placementRouter from './placement.js';
+import skillRouter from './skill.js';
+import userRouter from './user.js';
+
 
 const router = express.Router();
 
-router.use("/user", userRouter);
 
-router.use("/collage", orgRouter);
+router.use('/user', userRouter);
 
-router.use("/skill", skillRouter);
+router.use('/college', collegeRouter);
 
-router.use("/academy", academyRouter);
+router.use('/company', companyRouter);
 
-router.use("/university", universityRouter);
+router.use('/skill', skillRouter);
 
-router.use("/company", companyRouter);
+router.use('/placement', placementRouter);
 
-router.use("/placement", placementRouter);
 
-router.use("/app", appRouter);
-
-router.use("/project", projectRouter);
-
-router.use("/document", docRouter);
-
-router.use("/option", optRouter);
-
-module.exports = router;
+export default router;

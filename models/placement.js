@@ -1,109 +1,99 @@
-const { DataTypes } = require("sequelize");
-const Connect = require("../utils/connect");
+import { DataTypes } from 'sequelize';
+
+import Connect from '../utils/connect.js';
 
 
-const Placement = Connect.define("placements", {
+const Placement = Connect.define('placements', {
     id: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
-        primaryKey: true,
-        unique: true
+        unique: true,
+        primaryKey: true
     },
     title: {
         type: DataTypes.STRING,
-        allowNull: false
     },
     type: {
-        type: DataTypes.STRING
+        type: DataTypes.STRING,
     },
     exp_opening: {
-        type: DataTypes.INTEGER
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
     },
     place_status: {
-        type: DataTypes.STRING
+        type: DataTypes.STRING,
     },
     status_details: {
-        type: DataTypes.TEXT
+        type: DataTypes.TEXT,
     },
     selection_details: {
-        type: DataTypes.TEXT
+        type: DataTypes.TEXT,
     },
     criteria: {
-        type: DataTypes.FLOAT,
+        type: DataTypes.FLOAT(10, 2),
         defaultValue: 0,
-        // Check % for Placement Criteria
     },
     other_details: {
-        type: DataTypes.TEXT
+        type: DataTypes.TEXT,
     },
     contact_per: {
         type: DataTypes.STRING,
-        validate: {
-            len: [10, 15]
-        }
     },
     company_contact: {
         type: DataTypes.STRING,
-        validate: {
-            len: [10, 15]
-        }
-    },
-    reg_stime: {
-        type: DataTypes.TIME,
-        defaultValue: DataTypes.NOW
     },
     reg_sdate: {
         type: DataTypes.DATEONLY,
-        defaultValue: DataTypes.NOW
-    },
-    reg_etime: {
-        type: DataTypes.TIME
     },
     reg_edate: {
-        type: DataTypes.DATEONLY
+        type: DataTypes.DATEONLY,
     },
-    rereg_etime: {
-        type: DataTypes.TIME
+    reg_stime: {
+        type: DataTypes.TIME,
+    },
+    reg_etime: {
+        type: DataTypes.TIME,
     },
     rereg_edate: {
-        type: DataTypes.DATEONLY
+        type: DataTypes.DATEONLY,
+    },
+    rereg_etime: {
+        type: DataTypes.TIME,
     },
     reg_details: {
-        type: DataTypes.TEXT
+        type: DataTypes.TEXT,
     },
     ctc: {
-        type: DataTypes.INTEGER,
-        defaultValue: 0,
+        type: DataTypes.FLOAT(10, 2),
     },
     stipend: {
-        type: DataTypes.INTEGER,
-        defaultValue: 0,
+        type: DataTypes.FLOAT(10, 2),
     },
     attach_tpo: {
-        type: DataTypes.TEXT
+        type: DataTypes.TEXT,
     },
     attach_student: {
-        type: DataTypes.TEXT
+        type: DataTypes.TEXT,
     },
     add_comment: {
-        type: DataTypes.TEXT
+        type: DataTypes.TEXT,
     },
     history: {
-        type: DataTypes.TEXT
+        type: DataTypes.TEXT,
     },
-    companyId: {
-        type: DataTypes.INTEGER
+    company_id: {
+        type: DataTypes.INTEGER,
     },
-    collageId: {
-        type: DataTypes.INTEGER
-    },
-    userId: {
-        type: DataTypes.INTEGER
+    user_id: {
+        type: DataTypes.INTEGER,
     },
     status: {
         type: DataTypes.BOOLEAN,
-        defaultValue: true
+        defaultValue: true,
     }
-}, { timestamps: true, createdAt: "created_at", updatedAt: "updated_at" });
+}, {
+    timestamps: true, createdAt: 'created_at', updatedAt: 'updated_at'
+});
 
-module.exports = Placement;
+
+export default Placement;

@@ -1,41 +1,30 @@
-const express = require("express");
-const { isAutherizeRole, isAuthenticatedUser } = require("../middleware/auth");
-const { getAllCompanies, createComp, getCompById, addLocationCompany, removeLocation, getAllDDCompanies, updateCompany } = require("../controllers/company");
-const { addCompanyInCollage } = require("../controllers/collageCompany");
-const { getAllLocations, createLocation, getLocById, getDrpLocations } = require("../controllers/location");
-const upload = require("../utils/upload");
+import express from 'express';
+
+import { companyDomainOpts, companyOpts, companyTypeOpts, companyWorkOpts, createCompany, editCompany, getCompanies, getCompanyById } from '../controllers/company.js';
+import { isAuthenticatedUser, isAutherizeRole } from '../middlewares/auth.js';
+import upload from '../utils/upload.js';
 
 
 const router = express.Router();
 
+// Auth Routes
+router.use(isAuthenticatedUser);
 
-router.get("/get", isAuthenticatedUser, getAllCompanies);
+router.post('/create', isAutherizeRole('admin'), upload.single('logo'), createCompany);
 
-router.get("/dd/get", isAuthenticatedUser, getAllDDCompanies);
+router.get('/get', isAutherizeRole('admin'), getCompanies);
 
-router.get("/get/:id", isAuthenticatedUser, getCompById);
+router.get('/get/:id', isAutherizeRole('admin'), getCompanyById);
 
-router.post("/create", isAuthenticatedUser, isAutherizeRole("super", "admin"), upload.single("logo"), createComp);
+router.put('/update/:id', isAutherizeRole('admin'), upload.single('logo'), editCompany);
 
-router.put("/location/add/:id", isAuthenticatedUser, isAutherizeRole("super", "admin"), addLocationCompany);
+router.get('/type/opts', isAutherizeRole('admin'), companyTypeOpts);
 
-router.put("/location/delete/:id", isAuthenticatedUser, isAutherizeRole("super", "admin"), removeLocation);
+router.get('/work/opts', isAutherizeRole('admin'), companyWorkOpts);
 
-router.put("/update/:id", isAuthenticatedUser, isAutherizeRole("super"), upload.single("logo"), updateCompany);
+router.get('/domain/opts', isAutherizeRole('admin'), companyDomainOpts);
 
-
-// Relation Route Between Company and Collage
-router.post("/collage/add", isAuthenticatedUser, isAutherizeRole("admin"), addCompanyInCollage);
-
-
-// Company Location
-router.get("/location/get", isAuthenticatedUser, getAllLocations);
-
-router.get("/location/dd/get", isAuthenticatedUser, isAutherizeRole("admin", "super"), getDrpLocations);
-
-router.get("/location/get/:id", isAuthenticatedUser, getLocById);
-
-router.post("/location/create", isAuthenticatedUser, isAutherizeRole("super", "admin"), createLocation);
+router.get('/opts', isAutherizeRole('admin'), companyOpts);
 
 
-module.exports = router;
+export default router;

@@ -1,41 +1,27 @@
-const express = require("express");
-const { isAuthenticatedUser, isAutherizeRole } = require("../middleware/auth");
-const { createSkill, getAllSkills, getSkillById, updateSkill, getAllBranches, getAllCourses, createBranch, createCourse, getDrpCourses, getDrpSkills, getDrpBranches } = require("../controllers/skill");
-const { addSkill } = require("../controllers/studentSkill");
+import express from 'express';
+
+import { createSkill, editSkill, getCategoriesOpts, getSkillById, getSkills, getSkillsOpts, getSubCategoriesOpts } from '../controllers/skill.js';
+import { isAuthenticatedUser, isAutherizeRole } from '../middlewares/auth.js';
 
 
 const router = express.Router();
 
-//Skill
-router.post("/create", isAuthenticatedUser, isAutherizeRole("super", "admin"), createSkill);
+// Auth Routes
+router.use(isAuthenticatedUser);
 
-router.get("/get", isAuthenticatedUser, getAllSkills);
+router.post('/create', isAutherizeRole('admin'), createSkill);
 
-router.get("/dd/get", isAuthenticatedUser, isAutherizeRole("super", "admin"), getDrpSkills);
+router.put('/update/:id', isAutherizeRole('admin'), editSkill);
 
-router.post("/user/add", isAuthenticatedUser, addSkill);
+router.get('/get/:id', isAutherizeRole('admin'), getSkillById);
 
+router.get('/get', isAutherizeRole('admin'), getSkills);
 
-//Branch
-router.get("/branch/get", isAuthenticatedUser, getAllBranches);
+router.get('/opts', isAutherizeRole('admin'), getSkillsOpts);
 
-router.get("/branch/dd/get", isAuthenticatedUser, isAutherizeRole("admin", "super"), getDrpBranches);
+router.get('/category/opts', isAutherizeRole('admin'), getCategoriesOpts);
 
-router.post("/branch/create", isAuthenticatedUser, isAutherizeRole("super", "admin"), createBranch);
-
-
-//Course
-router.get("/course/get", isAuthenticatedUser, isAutherizeRole("super"), getAllCourses);
-
-router.get("/course/dd/get", isAuthenticatedUser, isAutherizeRole("super", "admin"), getDrpCourses);
-
-router.post("/course/create", isAuthenticatedUser, isAutherizeRole("super", "admin"), createCourse);
+router.get('/subcategory/opts', isAutherizeRole('admin'), getSubCategoriesOpts);
 
 
-// General Routes
-router.get("/get/:id", isAuthenticatedUser, getSkillById);
-
-router.put("/update/:id", isAuthenticatedUser, isAutherizeRole("super", "admin"), updateSkill);
-
-
-module.exports = router;
+export default router;
