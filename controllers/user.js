@@ -143,6 +143,41 @@ export const studentById = TryCatch(async (req, resp, next) => {
 });
 
 
+export const editStudent = TryCatch(async (req, resp, next) => {
+    const {
+        name, mobile, email, id_prf, dob, course, branch, batch, current_yr, enroll, ten_yr, gender,
+        ten_board, ten_stream, ten_per, twelve_yr, twelve_board, twelve_stream, twelve_per, diploma,
+        diploma_yr, diploma_stream, diploma_per, ed_gap, gap_desc, disability, experience,
+    } = req.body;
+
+    const user = await User.findOne({ where: { id: req.params.id, status: true, role: 'user', designation: 'student' }, });
+    if (!user) { return next(new ErrorHandler('Student Not Found!', 404)); };
+    const student = await Student.findOne({ where: { user_id: user?.id, status: true } });
+    if (!student) { return next(new ErrorHandler('Student Not Found!', 404)); };
+
+    // Genrate Password
+    let password;
+    const trimName = name?.replace(" ", "");
+    const nameWord = trimName?.split(' ');
+    if (nameWord?.length > 0) {
+        const first = nameWord[0];
+        password = (first.substring(0, 6)).charAt(0).toUpperCase() + first.substring(1, 6).toLowerCase() + "@123#";
+    };
+
+    const isUpdated = await user.update({ name, email, password, mobile, id_prf, gender });
+    if (!isUpdated) {
+        return next(new ErrorHandler('Student Not Updated!', 404));
+    };
+    await student.update({
+        dob, course, branch, batch, current_yr, enroll, ten_yr, ten_board, ten_stream, ten_per,
+        twelve_yr, twelve_board, twelve_stream, twelve_per, diploma, diploma_yr, diploma_stream,
+        diploma_per, ed_gap, gap_desc, disability, experience,
+    });
+
+    resp.status(201).json({ success: true, message: `${user?.name?.toUpperCase()} UPDATED...` });
+});
+
+
 //User to Student Association
 // User.hasOne(Student, { foreignKey: "userId", as: "student" });
 // Student.belongsTo(User, { foreignKey: "userId", as: "user" });

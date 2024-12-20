@@ -2,7 +2,7 @@ import express from 'express';
 
 import { importStudent } from '../controllers/import.js';
 import { exportStudent, generateTemplate, getStudents } from '../controllers/student.js';
-import { createAdmin, createStudent, loginUser, logoutUser, myProfile, studentById, updateProfile } from '../controllers/user.js';
+import { createAdmin, createStudent, editStudent, loginUser, logoutUser, myProfile, studentById, updateProfile } from '../controllers/user.js';
 import { isAuthenticatedUser, isAutherizeRole } from '../middlewares/auth.js';
 import upload from '../utils/upload.js';
 import xlxUpload from '../utils/xlxUpload.js';
@@ -28,6 +28,8 @@ router.put('/update/myprofile', upload.single('avatar'), updateProfile);
 
 // Student
 router.post('/student/create', isAutherizeRole('admin'), createStudent);
+
+router.put('/student/update/:id', isAutherizeRole('admin'), editStudent);
 
 router.get('/student/get', isAutherizeRole('admin'), getStudents);
 

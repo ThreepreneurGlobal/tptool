@@ -13,11 +13,11 @@ export const createSkill = TryCatch(async (req, resp, next) => {
 
     const existed = await Skill.findOne({ where: { [Op.or]: [{ title }, { short_name }, { category }] } });
     if (existed) {
-        return next(new ErrorHandler('Technology Already Created!', 400));
+        return next(new ErrorHandler('Skill Already Created!', 400));
     };
 
     await Skill.create({ title, short_name, description, category, sub_category });
-    resp.status(201).json({ success: true, message: 'Technology Created...' });
+    resp.status(201).json({ success: true, message: 'Skill Created...' });
 });
 
 
@@ -26,11 +26,11 @@ export const editSkill = TryCatch(async (req, resp, next) => {
 
     const skill = await Skill.findOne({ where: { id: req.params.id, status: true } });
     if (!skill) {
-        return next(new ErrorHandler('Technology Not Found!', 404));
+        return next(new ErrorHandler('Skill Not Found!', 404));
     };
 
     await skill.update({ title, short_name, description, category, sub_category });
-    resp.status(201).json({ success: true, message: 'Technology Updated...' });
+    resp.status(201).json({ success: true, message: 'Skill Updated...' });
 });
 
 
@@ -40,7 +40,7 @@ export const getSkills = TryCatch(async (req, resp, next) => {
     });
 
     if (skills.length <= 0) {
-        return next(new ErrorHandler('Technologies Not Found!', 404));
+        return next(new ErrorHandler('Skills Not Found!', 404));
     };
 
     resp.status(200).json({ success: true, skills });
@@ -50,7 +50,7 @@ export const getSkills = TryCatch(async (req, resp, next) => {
 export const getSkillById = TryCatch(async (req, resp, next) => {
     const skill = await Skill.findOne({ where: { id: req.params.id, status: true } });
     if (!skill) {
-        return next(new ErrorHandler('Technology Not Found!', 404));
+        return next(new ErrorHandler('Skill Not Found!', 404));
     };
 
     resp.status(201).json({ success: true, skill });
@@ -63,7 +63,7 @@ export const getSkillsOpts = TryCatch(async (req, resp, next) => {
         where: { status: true }, attributes: ['id', 'title', 'category']
     });
     if (api.length <= 0) {
-        return next(new ErrorHandler('Technologies Not Found!', 404));
+        return next(new ErrorHandler('Skills Not Found!', 404));
     };
 
     api?.forEach((item) => {
