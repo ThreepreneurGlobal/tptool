@@ -13,7 +13,6 @@ export const createCompany = TryCatch(async (req, resp, next) => {
         title, description, reg_no, phone, phone_alt, email, email_alt, type, team_size,
         work_domains, work_types, web, facebook, linkedin, youtube, instagram, skills,
     } = req.body;
-    console.log(req.body);
     const logo = req.file?.path;
 
     const existed = await Company.findOne({ where: { [Op.or]: [{ title }, { reg_no }, { email }] } });

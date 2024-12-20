@@ -180,6 +180,8 @@ export const editPlacement = TryCatch(async (req, resp, next) => {
         const deletePosition = await position.destroy();
         if (!deletePosition) return new ErrorHandler('Placement Position Not Deleted!', 400);
     };
+
+    resp.status(200).json({ success: true, message: 'Placement Updated...' });
 });
 
 
