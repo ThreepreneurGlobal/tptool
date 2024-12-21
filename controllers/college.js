@@ -1,4 +1,5 @@
 import { Sequelize } from 'sequelize';
+import moment from 'moment';
 
 import Student from '../models/student.js';
 import TryCatch from '../utils/trycatch.js';
@@ -154,4 +155,16 @@ export const getCoursesBranches = TryCatch(async (req, resp, next) => {
             courses: courses?.map(item => item?.course?.toUpperCase()),
             branches: branches?.map(item => item?.branch?.toUpperCase())
         });
+});
+
+
+export const batchOpt = TryCatch(async (req, resp, next) => {
+    const data = await Student.findAll({
+        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('batch')), 'batch']], raw: true,
+    });
+
+    const batches = data?.filter(item => item?.batch !== null && item?.batch !== '')
+        .map(item => moment(item.batch).year());
+
+    resp.status(200).json({ success: true, batches });
 });
