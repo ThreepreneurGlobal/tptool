@@ -31,7 +31,7 @@ export const generateTemplate = TryCatch(async (req, resp, next) => {
 export const exportStudent = TryCatch(async (req, resp, next) => {
     const { ids } = req.body;
 
-    if (!Array.isArray(ids) || ids.length === 0) {
+    if (!Array.isArray(ids) || ids.length <= 0) {
         return next(new ErrorHandler('Students Not Found!', 404));
     };
 
@@ -128,9 +128,9 @@ export const getStudents = TryCatch(async (req, resp, next) => {
         ],
     });
 
-    if (users.length <= 0) {
-        return next(new ErrorHandler('Students Not Found!', 404));
-    };
+    // if (users.length <= 0) {
+    //     return next(new ErrorHandler('Students Not Found!', 404));
+    // };
 
     resp.status(200).json({ success: true, users });
 });

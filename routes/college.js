@@ -1,7 +1,7 @@
 import express from 'express';
 
 import { isAuthenticatedUser, isAutherizeRole } from '../middlewares/auth.js';
-import { branchesOpt, coursesOpt, diplomaOpt, diplomaStreamOpt, edYearOpt, getCoursesBranches, tenBoardOpt, tenStreamOpt, twelveBoardOpt, twelveStreamOpt } from '../controllers/college.js';
+import { batchOpt, branchesOpt, coursesOpt, diplomaOpt, diplomaStreamOpt, edYearOpt, getCoursesBranches, tenBoardOpt, tenStreamOpt, twelveBoardOpt, twelveStreamOpt } from '../controllers/college.js';
 
 
 const router = express.Router();
@@ -26,6 +26,8 @@ router.get('/twelveboard/opts', isAutherizeRole('admin'), twelveBoardOpt);
 router.get('/diploma/opts', isAutherizeRole('admin'), diplomaOpt);
 
 router.get('/diplomastream/opts', isAutherizeRole('admin'), diplomaStreamOpt);
+
+router.get('/batch/opts', isAutherizeRole('admin'), batchOpt);
 
 router.get('/course-branch/get', isAutherizeRole('admin'), getCoursesBranches);
 
