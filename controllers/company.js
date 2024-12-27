@@ -21,8 +21,9 @@ export const createCompany = TryCatch(async (req, resp, next) => {
     };
 
     const company = await Company.create({
-        title, description, reg_no, phone, phone_alt, email, email_alt, type, team_size, work_domains,
-        work_types, web, facebook, linkedin, youtube, instagram, logo: logo ? logo : null,
+        title: title?.toLowerCase(), description, reg_no, phone, phone_alt, email, email_alt, logo: logo ? logo : null,
+        type: type?.toLowerCase(), team_size, work_domains: work_domains?.map(item => item?.toLowerCase()),
+        work_types: work_types?.map(item => item?.toLowerCase()), web, facebook, linkedin, youtube, instagram,
     });
 
     if (!company) {
@@ -90,8 +91,9 @@ export const editCompany = TryCatch(async (req, resp, next) => {
     };
 
     await company.update({
-        title, description, reg_no, phone, phone_alt, email, email_alt, type, team_size, work_domains,
-        work_types, web, facebook, linkedin, youtube, instagram, logo: logo ? logo : company?.logo,
+        title: title?.toLowerCase(), description, reg_no, phone, phone_alt, email, email_alt, type: type?.toLowerCase(),
+        team_size, web, facebook, linkedin, youtube, instagram, logo: logo ? logo : company?.logo,
+        work_domains: work_domains?.map(item => item?.toLowerCase()), work_types: work_types?.map(item => item?.toLowerCase()),
     });
 
     //Exist Skill
