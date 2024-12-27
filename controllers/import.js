@@ -1,12 +1,13 @@
+import fs from 'fs';
+import moment from 'moment';
 import { Op } from 'sequelize';
 import XLSX from 'xlsx';
-import moment from 'moment';
-import fs from 'fs';
 
-import User from '../models/user.js';
 import Student from '../models/student.js';
-import TryCatch, { ErrorHandler } from '../utils/trycatch.js';
-import { excelToJSDate } from '../utils/feature.js';
+import User from '../models/user.js';
+import { excelToJSDate } from '../utils/dateFeature.js';
+import { toLowerCaseFields } from '../utils/strFeature.js';
+import TryCatch from '../utils/trycatch.js';
 
 
 export const importStudent = TryCatch(async (req, resp, next) => {
@@ -26,7 +27,7 @@ export const importStudent = TryCatch(async (req, resp, next) => {
             'Twelve Board/University': Twelth_Board, 'Twelve Stream': Twelth_Stream, 'Twelve Score': Twelth_Score,
             'Diploma Passing': Diploma_Passing, 'Diploma Name': Diploma_Name, 'Diploma Stream': Diploma_Stream,
             'Diploma Score': Diploma_Score, Disability, 'Gap (Yrs)': Education_Gap, 'Gap Description': Gap_Reason,
-        } = item;
+        } = toLowerCaseFields(item);
 
         // Genrate Password
         if (Name?.length <= 5) {

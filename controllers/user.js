@@ -73,7 +73,7 @@ export const updateProfile = TryCatch(async (req, resp, next) => {
         fs.rm(user.avatar, () => { console.log('OLD FILE REMOVED SUCCESSFULLY...'); });
     };
 
-    await user.update({ avatar: avatar ? avatar : user.avatar, gender, address, city, pin_code, facebook, twitter, instagram, linkedin, whatsapp });
+    await user.update({ gender, address, city, pin_code, facebook, twitter, instagram, linkedin, whatsapp, avatar: avatar ? avatar : user.avatar });
     resp.status(200).json({ success: true, message: "Profile Updated Successfully..." });
 });
 

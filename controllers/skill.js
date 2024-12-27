@@ -6,10 +6,11 @@ import PositionSkill from '../models/position_skill.js';
 import PlacePosition from '../models/place_position.js';
 import Skill from '../models/skill.js';
 import TryCatch, { ErrorHandler } from '../utils/trycatch.js';
+import { toLowerCaseFields } from '../utils/strFeature.js';
 
 
 export const createSkill = TryCatch(async (req, resp, next) => {
-    const { title, short_name, description, category, sub_category } = req.body;
+    const { title, short_name, description, category, sub_category } = toLowerCaseFields(req.body);
 
     const existed = await Skill.findOne({ where: { [Op.or]: [{ title }, { short_name }, { category }] } });
     if (existed) {
