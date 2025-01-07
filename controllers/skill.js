@@ -12,7 +12,7 @@ import { toLowerCaseFields } from '../utils/strFeature.js';
 export const createSkill = TryCatch(async (req, resp, next) => {
     const { title, short_name, description, category, sub_category } = toLowerCaseFields(req.body);
 
-    const existed = await Skill.findOne({ where: { [Op.or]: [{ title }, { short_name }, { category }] } });
+    const existed = await Skill.findOne({ where: { [Op.or]: [{ title }, { short_name }] } });
     if (existed) {
         return next(new ErrorHandler('Skill Already Created!', 400));
     };
