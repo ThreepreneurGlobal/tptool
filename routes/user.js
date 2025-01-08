@@ -1,5 +1,6 @@
 import express from 'express';
 
+import adminDash from '../controllers/dashboard/admin.js';
 import { importStudent } from '../controllers/import.js';
 import { exportStudent, generateTemplate, getStudents } from '../controllers/student.js';
 import { createAdmin, createStudent, editStudent, loginUser, logoutUser, myProfile, studentById, updateProfile } from '../controllers/user.js';
@@ -40,6 +41,10 @@ router.post('/student/import', isAutherizeRole('admin'), xlxUpload.single('file'
 router.post('/student/export', isAutherizeRole('admin'), exportStudent);
 
 router.get('/student/template', isAutherizeRole('admin'), generateTemplate);
+
+
+// Dashboard
+router.get('/admin/dashboard', isAutherizeRole('admin'), adminDash);
 
 
 export default router;
