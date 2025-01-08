@@ -40,9 +40,9 @@ export const getSkills = TryCatch(async (req, resp, next) => {
         where: { status: true }, attributes: { exclude: ['status', 'created_at', 'updated_at'] }
     });
 
-    if (skills.length <= 0) {
-        return next(new ErrorHandler('Skills Not Found!', 404));
-    };
+    // if (skills.length <= 0) {
+    //     return next(new ErrorHandler('Skills Not Found!', 404));
+    // };
 
     resp.status(200).json({ success: true, skills });
 });

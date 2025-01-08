@@ -46,9 +46,9 @@ export const getCompanies = TryCatch(async (req, resp, next) => {
         attributes: ['id', 'title', 'reg_no', 'email', 'phone', 'type', 'web', 'logo'],
     });
 
-    if (companies.length <= 0) {
-        return next(new ErrorHandler('Companies Not Found!', 404));
-    };
+    // if (companies.length <= 0) {
+    //     return next(new ErrorHandler('Companies Not Found!', 404));
+    // };
 
     resp.status(200).json({ success: true, companies });
 });
