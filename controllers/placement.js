@@ -25,9 +25,9 @@ export const getPlacements = TryCatch(async (req, resp, next) => {
         ]
     });
 
-    if (placements.length <= 0) {
-        return next(new ErrorHandler('Placements Not Found!', 404));
-    };
+    // if (placements.length <= 0) {
+    //     return next(new ErrorHandler('Placements Not Found!', 404));
+    // };
 
     resp.status(200).json({ success: true, placements });
 });
