@@ -124,7 +124,7 @@ export const importStudent = TryCatch(async (req, resp, next) => {
         };
 
         const existed = await User.findOne({
-            where: { [Op.or]: [{ name: Name?.toLowerCase() }, { email: Mail_ID }] }
+            where: { [Op.or]: [{ mobile: Contact }, { email: Mail_ID }] }
         });
         if (existed) {
             errorMsgs.push(`${existed.name} Already Exist!`);

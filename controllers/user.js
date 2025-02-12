@@ -85,7 +85,7 @@ export const createStudent = TryCatch(async (req, resp, next) => {
         diploma_yr, diploma_stream, diploma_per, ed_gap, gap_desc, disability, experience,
     } = req.body;
 
-    const existed = await User.findOne({ where: { [Op.or]: [{ name }, { email }, { mobile }, { id_prf }] } });
+    const existed = await User.findOne({ where: { [Op.or]: [{ email }, { mobile }] } });
     if (existed) {
         return next(new ErrorHandler(`${existed.name} Already Exists!`, 500));
     };
