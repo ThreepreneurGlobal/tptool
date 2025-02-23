@@ -11,10 +11,13 @@ node_modules
 dist
 dist-ssr
 *.local
+upload
+uploads
 
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
+package-lock.json
 .idea
 .DS_Store
 *.suo
@@ -24,4 +27,3 @@ dist-ssr
 *.sw?
 .vercel
 *.env
-upload
