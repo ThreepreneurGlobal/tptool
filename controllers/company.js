@@ -6,6 +6,8 @@ import CompanySkill from '../models/company_skill.js';
 import Placement from '../models/placement.js';
 import Skill from '../models/skill.js';
 import TryCatch, { ErrorHandler } from '../utils/trycatch.js';
+import { getCompanyDomainOpts, getCompanyTypeOpts, getCompanyWorkOpts } from '../utils/opt/company.js';
+import { getSkillsOpts } from '../utils/opt/skill.js';
 
 
 export const createCompany = TryCatch(async (req, resp, next) => {
@@ -122,86 +124,14 @@ export const editCompany = TryCatch(async (req, resp, next) => {
 });
 
 
-export const companyTypeOpts = TryCatch(async (req, resp, next) => {
-    const data = await Company.findAll({
-        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('type')), 'type']], raw: true,
-    });
+export const createCompanyOpts = TryCatch(async (req, resp, next) => {
+    const types = await getCompanyTypeOpts();
+    const works = await getCompanyWorkOpts();
+    const domains = await getCompanyDomainOpts();
+    const skills = await getSkillsOpts();
 
-    const comp_types = data?.filter(item => item?.type !== null && item?.type !== '')
-        .map(item => ({
-            label: item?.type?.toUpperCase(),
-            value: item?.type
-        }));
-    resp.status(200).json({ success: true, comp_types });
-});
-
-
-export const companyWorkOpts = TryCatch(async (req, resp, next) => {
-    const data = await Company.findAll({
-        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('work_types')), 'work_types']], raw: true,
-    });
-
-    const rawData = data?.map(item => item?.work_types).filter(Boolean)
-        .flatMap(types => {
-            try {
-                const parseData = JSON.parse(types);
-                if (Array.isArray(parseData)) {
-                    return parseData?.filter(type => type && type?.trim() !== '');
-                };
-                return [];
-            } catch (error) {
-                console.error(error);
-                return [];
-            }
-        })
-        .filter((value, idx, self) => self.indexOf(value) === idx);
-
-    const work_opts = rawData?.map(type => ({ label: type?.toUpperCase(), value: type }));
-    resp.status(200).json({ success: true, work_opts });
-});
-
-
-export const companyDomainOpts = TryCatch(async (req, resp, next) => {
-    const data = await Company.findAll({
-        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('work_domains')), 'work_domains']], raw: true,
-    });
-
-    const rawData = data?.map(item => item?.work_domains).filter(Boolean)
-        .flatMap(domains => {
-            try {
-                const parseData = JSON.parse(domains);
-                if (Array.isArray(parseData)) {
-                    return parseData?.filter(domain => domain && domain?.trim() !== '');
-                };
-                return [];
-            } catch (error) {
-                console.error(error);
-                return [];
-            }
-        })
-        .filter((value, idx, self) => self.indexOf(value) === idx);
-
-    const domain_opts = rawData?.map(domain => ({ label: domain?.toUpperCase(), value: domain }));
-    resp.status(200).json({ success: true, domain_opts });
-});
-
-
-export const companyOpts = TryCatch(async (req, resp, next) => {
-    const apiObj = {};
-    const api = await Company.findAll({ where: { status: true }, attributes: ['id', 'title', 'type'] });
-    if (api.length <= 0) {
-        return next(new ErrorHandler('Companies Not Found!', 404));
-    };
-
-    api?.forEach((item) => {
-        if (!apiObj[item?.type]) {
-            apiObj[item?.type] = { label: item?.type?.toUpperCase(), options: [] };
-        };
-        apiObj[item?.type]?.options?.push({ label: item?.title?.toUpperCase(), value: item?.id });
-    });
-
-    const companies = Object.values(apiObj);
-    resp.status(200).json({ success: true, companies });
+    const company_opts = { types, works, domains, skills };
+    resp.status(200).json({ success: true, company_opts });
 });
 
 

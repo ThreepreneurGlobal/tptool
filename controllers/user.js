@@ -81,8 +81,9 @@ export const updateProfile = TryCatch(async (req, resp, next) => {
 export const createStudent = TryCatch(async (req, resp, next) => {
     const {
         name, mobile, email, id_prf, dob, course, branch, batch, current_yr, enroll, ten_yr, gender,
-        ten_board, ten_stream, ten_per, twelve_yr, twelve_board, twelve_stream, twelve_per, diploma,
-        diploma_yr, diploma_stream, diploma_per, ed_gap, gap_desc, disability, experience,
+        ten_board, ten_stream, ten_per, twelve_yr, twelve_board, twelve_stream, twelve_per,
+        degree_name, degree_university, degree_branch, degree_yr, degree_per, diploma, abc_id,
+        diploma_yr, diploma_branch, diploma_per, ed_gap, gap_desc, disability, experience,
     } = req.body;
 
     const existed = await User.findOne({ where: { [Op.or]: [{ email }, { mobile }] } });
@@ -112,8 +113,9 @@ export const createStudent = TryCatch(async (req, resp, next) => {
     if (user) {
         student = await Student.create({
             dob, course, branch, batch, current_yr, enroll, ten_yr, ten_board, ten_stream, ten_per,
-            twelve_yr, twelve_board, twelve_stream, twelve_per, diploma, diploma_yr, diploma_stream,
-            diploma_per, ed_gap, gap_desc, disability, experience, user_id: user.id,
+            twelve_yr, twelve_board, twelve_stream, twelve_per, diploma, diploma_yr, diploma_branch,
+            diploma_per, degree_name, degree_university, degree_branch, degree_yr, degree_per,
+            ed_gap, gap_desc, disability, experience, abc_id, user_id: user.id,
         });
     }
     if (!student) {
@@ -146,8 +148,9 @@ export const studentById = TryCatch(async (req, resp, next) => {
 export const editStudent = TryCatch(async (req, resp, next) => {
     const {
         name, mobile, email, id_prf, dob, course, branch, batch, current_yr, enroll, ten_yr, gender,
-        ten_board, ten_stream, ten_per, twelve_yr, twelve_board, twelve_stream, twelve_per, diploma,
-        diploma_yr, diploma_stream, diploma_per, ed_gap, gap_desc, disability, experience,
+        ten_board, ten_stream, ten_per, twelve_yr, twelve_board, twelve_stream, twelve_per,
+        degree_name, degree_university, degree_branch, degree_yr, degree_per, abc_id, diploma,
+        diploma_yr, diploma_branch, diploma_per, ed_gap, gap_desc, disability, experience,
     } = req.body;
 
     const user = await User.findOne({ where: { id: req.params.id, status: true, role: 'user', designation: 'student' }, });
@@ -170,8 +173,9 @@ export const editStudent = TryCatch(async (req, resp, next) => {
     };
     await student.update({
         dob, course, branch, batch, current_yr, enroll, ten_yr, ten_board, ten_stream, ten_per,
-        twelve_yr, twelve_board, twelve_stream, twelve_per, diploma, diploma_yr, diploma_stream,
-        diploma_per, ed_gap, gap_desc, disability, experience,
+        twelve_yr, twelve_board, twelve_stream, twelve_per, diploma, diploma_yr, diploma_branch,
+        diploma_per, degree_name, degree_university, degree_branch, degree_yr, degree_per, 
+        ed_gap, gap_desc, disability, experience, abc_id,
     });
 
     resp.status(201).json({ success: true, message: `${user?.name?.toUpperCase()} UPDATED...` });

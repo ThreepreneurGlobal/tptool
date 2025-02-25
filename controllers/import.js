@@ -25,8 +25,10 @@ export const importStudent = TryCatch(async (req, resp, next) => {
             'Birth Date': BirthDate, Gender, 'Tenth Passing': Tenth_Passing, 'Tenth Board/University': Tenth_Board,
             'Tenth Stream': Tenth_Stream, 'Tenth Score': Tenth_Score, 'Twelve Passing': Twelth_Passing,
             'Twelve Board/University': Twelth_Board, 'Twelve Stream': Twelth_Stream, 'Twelve Score': Twelth_Score,
-            'Diploma Passing': Diploma_Passing, 'Diploma Name': Diploma_Name, 'Diploma Stream': Diploma_Stream,
-            'Diploma Score': Diploma_Score, Disability, 'Gap (Yrs)': Education_Gap, 'Gap Description': Gap_Reason,
+            'Degree Name': Degree_Name, 'Degree University': Degree_University, 'Degree Branch': Degree_Branch,
+            'Degree Passing': Degree_Year, 'Degree Score': Degree_Score, 'Diploma Passing': Diploma_Passing,
+            'Diploma Name': Diploma_Name, 'Diploma Stream': Diploma_Stream, 'Diploma Score': Diploma_Score,
+            Disability, 'Gap (Yrs)': Education_Gap, 'Gap Description': Gap_Reason,
         } = toLowerCaseFields(item);
 
         // Genrate Password
@@ -106,7 +108,7 @@ export const importStudent = TryCatch(async (req, resp, next) => {
                 return;
             };
         };
-        //Twelve Passing Date Format
+        //Diploma Passing Date Format
         let diplomaDate = null;
         if (Diploma_Passing) {
             let parseDate;
@@ -119,6 +121,22 @@ export const importStudent = TryCatch(async (req, resp, next) => {
                 diplomaDate = moment(parseDate).format('YYYY-MM-DD');
             } else {
                 errorMsgs.push(`${Diploma_Passing} Passing Date Invalid! Passing Date Valid for ${Name}`);
+                return;
+            };
+        };
+        //Degree Passing Date Format
+        let degreeDate = null;
+        if (Degree_Year) {
+            let parseDate;
+            if (typeof Degree_Year === "number") {
+                parseDate = excelToJSDate(Degree_Year);
+            } else {
+                parseDate = moment(Degree_Year, ["MM-DD-YYYY", "DD-MM-YYYY", "YYYY-MM-DD", "MM/DD/YYYY", "DD/MM/YYYY", "YYYY/MM/DD"]);
+            };
+            if (moment(parseDate).isValid()) {
+                degreeDate = moment(parseDate).format('YYYY-MM-DD');
+            } else {
+                errorMsgs.push(`${Degree_Year} Passing Date Invalid! Passing Date Valid for ${Name}`);
                 return;
             };
         };
@@ -144,12 +162,14 @@ export const importStudent = TryCatch(async (req, resp, next) => {
                 ten_per: Tenth_Score, twelve_yr: twelveDate, twelve_board: Twelth_Board, user_id: user?.id,
                 twelve_stream: Twelth_Stream, twelve_per: Twelth_Score, diploma: Diploma_Name,
                 diploma_stream: Diploma_Stream, diploma_yr: diplomaDate, diploma_per: Diploma_Score,
-                ed_gap: Education_Gap, gap_desc: Gap_Reason, disability: Disability === 'yes' ? true : false,
+                degree_name: Degree_Name, degree_university: Degree_University, degree_branch: Degree_Branch,
+                degree_yr: degreeDate, degree_per: Degree_Score, ed_gap: Education_Gap, gap_desc: Gap_Reason,
+                disability: Disability === 'yes' ? true : false,
             });
         };
     }));
 
-    console.log(errorMsgs);
+    console.error(errorMsgs);
     fs.rm(req.file?.path, () => { console.log('XLSX FILE DELETED...') });
     resp.status(201).json({ success: true, message: `${users?.length} Students Imported...` });
 });

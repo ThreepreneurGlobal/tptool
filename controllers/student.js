@@ -4,6 +4,7 @@ import XLSX from 'xlsx';
 import Student from '../models/student.js';
 import User from '../models/user.js';
 import TryCatch, { ErrorHandler } from '../utils/trycatch.js';
+import { getCollegeBatchOpts, getCollegeBranchesOpts, getCollegeCoursesOpts, getCollegeEdYearOpts } from '../utils/opt/college.js';
 
 
 export const generateTemplate = TryCatch(async (req, resp, next) => {
@@ -11,7 +12,8 @@ export const generateTemplate = TryCatch(async (req, resp, next) => {
     const worksheet = XLSX.utils.aoa_to_sheet([[
         'ID NO.', 'Name', 'Mail ID', 'Contact', 'Course', 'Branch', 'Batch', 'Studying', 'Enrollment',
         'Birth Date', 'Gender', 'Tenth Passing', 'Tenth Board/University', 'Tenth Stream', 'Tenth Score',
-        'Twelve Passing', 'Twelve Board/University', 'Twelve Stream', 'Twelve Score', 'Diploma Passing',
+        'Twelve Passing', 'Twelve Board/University', 'Twelve Stream', 'Twelve Score', 'Degree Name',
+        'Degree University', 'Degree Branch', 'Degree Passing', 'Degree Score', 'Diploma Passing',
         'Diploma Name', 'Diploma Stream', 'Diploma Score', 'Disability', 'Gap (Yrs)', 'Gap Description',
     ]]);
 
@@ -71,6 +73,11 @@ export const exportStudent = TryCatch(async (req, resp, next) => {
         'Diploma Name': item?.student?.ten_board,
         'Diploma Stream': item?.student?.diploma_stream,
         'Diploma Score': item?.student?.diploma_per,
+        'Degree Name': item?.student?.degree_name,
+        'Degree University': item?.student?.degree_university,
+        'Degree Branch': item?.student?.degree_branch,
+        'Degree Passing': item?.student?.degree_yr,
+        'Degree Score': item?.student?.degree_per,
         'Disability': item?.student?.disability === false ? 'no' : 'yes',
         'Experience (Yrs)': item?.student?.experience,
         'Address': item?.address,
@@ -133,6 +140,17 @@ export const getStudents = TryCatch(async (req, resp, next) => {
     // };
 
     resp.status(200).json({ success: true, users });
+});
+
+
+export const getFilterOpts = TryCatch(async (req, resp, next) => {
+    const courses = await getCollegeCoursesOpts();
+    const branches = await getCollegeBranchesOpts();
+    const years = await getCollegeEdYearOpts();
+    const batches = await getCollegeBatchOpts();
+
+    const filter_opts = { courses, branches, years, batches };
+    resp.status(200).json({ success: true, filter_opts });
 });
 
 

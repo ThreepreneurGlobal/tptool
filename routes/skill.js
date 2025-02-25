@@ -1,6 +1,6 @@
 import express from 'express';
 
-import { createSkill, editSkill, getCategoriesOpts, getSkillById, getSkills, getSkillsOpts, getSubCategoriesOpts } from '../controllers/skill.js';
+import { createSkill, editSkill, getSkillById, getSkillOpts, getSkills } from '../controllers/skill.js';
 import { isAuthenticatedUser, isAutherizeRole } from '../middlewares/auth.js';
 
 
@@ -17,11 +17,7 @@ router.get('/get/:id', isAutherizeRole('admin'), getSkillById);
 
 router.get('/get', isAutherizeRole('admin'), getSkills);
 
-router.get('/opts', isAutherizeRole('admin'), getSkillsOpts);
-
-router.get('/category/opts', isAutherizeRole('admin'), getCategoriesOpts);
-
-router.get('/subcategory/opts', isAutherizeRole('admin'), getSubCategoriesOpts);
+router.get('/options', isAutherizeRole('admin'), getSkillOpts);
 
 
 export default router;

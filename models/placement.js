@@ -16,10 +16,10 @@ const Placement = Connect.define('placements', {
     type: {
         type: DataTypes.STRING,
     },
-    exp_opening: {
-        type: DataTypes.INTEGER,
-        defaultValue: 0,
-    },
+    // exp_opening: {
+    //     type: DataTypes.INTEGER,
+    //     defaultValue: 0,
+    // },
     place_status: {
         type: DataTypes.STRING,
     },
@@ -30,8 +30,7 @@ const Placement = Connect.define('placements', {
         type: DataTypes.TEXT,
     },
     criteria: {
-        type: DataTypes.FLOAT(10, 2),
-        defaultValue: 0,
+        type: DataTypes.TEXT,
     },
     other_details: {
         type: DataTypes.TEXT,

@@ -1,12 +1,13 @@
-import { Op, Sequelize } from 'sequelize';
+import { Op } from 'sequelize';
 
 import Company from '../models/company.js';
 import CompanySkill from '../models/company_skill.js';
-import PositionSkill from '../models/position_skill.js';
 import PlacePosition from '../models/place_position.js';
+import PositionSkill from '../models/position_skill.js';
 import Skill from '../models/skill.js';
-import TryCatch, { ErrorHandler } from '../utils/trycatch.js';
+import { getSkillCategoriesOpts, getSkillSubCategoriesOpts } from '../utils/opt/skill.js';
 import { toLowerCaseFields } from '../utils/strFeature.js';
+import TryCatch, { ErrorHandler } from '../utils/trycatch.js';
 
 
 export const createSkill = TryCatch(async (req, resp, next) => {
@@ -58,54 +59,12 @@ export const getSkillById = TryCatch(async (req, resp, next) => {
 });
 
 
-export const getSkillsOpts = TryCatch(async (req, resp, next) => {
-    const apiObj = {};
-    const api = await Skill.findAll({
-        where: { status: true }, attributes: ['id', 'title', 'category']
-    });
-    if (api.length <= 0) {
-        return next(new ErrorHandler('Skills Not Found!', 404));
-    };
+export const getSkillOpts = TryCatch(async (req, resp, next) => {
+    const categories = await getSkillCategoriesOpts();
+    const sub_categories = await getSkillSubCategoriesOpts();
 
-    api?.forEach((item) => {
-        if (!apiObj[item?.category]) {
-            apiObj[item?.category] = { label: item?.category?.toUpperCase(), options: [] };
-        };
-        apiObj[item?.category]?.options?.push({ label: item?.title?.toUpperCase(), value: item?.id });
-    });
-
-    const skills = Object.values(apiObj);
-    resp.status(200).json({ success: true, skills });
-});
-
-
-export const getCategoriesOpts = TryCatch(async (req, resp, next) => {
-    const data = await Skill.findAll({
-        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('category')), 'category']], raw: true,
-    });
-
-    const categories = data?.filter(item => item?.category !== null && item?.category !== '')
-        .map(item => ({
-            label: item?.category?.toUpperCase(),
-            value: item?.category
-        }));
-
-    resp.status(200).json({ success: true, categories });
-});
-
-
-export const getSubCategoriesOpts = TryCatch(async (req, resp, next) => {
-    const data = await Skill.findAll({
-        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('sub_category')), 'sub_category']], raw: true,
-    });
-
-    const categories = data?.filter(item => item?.sub_category !== null && item?.sub_category !== '')
-        .map(item => ({
-            label: item?.sub_category?.toUpperCase(),
-            value: item?.sub_category
-        }));
-
-    resp.status(200).json({ success: true, categories });
+    const skill_opts = { categories, sub_categories };
+    resp.status(201).json({ success: true, skill_opts });
 });
 
 

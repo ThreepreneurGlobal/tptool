@@ -8,6 +8,9 @@ import Placement from '../models/placement.js';
 import Skill from '../models/skill.js';
 import User from '../models/user.js';
 import TryCatch, { ErrorHandler } from '../utils/trycatch.js';
+import { getPlaceDriveOpts, getPlacePositionOpts, getPlaceStatusOpts } from '../utils/opt/place.js';
+import { getSkillsOpts } from '../utils/opt/skill.js';
+import { getCompanyOpts } from '../utils/opt/company.js';
 
 
 
@@ -16,12 +19,15 @@ export const getPlacements = TryCatch(async (req, resp, next) => {
         where: { status: true, },
         include: [
             {
-                model: PlacePosition, foreignKey: 'placement_id', as: 'positions', attributes: ['id', 'title'],
-                include: [{
-                    model: Skill, as: 'skills', required: false, attributes: ['id', 'title'],
-                    through: { model: PositionSkill, attributes: ['id'] }
-                }]
+                model: PlacePosition, foreignKey: 'placement_id', as: 'positions', attributes: ['id', 'title', 'opening'],
+                include: [
+                    {
+                        model: Skill, as: 'skills', required: false, attributes: ['id', 'title'],
+                        through: { model: PositionSkill, attributes: ['id'] }
+                    },
+                ]
             },
+            { model: Company, foreignKey: 'company_id', as: 'company', attributes: ['id', 'title'] }
         ]
     });
 
@@ -43,7 +49,7 @@ export const getPlacementById = TryCatch(async (req, resp, next) => {
                 attributes: ['id', 'title', 'phone', 'email', 'web', 'logo']
             },
             {
-                model: PlacePosition, foreignKey: 'placement_id', as: 'positions', attributes: ['id', 'title', 'type'],
+                model: PlacePosition, foreignKey: 'placement_id', as: 'positions', attributes: ['id', 'title', 'type', 'opening'],
                 include: [{
                     model: Skill, through: { model: PositionSkill, attributes: ['id'] },
                     as: 'skills', required: false, attributes: ['id', 'title', 'category'],
@@ -62,7 +68,7 @@ export const getPlacementById = TryCatch(async (req, resp, next) => {
 
 export const createPlacement = TryCatch(async (req, resp, next) => {
     const {
-        title, type, exp_opening, place_status, status_details, selection_details, criteria, other_details,
+        title, type, place_status, status_details, selection_details, criteria, other_details,
         contact_per, company_contact, reg_sdate, reg_edate, reg_stime, reg_etime, rereg_edate, rereg_etime,
         reg_details, ctc, stipend, add_comment, history, company_id, positions,
     } = req.body;
@@ -70,7 +76,7 @@ export const createPlacement = TryCatch(async (req, resp, next) => {
     const attach_tpo = req.files?.['attach_tpo']?.[0]?.path || null;
 
     const placement = await Placement.create({
-        title, type, exp_opening, place_status, status_details, selection_details, criteria, other_details,
+        title, type, place_status, status_details, selection_details, criteria, other_details,
         contact_per, company_contact, reg_sdate, reg_edate, reg_stime, reg_etime, rereg_edate, rereg_etime,
         reg_details, ctc, stipend, add_comment, history, company_id: Number(company_id),
         attach_student: attach_student ? attach_student : null, attach_tpo: attach_tpo ? attach_tpo : null,
@@ -82,8 +88,8 @@ export const createPlacement = TryCatch(async (req, resp, next) => {
 
     if (Array.isArray(positions) && positions.length > 0) {
         await Promise.all(positions.map(async (position) => {
-            const { title, type, skills } = position;
-            const placePosition = await PlacePosition.create({ title, type, placement_id: placement.id, company_id: Number(company_id) });
+            const { title, type, skills, opening } = position;
+            const placePosition = await PlacePosition.create({ title, type, opening, placement_id: placement.id, company_id: Number(company_id) });
             if (!placePosition) {
                 return new ErrorHandler('Placement Position Not Created!', 400);
             };
@@ -103,7 +109,7 @@ export const createPlacement = TryCatch(async (req, resp, next) => {
 
 export const editPlacement = TryCatch(async (req, resp, next) => {
     const {
-        title, type, exp_opening, place_status, status_details, selection_details, criteria, other_details,
+        title, type, place_status, status_details, selection_details, criteria, other_details,
         contact_per, company_contact, reg_sdate, reg_edate, reg_stime, reg_etime, rereg_edate, rereg_etime,
         reg_details, ctc, stipend, add_comment, history, company_id, positions,
     } = req.body;
@@ -125,7 +131,7 @@ export const editPlacement = TryCatch(async (req, resp, next) => {
     };
 
     await placement.update({
-        title, type, exp_opening, place_status, status_details, selection_details, criteria, other_details,
+        title, type, place_status, status_details, selection_details, criteria, other_details,
         contact_per, company_contact, reg_sdate, reg_edate, reg_stime, reg_etime, rereg_edate, rereg_etime,
         reg_details, ctc, stipend, add_comment, history, company_id: Number(company_id), attach_tpo: attach_tpo ? attach_tpo :
             placement?.attach_tpo, attach_student: attach_student ? attach_student : placement?.attach_student,
@@ -135,10 +141,10 @@ export const editPlacement = TryCatch(async (req, resp, next) => {
     const existPositions = await PlacePosition.findAll({ where: { status: true, placement_id: placement?.id } });
     if (Array.isArray(positions) && positions.length > 0) {
         for (const position of positions) {
-            const { title, type, skills } = position;
+            const { title, type, skills, opening } = position;
             const exist = existPositions?.find(p => p?.id === position?.id);
             if (exist) {
-                await exist.update({ title, type });
+                await exist.update({ title, type, opening });
 
                 //Skill
                 const existSkills = await PositionSkill.findAll({ where: { placement_id: placement.id, position_id: position?.id, status: true } });
@@ -155,7 +161,7 @@ export const editPlacement = TryCatch(async (req, resp, next) => {
                 };
             } else {
                 // New Placement Position
-                const placePosition = await PlacePosition.create({ title, type, placement_id: placement.id, company_id: Number(company_id) });
+                const placePosition = await PlacePosition.create({ title, type, opening, placement_id: placement.id, company_id: Number(company_id) });
                 if (!placePosition) {
                     return new ErrorHandler('Placement Position Not Created!', 400);
                 };
@@ -185,42 +191,15 @@ export const editPlacement = TryCatch(async (req, resp, next) => {
 });
 
 
-export const getStatusOpts = TryCatch(async (req, resp, next) => {
-    const data = await Placement.findAll({
-        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('place_status')), 'place_status']], raw: true,
-    });
+export const getPlaceOptions = TryCatch(async (req, resp, next) => {
+    const statuses = await getPlaceStatusOpts();
+    const drives = await getPlaceDriveOpts();
+    const position_types = await getPlacePositionOpts();
+    const skills = await getSkillsOpts();
+    const companies = await getCompanyOpts()
 
-    const status_opts = data?.filter(item => item?.place_status !== null && item?.place_status !== '')
-        .map(item => ({
-            label: item?.place_status?.toUpperCase(),
-            value: item?.place_status
-        }));
-
-    resp.status(200).json({ success: true, status_opts });
-});
-
-
-export const getDriveOpts = TryCatch(async (req, resp, next) => {
-    const data = await Placement.findAll({
-        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('type')), 'type']], raw: true,
-    });
-
-    const types = data?.filter(item => item?.type !== null && item?.type !== '')
-        .map(item => ({ label: item?.type?.toUpperCase(), value: item?.type }));
-
-    resp.status(200).json({ success: true, types });
-});
-
-
-export const getPositionOpts = TryCatch(async (req, resp, next) => {
-    const data = await PlacePosition.findAll({
-        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('type')), 'type']], raw: true,
-    });
-
-    const types = data?.filter(item => item?.type !== null && item?.type !== '')
-        .map(item => ({ label: item?.type?.toUpperCase(), value: item?.type }));
-
-    resp.status(200).json({ success: true, types });
+    const place_options = { statuses, drives, position_types, skills, companies };
+    resp.status(200).json({ success: true, place_options });
 });
 
 

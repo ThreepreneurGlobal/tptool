@@ -26,15 +26,18 @@ const Student = Connect.define("students", {
     enroll: {
         type: DataTypes.STRING
     },
+    abc_id: {
+        type: DataTypes.STRING,
+    },
     ten_yr: {
         type: DataTypes.DATEONLY,
     },
     ten_board: {
         type: DataTypes.STRING,
     },
-    ten_stream: {
-        type: DataTypes.STRING,
-    },
+    // ten_stream: {
+    //     type: DataTypes.STRING,
+    // },
     ten_per: {
         type: DataTypes.FLOAT,
         defaultValue: 0
@@ -55,13 +58,29 @@ const Student = Connect.define("students", {
     diploma: {
         type: DataTypes.STRING
     },
-    diploma_stream: {
+    diploma_branch: {
         type: DataTypes.STRING
     },
     diploma_yr: {
         type: DataTypes.DATEONLY,
     },
     diploma_per: {
+        type: DataTypes.FLOAT,
+        defaultValue: 0
+    },
+    degree_name: {
+        type: DataTypes.STRING
+    },
+    degree_university: {
+        type: DataTypes.STRING,
+    },
+    degree_branch: {
+        type: DataTypes.STRING
+    },
+    degree_yr: {
+        type: DataTypes.DATEONLY,
+    },
+    degree_per: {
         type: DataTypes.FLOAT,
         defaultValue: 0
     },

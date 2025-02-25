@@ -2,7 +2,7 @@ import express from 'express';
 
 import adminDash from '../controllers/dashboard/admin.js';
 import { importStudent } from '../controllers/import.js';
-import { exportStudent, generateTemplate, getStudents } from '../controllers/student.js';
+import { exportStudent, generateTemplate, getFilterOpts, getStudents } from '../controllers/student.js';
 import { createAdmin, createStudent, editStudent, loginUser, logoutUser, myProfile, studentById, updateProfile } from '../controllers/user.js';
 import { isAuthenticatedUser, isAutherizeRole } from '../middlewares/auth.js';
 import upload from '../utils/upload.js';
@@ -35,6 +35,8 @@ router.put('/student/update/:id', isAutherizeRole('admin'), editStudent);
 router.get('/student/get', isAutherizeRole('admin'), getStudents);
 
 router.get('/student/get/:id', isAutherizeRole('admin'), studentById);
+
+router.get('/student/options', isAutherizeRole('admin'), getFilterOpts);
 
 router.post('/student/import', isAutherizeRole('admin'), xlxUpload.single('file'), importStudent);
 

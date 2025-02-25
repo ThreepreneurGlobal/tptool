@@ -16,6 +16,9 @@ const PlacePosition = Connect.define('place_positions', {
     type: {
         type: DataTypes.STRING,
     },
+    opening: {
+        type: DataTypes.INTEGER,
+    },
     placement_id: {
         type: DataTypes.INTEGER,
     },
