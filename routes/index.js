@@ -1,5 +1,6 @@
 import express from 'express';
 
+import applicationRouter from './application.js';
 import collegeRouter from './college.js';
 import companyRouter from './company.js';
 import placementRouter from './placement.js';
@@ -19,6 +20,8 @@ router.use('/company', companyRouter);
 router.use('/skill', skillRouter);
 
 router.use('/placement', placementRouter);
+
+router.use('/application', applicationRouter);
 
 
 export default router;

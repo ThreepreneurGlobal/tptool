@@ -13,18 +13,18 @@ const Connect = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.
 
 try {
     Connect.authenticate();
-    // console.log("Connected...");
+    // console.log("CONNECTED...");
 } catch (error) {
-    console.log("Disconnected", error);
+    console.error("DISCONNECTED", error.message);
 };
 
 //Update DB Structure and Delete Old Structure with Old Data.
 // Connect.sync({ alter: true, force: true })
 //     .then(() => {
-//         console.log("All Models Synchronized Successfully...");
+//         console.log("ALL MODELS SYNCHRONIZED SUCCESSFULLY...");
 //     })
 //     .catch((err) => {
-//         console.error("Error for Synchronizing....");
+//         console.error("ERROR FOR SYNCHRONIZING....");
 //     })
 
 export default Connect;

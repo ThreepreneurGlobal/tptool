@@ -1,12 +1,16 @@
-import { Op, Sequelize } from 'sequelize';
+import { Op } from 'sequelize';
 
 import Company from '../models/company.js';
 import CompanySkill from '../models/company_skill.js';
-import PositionSkill from '../models/position_skill.js';
 import PlacePosition from '../models/place_position.js';
+import PositionSkill from '../models/position_skill.js';
 import Skill from '../models/skill.js';
-import TryCatch, { ErrorHandler } from '../utils/trycatch.js';
+import User from '../models/user.js';
+import UserSkill from '../models/user_skill.js';
+import { getSkillCategoriesOpts, getSkillsOpts, getSkillSubCategoriesOpts } from '../utils/opt/skill.js';
 import { toLowerCaseFields } from '../utils/strFeature.js';
+import TryCatch, { ErrorHandler } from '../utils/trycatch.js';
+import Student from '../models/student.js';
 
 
 export const createSkill = TryCatch(async (req, resp, next) => {
@@ -14,11 +18,11 @@ export const createSkill = TryCatch(async (req, resp, next) => {
 
     const existed = await Skill.findOne({ where: { [Op.or]: [{ title }, { short_name }] } });
     if (existed) {
-        return next(new ErrorHandler('Skill Already Created!', 400));
+        return next(new ErrorHandler('SKILL ALREADY CREATED!', 400));
     };
 
     await Skill.create({ title, short_name, description, category, sub_category });
-    resp.status(201).json({ success: true, message: 'Skill Created...' });
+    resp.status(201).json({ success: true, message: 'SKILL CREATED...' });
 });
 
 
@@ -27,11 +31,11 @@ export const editSkill = TryCatch(async (req, resp, next) => {
 
     const skill = await Skill.findOne({ where: { id: req.params.id, status: true } });
     if (!skill) {
-        return next(new ErrorHandler('Skill Not Found!', 404));
+        return next(new ErrorHandler('SKILL NOT FOUND!', 404));
     };
 
     await skill.update({ title, short_name, description, category, sub_category });
-    resp.status(201).json({ success: true, message: 'Skill Updated...' });
+    resp.status(201).json({ success: true, message: 'SKILL UPDATED...' });
 });
 
 
@@ -40,10 +44,6 @@ export const getSkills = TryCatch(async (req, resp, next) => {
         where: { status: true }, attributes: { exclude: ['status', 'created_at', 'updated_at'] }
     });
 
-    // if (skills.length <= 0) {
-    //     return next(new ErrorHandler('Skills Not Found!', 404));
-    // };
-
     resp.status(200).json({ success: true, skills });
 });
 
@@ -51,62 +51,29 @@ export const getSkills = TryCatch(async (req, resp, next) => {
 export const getSkillById = TryCatch(async (req, resp, next) => {
     const skill = await Skill.findOne({ where: { id: req.params.id, status: true } });
     if (!skill) {
-        return next(new ErrorHandler('Skill Not Found!', 404));
+        return next(new ErrorHandler('SKILL NOT FOUND!', 404));
     };
 
     resp.status(201).json({ success: true, skill });
 });
 
 
-export const getSkillsOpts = TryCatch(async (req, resp, next) => {
-    const apiObj = {};
-    const api = await Skill.findAll({
-        where: { status: true }, attributes: ['id', 'title', 'category']
-    });
-    if (api.length <= 0) {
-        return next(new ErrorHandler('Skills Not Found!', 404));
-    };
+export const getSkillOpts = TryCatch(async (req, resp, next) => {
+    const [categories, sub_categories] = await Promise.all([
+        getSkillCategoriesOpts(), getSkillSubCategoriesOpts()
+    ]);
 
-    api?.forEach((item) => {
-        if (!apiObj[item?.category]) {
-            apiObj[item?.category] = { label: item?.category?.toUpperCase(), options: [] };
-        };
-        apiObj[item?.category]?.options?.push({ label: item?.title?.toUpperCase(), value: item?.id });
-    });
-
-    const skills = Object.values(apiObj);
-    resp.status(200).json({ success: true, skills });
+    const skill_opts = { categories, sub_categories };
+    resp.status(201).json({ success: true, skill_opts });
 });
 
 
-export const getCategoriesOpts = TryCatch(async (req, resp, next) => {
-    const data = await Skill.findAll({
-        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('category')), 'category']], raw: true,
-    });
+export const addSkillOpts = TryCatch(async (req, resp, next) => {
+    const skill_opts = await getSkillsOpts();
 
-    const categories = data?.filter(item => item?.category !== null && item?.category !== '')
-        .map(item => ({
-            label: item?.category?.toUpperCase(),
-            value: item?.category
-        }));
-
-    resp.status(200).json({ success: true, categories });
+    resp.status(201).json({ success: true, skill_opts });
 });
 
-
-export const getSubCategoriesOpts = TryCatch(async (req, resp, next) => {
-    const data = await Skill.findAll({
-        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('sub_category')), 'sub_category']], raw: true,
-    });
-
-    const categories = data?.filter(item => item?.sub_category !== null && item?.sub_category !== '')
-        .map(item => ({
-            label: item?.sub_category?.toUpperCase(),
-            value: item?.sub_category
-        }));
-
-    resp.status(200).json({ success: true, categories });
-});
 
 
 // Company-Skill Relation
@@ -118,5 +85,9 @@ PlacePosition.belongsToMany(Skill, { through: PositionSkill, as: 'skills', forei
 Skill.belongsToMany(PlacePosition, { through: PositionSkill, as: 'positions', foreignKey: 'skill_id', otherKey: 'position_id' });
 
 // User-Skill Relation
-// Company.belongsToMany(Skill, { through: CompanySkill, as: 'skills' });
-// Skill.belongsToMany(Company, { through: CompanySkill, as: 'companies' });
+User.belongsToMany(Skill, { through: UserSkill, as: 'skills', foreignKey: 'user_id', otherKey: 'skill_id' });
+Skill.belongsToMany(User, { through: UserSkill, as: 'users', foreignKey: 'skill_id', otherKey: 'user_id' });
+
+// Student-Skill Relation
+Student.belongsToMany(Skill, { through: UserSkill, as: 'skills', foreignKey: 'student_id', otherKey: 'skill_id' });
+Skill.belongsToMany(Student, { through: UserSkill, as: 'students', foreignKey: 'skill_id', otherKey: 'student_id' });

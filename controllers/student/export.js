@@ -1,17 +1,18 @@
 import { Op } from 'sequelize';
 import XLSX from 'xlsx';
 
-import Student from '../models/student.js';
-import User from '../models/user.js';
-import TryCatch, { ErrorHandler } from '../utils/trycatch.js';
+import Student from '../../models/student.js';
+import User from '../../models/user.js';
+import TryCatch, { ErrorHandler } from '../../utils/trycatch.js';
 
 
 export const generateTemplate = TryCatch(async (req, resp, next) => {
     const workbook = XLSX.utils.book_new();
     const worksheet = XLSX.utils.aoa_to_sheet([[
         'ID NO.', 'Name', 'Mail ID', 'Contact', 'Course', 'Branch', 'Batch', 'Studying', 'Enrollment',
-        'Birth Date', 'Gender', 'Tenth Passing', 'Tenth Board/University', 'Tenth Stream', 'Tenth Score',
-        'Twelve Passing', 'Twelve Board/University', 'Twelve Stream', 'Twelve Score', 'Diploma Passing',
+        'Birth Date', 'Gender', 'Tenth Passing', 'Tenth Board/University', 'Tenth Score',
+        'Twelve Passing', 'Twelve Board/University', 'Twelve Stream', 'Twelve Score', 'Degree Name',
+        'Degree University', 'Degree Branch', 'Degree Passing', 'Degree Score', 'Diploma Passing',
         'Diploma Name', 'Diploma Stream', 'Diploma Score', 'Disability', 'Gap (Yrs)', 'Gap Description',
     ]]);
 
@@ -32,7 +33,7 @@ export const exportStudent = TryCatch(async (req, resp, next) => {
     const { ids } = req.body;
 
     if (!Array.isArray(ids) || ids.length <= 0) {
-        return next(new ErrorHandler('Students Not Found!', 404));
+        return next(new ErrorHandler('STUDENTS NOT FOUND!', 404));
     };
 
     const users = await User.findAll({
@@ -61,7 +62,6 @@ export const exportStudent = TryCatch(async (req, resp, next) => {
         'Gender': item?.gender,
         'Tenth Passing': item?.student?.ten_yr,
         'Tenth Board/University': item?.student?.ten_board,
-        'Tenth Stream': item?.student?.ten_stream,
         'Tenth Score': item?.student?.ten_per,
         'Twelve Passing': item?.student?.twelve_yr,
         'Twelve Board/University': item?.student?.twelve_board,
@@ -71,6 +71,11 @@ export const exportStudent = TryCatch(async (req, resp, next) => {
         'Diploma Name': item?.student?.ten_board,
         'Diploma Stream': item?.student?.diploma_stream,
         'Diploma Score': item?.student?.diploma_per,
+        'Degree Name': item?.student?.degree_name,
+        'Degree University': item?.student?.degree_university,
+        'Degree Branch': item?.student?.degree_branch,
+        'Degree Passing': item?.student?.degree_yr,
+        'Degree Score': item?.student?.degree_per,
         'Disability': item?.student?.disability === false ? 'no' : 'yes',
         'Experience (Yrs)': item?.student?.experience,
         'Address': item?.address,
@@ -87,55 +92,3 @@ export const exportStudent = TryCatch(async (req, resp, next) => {
     resp.setHeader('Content-Disposition', 'attachment; filename=students.xlsx');
     resp.status(200).end(buffer, 'binary');
 });
-
-
-export const getStudents = TryCatch(async (req, resp, next) => {
-    const { course, branch, batch, current_yr, gender } = req.query;
-    const whereClause = { status: true };
-    const whereUserClause = { status: true, role: 'user' };
-
-    if (course) {
-        const courseArr = Array.isArray(course) ? course : [course];
-        whereClause.course = { [Op.in]: courseArr };
-    };
-    if (branch) {
-        const branchArr = Array.isArray(branch) ? branch : [branch];
-        whereClause.branch = { [Op.in]: branchArr };
-    };
-    if (batch) {
-        const year = parseInt(batch, 10);
-        if (!isNaN(year)) {
-            whereClause.batch = {
-                [Op.gte]: new Date(year, 0, 1, 0, 0, 0, 0),
-                [Op.lt]: new Date(year + 1, 0, 1, 0, 0, 0, 0),
-            };
-        };
-    };
-    if (current_yr) {
-        whereClause.current_yr = current_yr;
-    };
-    if (gender) {
-        whereUserClause.gender = gender;
-    };
-
-    const users = await User.findAll({
-        where: whereUserClause, attributes: ['id', 'name', 'mobile', 'email', 'gender', 'id_prf'],
-        include: [
-            {
-                model: Student, foreignKey: 'user_id', as: 'student', required: true, where: whereClause,
-                attributes: ['id', 'dob', 'course', 'branch', 'batch', 'ten_per', 'twelve_per', 'experience', 'current_yr']
-            }
-        ],
-    });
-
-    // if (users.length <= 0) {
-    //     return next(new ErrorHandler('Students Not Found!', 404));
-    // };
-
-    resp.status(200).json({ success: true, users });
-});
-
-
-//User to Student Association
-User.hasOne(Student, { foreignKey: "user_id", as: "student" });
-Student.belongsTo(User, { foreignKey: "user_id", as: "user" });

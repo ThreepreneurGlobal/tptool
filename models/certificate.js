@@ -3,7 +3,7 @@ import { DataTypes } from 'sequelize';
 import Connect from '../utils/connect.js';
 
 
-const PlacePosition = Connect.define('place_positions', {
+const Certificate = Connect.define('certificates', {
     id: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
@@ -13,16 +13,13 @@ const PlacePosition = Connect.define('place_positions', {
     title: {
         type: DataTypes.STRING,
     },
-    type: {
-        type: DataTypes.STRING,
+    url: {
+        type: DataTypes.TEXT,
     },
-    opening: {
+    user_id: {
         type: DataTypes.INTEGER,
     },
-    placement_id: {
-        type: DataTypes.INTEGER,
-    },
-    company_id: {
+    student_id: {
         type: DataTypes.INTEGER,
     },
     status: {
@@ -34,4 +31,4 @@ const PlacePosition = Connect.define('place_positions', {
 });
 
 
-export default PlacePosition;
+export default Certificate;

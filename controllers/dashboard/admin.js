@@ -14,10 +14,10 @@ const adminDash = TryCatch(async (req, resp, next) => {
     const companiesLenPromise = Company.findAll({ where: { status: true } });
     const placementsLenPromise = Placement.findAll({ where: { status: true } });
     const placePositions = await PlacePosition.findAll({
-        where: { status: true }, limit: 6, order: [['created_at', 'DESC']], attributes: ['id', 'title'],
+        where: { status: true }, limit: 6, order: [['created_at', 'DESC']], attributes: ['id', 'title', 'opening'],
         include: [
             {
-                model: Placement, foreignKey: 'placement_id', as: 'placement', attributes: ['id', 'exp_opening'],
+                model: Placement, foreignKey: 'placement_id', as: 'placement', attributes: ['id'],
                 include: [
                     { model: Company, foreignKey: 'company_id', as: 'company', attributes: ['id', 'title', 'type', 'logo'] }
                 ]
@@ -64,7 +64,8 @@ const adminDash = TryCatch(async (req, resp, next) => {
     const vacancies = placePositions?.map(item => ({
         id: item?.placement?.id, img: item?.placement?.company?.logo, title: item?.title,
         company: item?.placement?.company?.title,
-        type: item?.placement?.company?.type, vacancy: item?.placement?.exp_opening,
+        type: item?.placement?.company?.type, 
+        vacancy: item?.opening,
     }));
 
     stats = { cardsData, vacancies };

@@ -16,6 +16,9 @@ const UserSkill = Connect.define('user_skills', {
     user_id: {
         type: DataTypes.INTEGER,
     },
+    student_id: {
+        type: DataTypes.INTEGER,
+    },
     rating: {
         type: DataTypes.FLOAT(10, 2),
     },

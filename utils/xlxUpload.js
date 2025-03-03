@@ -19,12 +19,12 @@ const xlxUpload = multer({
         const exts = ['.xlsx', '.xls'];
         const extName = path.extname(file.originalname).toLowerCase();
         if (!exts.includes(extName)) {
-            return cb(new ErrorHandler("Only Excel File Allowed!", 403));
+            return cb(new ErrorHandler("ONLY EXCEL FILE ALLOWED!", 403));
         };
         // Optionally, you can check file content type
         const allowedMimeTypes = ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel'];
         if (!allowedMimeTypes.includes(file.mimetype)) {
-            return cb(new Error('Invalid file type. Only Excel files are allowed.'));
+            return cb(new Error('INVALID FILE TYPE. ONLY EXCEL FILES ARE ALLOWED.'));
         }
 
         // Pass the file if it meets the validation criteria
