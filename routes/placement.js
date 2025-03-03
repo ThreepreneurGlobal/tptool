@@ -1,6 +1,7 @@
 import express from 'express';
 
-import { createPlacement, editPlacement, getPlacementById, getPlacements, getPlaceOptions } from '../controllers/placement.js';
+import { createPlacement, editPlacement, getPlacementById, getPlacements, getPlaceOptions } from '../controllers/placement/index.js';
+import { myPlaceById, myPlacements } from '../controllers/placement/student.js';
 import { isAuthenticatedUser, isAutherizeRole } from '../middlewares/auth.js';
 import upload from '../utils/upload.js';
 
@@ -10,6 +11,12 @@ const router = express.Router();
 // Auth Routes
 router.use(isAuthenticatedUser);
 
+router.get('/student/get', myPlacements);
+
+router.get('/student/get/:id', myPlaceById);
+
+
+// ADMIN
 router.get('/get', isAutherizeRole('admin'), getPlacements);
 
 router.get('/get/:id', isAutherizeRole('admin'), getPlacementById);

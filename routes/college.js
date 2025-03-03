@@ -6,10 +6,11 @@ import { isAuthenticatedUser, isAutherizeRole } from '../middlewares/auth.js';
 
 const router = express.Router();
 
+router.get('/options', getCollegeOpts)
+
+
 // Auth Routes
 router.use(isAuthenticatedUser);
-
-router.get('/options', isAutherizeRole('admin'), getCollegeOpts)
 
 router.get('/course-branch/get', isAutherizeRole('admin'), getCoursesBranches);
 

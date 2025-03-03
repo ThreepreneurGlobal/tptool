@@ -1,39 +1,35 @@
 import fs from 'fs';
-import { Sequelize } from 'sequelize';
+import { Sequelize, where } from 'sequelize';
 
-import Company from '../models/company.js';
-import PlacePosition from '../models/place_position.js';
-import PositionSkill from '../models/position_skill.js';
-import Placement from '../models/placement.js';
-import Skill from '../models/skill.js';
-import User from '../models/user.js';
-import TryCatch, { ErrorHandler } from '../utils/trycatch.js';
-import { getPlaceDriveOpts, getPlacePositionOpts, getPlaceStatusOpts } from '../utils/opt/place.js';
-import { getSkillsOpts } from '../utils/opt/skill.js';
-import { getCompanyOpts } from '../utils/opt/company.js';
+import Company from '../../models/company.js';
+import PlacePosition from '../../models/place_position.js';
+import PositionSkill from '../../models/position_skill.js';
+import Placement from '../../models/placement.js';
+import Skill from '../../models/skill.js';
+import User from '../../models/user.js';
+import TryCatch, { ErrorHandler } from '../../utils/trycatch.js';
+import { getPlaceDriveOpts, getPlacePositionOpts, getPlaceStatusOpts } from '../../utils/opt/place.js';
+import { getSkillsOpts } from '../../utils/opt/skill.js';
+import { getCompanyOpts } from '../../utils/opt/company.js';
 
 
 
 export const getPlacements = TryCatch(async (req, resp, next) => {
     const placements = await Placement.findAll({
-        where: { status: true, },
+        where: { status: true, }, order: [['created_at', 'DESC']],
         include: [
             {
                 model: PlacePosition, foreignKey: 'placement_id', as: 'positions', attributes: ['id', 'title', 'opening'],
                 include: [
                     {
                         model: Skill, as: 'skills', required: false, attributes: ['id', 'title'],
-                        through: { model: PositionSkill, attributes: ['id'] }
+                        through: { model: PositionSkill, attributes: [] }
                     },
                 ]
             },
             { model: Company, foreignKey: 'company_id', as: 'company', attributes: ['id', 'title'] }
         ]
     });
-
-    // if (placements.length <= 0) {
-    //     return next(new ErrorHandler('Placements Not Found!', 404));
-    // };
 
     resp.status(200).json({ success: true, placements });
 });
@@ -43,23 +39,23 @@ export const getPlacementById = TryCatch(async (req, resp, next) => {
     const placement = await Placement.findOne({
         where: { status: true, id: req.params.id },
         include: [
-            { model: User, foreignKey: 'user_id', as: 'user', attributes: ['id', 'name'] },
+            { model: User, foreignKey: 'user_id', as: 'user', attributes: ['id', 'name'], },
             {
-                model: Company, foreignKey: 'company_id', as: 'company',
+                model: Company, foreignKey: 'company_id', as: 'company', where: { status: true },
                 attributes: ['id', 'title', 'phone', 'email', 'web', 'logo']
             },
             {
                 model: PlacePosition, foreignKey: 'placement_id', as: 'positions', attributes: ['id', 'title', 'type', 'opening'],
                 include: [{
-                    model: Skill, through: { model: PositionSkill, attributes: ['id'] },
+                    model: Skill, through: { model: PositionSkill, attributes: [], where: { status: true } },
                     as: 'skills', required: false, attributes: ['id', 'title', 'category'],
-                }],
+                }], where: { status: true },
             },
         ]
     });
 
     if (!placement) {
-        return next(new ErrorHandler('Placement Not Found!', 404));
+        return next(new ErrorHandler('PLACEMENT NOT FOUND!', 404));
     };
 
     resp.status(200).json({ success: true, placement });
@@ -83,7 +79,7 @@ export const createPlacement = TryCatch(async (req, resp, next) => {
     });
 
     if (!placement) {
-        return next(new ErrorHandler('Placement Not Created!', 500));
+        return next(new ErrorHandler('PLACEMENT NOT CREATED!', 500));
     };
 
     if (Array.isArray(positions) && positions.length > 0) {
@@ -91,7 +87,7 @@ export const createPlacement = TryCatch(async (req, resp, next) => {
             const { title, type, skills, opening } = position;
             const placePosition = await PlacePosition.create({ title, type, opening, placement_id: placement.id, company_id: Number(company_id) });
             if (!placePosition) {
-                return new ErrorHandler('Placement Position Not Created!', 400);
+                return new ErrorHandler('PLACEMENT POSITION NOT CREATED!', 400);
             };
 
             const uniqueSkillIds = [...new Set(skills)].filter(skill => Number.isInteger(Number(skill)));
@@ -103,7 +99,7 @@ export const createPlacement = TryCatch(async (req, resp, next) => {
         }));
     };
 
-    resp.status(201).json({ success: true, message: 'Placement Created...' });
+    resp.status(201).json({ success: true, message: 'PLACEMENT CREATED...' });
 });
 
 
@@ -120,7 +116,7 @@ export const editPlacement = TryCatch(async (req, resp, next) => {
         where: { id: req.params.id, status: true, },
     });
     if (!placement) {
-        return next(new ErrorHandler('Placement Not Found!', 404));
+        return next(new ErrorHandler('PLACEMENT NOT FOUND!', 404));
     };
 
     if (placement?.attach_tpo && attach_tpo) {
@@ -137,66 +133,68 @@ export const editPlacement = TryCatch(async (req, resp, next) => {
             placement?.attach_tpo, attach_student: attach_student ? attach_student : placement?.attach_student,
     });
 
-    // Position
-    const existPositions = await PlacePosition.findAll({ where: { status: true, placement_id: placement?.id } });
-    if (Array.isArray(positions) && positions.length > 0) {
+    // POSITION
+    if (positions) {
+        const existingPositions = await PlacePosition.findAll({ where: { placement_id: placement?.id, status: true } });
+        const existingPositionIds = existingPositions?.map(p => p?.id);
+        const reqPositionIds = positions?.map(p => Number(p?.id)).filter(id => id !== undefined);
+        const positionsToDelete = existingPositionIds?.filter(id => !reqPositionIds?.includes(id));
+
         for (const position of positions) {
-            const { title, type, skills, opening } = position;
-            const exist = existPositions?.find(p => p?.id === position?.id);
-            if (exist) {
-                await exist.update({ title, type, opening });
+            const { id, title, type, opening, skills = [] } = position;
+            if (id) {
+                const existPosition = existingPositions?.find(p => p?.id === Number(id));
+                if (existPosition) {
+                    await existPosition.update({ title, type, opening });
 
-                //Skill
-                const existSkills = await PositionSkill.findAll({ where: { placement_id: placement.id, position_id: position?.id, status: true } });
-                const existSkillIds = existSkills?.map(skill => skill?.skill_id);
-                const skillToRemove = existSkills.filter(skill => !skills?.include(skill?.skill_id));
+                    // SKILLS
+                    const existingSkills = await PositionSkill.findAll({ where: { position_id: existPosition?.id, status: true } });
+                    const existingSkillIds = existingSkills?.map(skill => skill?.skill_id);
+                    const newSkillIds = [...new Set(skills)]?.filter(skill => Number.isInteger(Number(skill)));
 
-                for (const skill of skillToRemove) {
-                    await skill.destroy();
-                };
+                    const skillsToRemove = existingSkills?.filter(skill => !newSkillIds?.includes(skill?.skill_id));
+                    for (const skill of skillsToRemove) {
+                        await skill.update({ status: false });
+                    };
 
-                const skillToAdd = skills?.filter(skill => !existSkillIds?.includes(skill));
-                for (const skill of skillToAdd) {
-                    await PositionSkill.create({ skill_id: skill, placement_id: placement.id, position_id: position?.id });
+                    const skillsToAdd = newSkillIds?.filter(skill => !existingSkillIds?.includes(skill));
+                    for (const skill of skillsToAdd) {
+                        await PositionSkill.upsert({
+                            skill_id: Number(skill), placement_id: placement?.id, position_id: Number(existPosition?.id)
+                        });
+                    };
                 };
             } else {
-                // New Placement Position
-                const placePosition = await PlacePosition.create({ title, type, opening, placement_id: placement.id, company_id: Number(company_id) });
-                if (!placePosition) {
-                    return new ErrorHandler('Placement Position Not Created!', 400);
+                const newPosition = await PlacePosition.create({
+                    title, type, opening, placement_id: placement?.id, company_id: Number(company_id),
+                });
+                if (!newPosition) {
+                    // return next(new ErrorHandler('PLACEMENT POSITION NOT CREATED!', 400));
+                    return;
                 };
 
-                const uniqueSkillIds = [...new Set(skills)].filter(skill => Number.isInteger(Number(skill)));
-                if (uniqueSkillIds.length > 0) {
-                    await Promise.all(uniqueSkillIds.map(async (skill) => {
-                        await PositionSkill.create({ skill_id: Number(skill), placement_id: placement.id, position_id: placePosition?.id });
-                    }));
+                for (const skill of skills) {
+                    await PositionSkill.upsert({
+                        skill_id: Number(skill), placement_id: Number(placement?.id), position_id: Number(newPosition?.id),
+                    });
                 };
             };
         };
-    };
 
-    const positionsToDelete = existPositions?.filter(p => !positions?.some(pos => pos?.id === p?.id));
-    for (const position of positionsToDelete) {
-        const skills = await PositionSkill.findAll({ where: { status: true, position_id: position?.id } });
-        for (const skill of skills) {
-            const deleteSkill = await skill.destroy();
-            if (!deleteSkill) return new ErrorHandler('Placement Position Skill Not Deleted!', 400);
+        for (const position of positionsToDelete) {
+            await PositionSkill.update({ status: false }, { where: { position_id: position } });
+            await PlacePosition.update({ status: false }, { where: { id: position } });
         };
-        const deletePosition = await position.destroy();
-        if (!deletePosition) return new ErrorHandler('Placement Position Not Deleted!', 400);
     };
 
-    resp.status(200).json({ success: true, message: 'Placement Updated...' });
+    resp.status(200).json({ success: true, message: 'PLACEMENT UPDATED...' });
 });
 
 
 export const getPlaceOptions = TryCatch(async (req, resp, next) => {
-    const statuses = await getPlaceStatusOpts();
-    const drives = await getPlaceDriveOpts();
-    const position_types = await getPlacePositionOpts();
-    const skills = await getSkillsOpts();
-    const companies = await getCompanyOpts()
+    const [statuses, drives, position_types, skills, companies] = await Promise.all([
+        getPlaceStatusOpts(), getPlaceDriveOpts(), getPlacePositionOpts(), getSkillsOpts(), getCompanyOpts()
+    ]);
 
     const place_options = { statuses, drives, position_types, skills, companies };
     resp.status(200).json({ success: true, place_options });

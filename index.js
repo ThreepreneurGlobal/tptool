@@ -24,7 +24,7 @@ app.use("/upload", express.static("upload"));
 
 // Welcome Page
 app.get("/", (req, resp) => {
-    resp.send("<h1>Welcome to the TP API's!</h1>");
+    resp.send("<h1>WELCOME TO THE TP API's!</h1>");
 });
 
 // Routes
@@ -35,4 +35,4 @@ app.use('/v1', router);
 app.use(ErrorMiddleware);
 
 app.listen(process.env.PORT,
-    () => console.warn(`Server Started : http://localhost:${process.env.PORT}`));
+    () => console.warn(`SERVER STARTED : http://localhost:${process.env.PORT}`));

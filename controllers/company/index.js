@@ -1,13 +1,13 @@
 import fs from 'fs';
 import { Op, Sequelize } from 'sequelize';
 
-import Company from '../models/company.js';
-import CompanySkill from '../models/company_skill.js';
-import Placement from '../models/placement.js';
-import Skill from '../models/skill.js';
-import TryCatch, { ErrorHandler } from '../utils/trycatch.js';
-import { getCompanyDomainOpts, getCompanyTypeOpts, getCompanyWorkOpts } from '../utils/opt/company.js';
-import { getSkillsOpts } from '../utils/opt/skill.js';
+import Company from '../../models/company.js';
+import CompanySkill from '../../models/company_skill.js';
+import Placement from '../../models/placement.js';
+import Skill from '../../models/skill.js';
+import TryCatch, { ErrorHandler } from '../../utils/trycatch.js';
+import { getCompanyDomainOpts, getCompanyTypeOpts, getCompanyWorkOpts } from '../../utils/opt/company.js';
+import { getSkillsOpts } from '../../utils/opt/skill.js';
 
 
 export const createCompany = TryCatch(async (req, resp, next) => {
@@ -19,7 +19,7 @@ export const createCompany = TryCatch(async (req, resp, next) => {
 
     const existed = await Company.findOne({ where: { [Op.or]: [{ title }, { reg_no }, { email }] } });
     if (existed) {
-        return next(new ErrorHandler('Company Already Exists!', 400));
+        return next(new ErrorHandler('COMPANY ALREADY EXISTS!', 400));
     };
 
     const company = await Company.create({
@@ -29,7 +29,7 @@ export const createCompany = TryCatch(async (req, resp, next) => {
     });
 
     if (!company) {
-        return next(new ErrorHandler('Company Not Created!', 500));
+        return next(new ErrorHandler('COMPANY NOT CREATED!', 500));
     };
 
     if (Array.isArray(skills) && skills.length > 0) {
@@ -38,7 +38,7 @@ export const createCompany = TryCatch(async (req, resp, next) => {
         }));
     };
 
-    resp.status(201).json({ success: true, message: 'Company Created...' });
+    resp.status(201).json({ success: true, message: 'COMPANY CREATED...' });
 });
 
 
@@ -47,10 +47,6 @@ export const getCompanies = TryCatch(async (req, resp, next) => {
         where: { status: true },
         attributes: ['id', 'title', 'reg_no', 'email', 'phone', 'type', 'web', 'logo'],
     });
-
-    // if (companies.length <= 0) {
-    //     return next(new ErrorHandler('Companies Not Found!', 404));
-    // };
 
     resp.status(200).json({ success: true, companies });
 });
@@ -61,13 +57,13 @@ export const getCompanyById = TryCatch(async (req, resp, next) => {
         where: { id: req.params.id, status: true },
         include: [
             {
-                model: Skill, through: { model: CompanySkill, attributes: ['id'] },
+                model: Skill, through: { model: CompanySkill, attributes: [] },
                 as: 'skills', attributes: ['id', 'title', 'category']
             }
         ]
     });
     if (!company) {
-        return next(new ErrorHandler('Company Not Found!', 404));
+        return next(new ErrorHandler('COMPANY NOT FOUND!', 404));
     };
 
     resp.status(200).json({ success: true, company });
@@ -85,7 +81,7 @@ export const editCompany = TryCatch(async (req, resp, next) => {
         where: { id: req.params.id, status: true },
     });
     if (!company) {
-        return next(new ErrorHandler('Company Not Found!', 404));
+        return next(new ErrorHandler('COMPANY NOT FOUND!', 404));
     };
 
     if (company?.logo && logo) {
@@ -120,20 +116,18 @@ export const editCompany = TryCatch(async (req, resp, next) => {
         }));
     };
 
-    resp.status(200).json({ success: true, message: 'Company Updated...' });
+    resp.status(200).json({ success: true, message: 'COMPANY UPDATED...' });
 });
 
 
 export const createCompanyOpts = TryCatch(async (req, resp, next) => {
-    const types = await getCompanyTypeOpts();
-    const works = await getCompanyWorkOpts();
-    const domains = await getCompanyDomainOpts();
-    const skills = await getSkillsOpts();
+    const [types, works, domains, skills] = await Promise.all([
+        getCompanyTypeOpts(), getCompanyWorkOpts(), getCompanyDomainOpts(), getSkillsOpts()
+    ]);
 
     const company_opts = { types, works, domains, skills };
     resp.status(200).json({ success: true, company_opts });
 });
-
 
 
 // Placement-Company Relation

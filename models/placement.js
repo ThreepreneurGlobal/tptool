@@ -42,10 +42,10 @@ const Placement = Connect.define('placements', {
         type: DataTypes.STRING,
     },
     reg_sdate: {
-        type: DataTypes.DATEONLY,
+        type: DataTypes.DATE,
     },
     reg_edate: {
-        type: DataTypes.DATEONLY,
+        type: DataTypes.DATE,
     },
     reg_stime: {
         type: DataTypes.TIME,
@@ -54,7 +54,7 @@ const Placement = Connect.define('placements', {
         type: DataTypes.TIME,
     },
     rereg_edate: {
-        type: DataTypes.DATEONLY,
+        type: DataTypes.DATE,
     },
     rereg_etime: {
         type: DataTypes.TIME,

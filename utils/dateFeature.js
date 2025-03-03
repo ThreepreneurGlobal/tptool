@@ -19,7 +19,7 @@ const formattedDate = (date) => {
         if (moment(parseDate).isValid()) {
             formatDate = moment(parseDate).format('YYYY-MM-DD');
         } else {
-            console.log(`${date} Birth Date Invalid!`);
+            console.error(`${date} Birth Date Invalid!`);
         };
     };
 
@@ -27,4 +27,25 @@ const formattedDate = (date) => {
 };
 
 
-export { excelToJSDate, formattedDate };
+const excelToDate = (date, errorMsgs, Name) => {
+    let newDate;
+    if (date) {
+        let parseDate;
+        if (typeof date === "number") {
+            parseDate = excelToJSDate(date);
+        } else {
+            parseDate = moment(date, ["MM-DD-YYYY", "DD-MM-YYYY", "YYYY-MM-DD", "MM/DD/YYYY", "DD/MM/YYYY", "YYYY/MM/DD"]);
+        };
+        if (moment(parseDate).isValid()) {
+            newDate = moment(parseDate).format('YYYY-MM-DD');
+        } else {
+            errorMsgs.push(`${date} THIS DATE IS INVALID FOR ${Name}`);
+            return;
+        };
+    };
+
+    return newDate;
+};
+
+
+export { formattedDate, excelToDate };

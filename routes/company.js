@@ -1,6 +1,6 @@
 import express from 'express';
 
-import { createCompany, createCompanyOpts, editCompany, getCompanies, getCompanyById } from '../controllers/company.js';
+import { createCompany, createCompanyOpts, editCompany, getCompanies, getCompanyById } from '../controllers/company/index.js';
 import { isAuthenticatedUser, isAutherizeRole } from '../middlewares/auth.js';
 import upload from '../utils/upload.js';
 

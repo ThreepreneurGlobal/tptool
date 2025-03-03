@@ -6,7 +6,7 @@ const sendToken = (user, statusCode, resp) => {
         .status(statusCode)
         .json({
             success: true, auth_token,
-            message: `Hello ${user?.name}...`
+            message: `HELLO ${user?.name?.toUpperCase()}...`
         });
 };
 
