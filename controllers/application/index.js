@@ -14,7 +14,7 @@ export const getApplications = TryCatch(async (req, resp, next) => {
         include: [
             { model: PlacePosition, foreignKey: 'position_id', as: 'position', attributes: ['id', 'title', 'type', 'opening'], },
             { model: Placement, foreignKey: 'placement_id', as: 'placement', attributes: ['id', 'title', 'type'], },
-            { model: User, foreignKey: 'user_id', as: 'user', attributes: ['id', 'name', 'email', 'avatar'], },
+            { model: User, foreignKey: 'user_id', as: 'user', attributes: ['id', 'name', 'email', 'avatar'], where: { status: true, is_active: true } },
             { model: Company, foreignKey: 'company_id', as: 'company', attributes: ['id', 'title'], },
         ]
     });
@@ -33,7 +33,7 @@ export const applicationById = TryCatch(async (req, resp, next) => {
                 model: Placement, foreignKey: 'placement_id', as: 'placement',
                 attributes: ['id', 'title', 'type', 'place_status', 'selection_details', 'contact_per', 'reg_sdate', 'reg_edate', 'rereg_edate'],
             },
-            { model: User, foreignKey: 'user_id', as: 'user', attributes: ['id', 'name', 'email', 'avatar'], },
+            { model: User, foreignKey: 'user_id', as: 'user', attributes: ['id', 'name', 'email', 'avatar'], where: { status: true, is_active: true } },
             { model: Company, foreignKey: 'company_id', as: 'company', attributes: ['id', 'title'], },
         ],
     });

@@ -3,29 +3,41 @@ import { DataTypes } from 'sequelize';
 import Connect from '../utils/connect.js';
 
 
-const Skill = Connect.define('skills', {
+const Experience = Connect.define('experiences', {
     id: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
         unique: true,
         primaryKey: true
     },
-    title: {
+    position: {
         type: DataTypes.STRING,
     },
-    short_name: {
+    org_name: {
         type: DataTypes.STRING,
     },
-    description: {
+    location: {
+        type: DataTypes.STRING,
+    },
+    start_date: {
+        type: DataTypes.DATE,
+    },
+    end_date: {
+        type: DataTypes.DATE,
+    },
+    work_type: {
+        type: DataTypes.ENUM('hybrid', 'office', 'online'),
+    },
+    certificate: {
         type: DataTypes.TEXT,
     },
     category: {
-        type: DataTypes.STRING,
-    },
-    sub_category: {
-        type: DataTypes.STRING,
+        type: DataTypes.ENUM('job', 'internship', 'volenteer'),
     },
     user_id: {
+        type: DataTypes.INTEGER,
+    },
+    student_id: {
         type: DataTypes.INTEGER,
     },
     status: {
@@ -37,4 +49,4 @@ const Skill = Connect.define('skills', {
 });
 
 
-export default Skill;
+export default Experience;

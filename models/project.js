@@ -16,6 +16,15 @@ const Project = Connect.define('projects', {
     url: {
         type: DataTypes.TEXT,
     },
+    git_hub: {
+        type: DataTypes.TEXT,
+    },
+    start_date: {
+        type: DataTypes.DATE,
+    },
+    end_date: {
+        type: DataTypes.DATE,
+    },
     prev_img: {
         type: DataTypes.TEXT,
     },

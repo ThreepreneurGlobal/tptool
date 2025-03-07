@@ -6,14 +6,18 @@ import User from '../../models/user.js';
 import TryCatch, { ErrorHandler } from '../../utils/trycatch.js';
 import Skill from '../../models/skill.js';
 import UserSkill from '../../models/user_skill.js';
+import Achievement from '../../models/achievement.js';
 import Certificate from '../../models/certificate.js';
 import Project from '../../models/project.js';
+import Experience from '../../models/experience.js';
+import Application from '../../models/application.js';
+import PlacePosition from '../../models/place_position.js';
 
 
 export const getStudents = TryCatch(async (req, resp, next) => {
     const { course, branch, batch, current_yr, gender } = req.query;
-    const whereClause = { status: true };
-    const whereUserClause = { status: true, role: 'user' };
+    const whereClause = { status: true, is_active: true };
+    const whereUserClause = { status: true, is_active: true, role: 'user' };
 
     if (course) {
         const courseArr = Array.isArray(course) ? course : [course];
@@ -101,16 +105,15 @@ export const createStudent = TryCatch(async (req, resp, next) => {
 
 export const studentById = TryCatch(async (req, resp, next) => {
     const user = await User.findOne({
-        where: { id: req.params.id, status: true, role: 'user', designation: 'student' },
+        where: { id: req.params.id, status: true, is_active: true, role: 'user', designation: 'student' },
         attributes: { exclude: ['password', 'role', 'status', 'updated_at', 'created_at'] },
         include: [
             {
-                model: Student, foreignKey: 'user_id', as: 'student', required: true,
-                attributes: { exclude: ['user_id', 'status', 'updated_at', 'created_at'] },
-            },
-            {
-                model: Skill, through: { model: UserSkill, attributes: ['id', 'rating'] },
-                as: 'skills', required: false, attributes: ['id', 'title'], where: { status: true },
+                model: Student, foreignKey: 'user_id', as: 'student', where: { status: true, is_active: true },
+                include: [{
+                    model: Skill, through: { model: UserSkill, attributes: ['id', 'rating'] },
+                    as: 'skills', required: false, attributes: ['id', 'title'], where: { status: true },
+                }], attributes: { exclude: ['user_id', 'status', 'updated_at', 'created_at'] }, required: true,
             },
             {
                 model: Certificate, foreignKey: 'user_id', as: 'certificates', required: false,
@@ -120,6 +123,15 @@ export const studentById = TryCatch(async (req, resp, next) => {
                 model: Project, foreignKey: 'user_id', as: 'projects', required: false,
                 attributes: ['id', 'title', 'url', 'project_status', 'prev_img'], where: { status: true },
             },
+            {
+                model: Achievement, foreignKey: 'user_id', as: 'achievements', required: false,
+                attributes: ['id', 'title', 'description', 'date', 'org_name'], where: { status: true },
+            },
+            {
+                model: Experience, foreignKey: 'user_id', as: 'experiences', required: false,
+                attributes: ['id', 'start_date', 'end_date', 'position', 'org_name',
+                    'location', 'work_type', 'category'], where: { status: true },
+            },
         ],
     });
 
@@ -127,7 +139,41 @@ export const studentById = TryCatch(async (req, resp, next) => {
         return next(new ErrorHandler('STUDENT NOT FOUND!', 404));
     };
 
-    resp.status(200).json({ success: true, user });
+    const applications = await Application.findAll({
+        where: { user_id: user.id, status: true }, attributes: ['id', 'app_status', 'position_id']
+    });
+
+    const positionIds = applications?.map(app => app?.position_id);
+    const placePositios = await PlacePosition.findAll({ where: { id: positionIds }, attributes: ['id', 'type'] });
+    const positionTypeMap = placePositios?.reduce((acc, position) => {
+        acc[position?.id] = position?.type?.toUpperCase();
+        return acc;
+    }, {});
+
+    const countStatuses = (apps = []) => {
+        return apps?.reduce((acc, app) => {
+            acc[app?.app_status?.toUpperCase()] = (acc[app?.app_status] || 0) + 1;
+            return acc;
+        }, {});
+    };
+
+    const jobApps = applications?.filter(app => positionTypeMap[app?.position_id] === 'JOB');
+    const internApps = applications?.filter(app => positionTypeMap[app?.position_id] === 'INTERNSHIP');
+
+    const jobStatusCounts = countStatuses(jobApps);
+    const internshipStatusCounts = countStatuses(internApps);
+
+    const statistics = {
+        job: {
+            labels: Object.keys(jobStatusCounts),
+            data: Object.values(jobStatusCounts),
+        },
+        internship: {
+            labels: Object.keys(internshipStatusCounts),
+            data: Object.values(internshipStatusCounts),
+        },
+    };
+    resp.status(200).json({ success: true, user: { ...user.toJSON(), statistics } });
 });
 
 
@@ -139,9 +185,9 @@ export const editStudent = TryCatch(async (req, resp, next) => {
         diploma_yr, diploma_branch, diploma_per, ed_gap, gap_desc, disability, experience,
     } = req.body;
 
-    const user = await User.findOne({ where: { id: req.params.id, status: true, role: 'user', designation: 'student' }, });
+    const user = await User.findOne({ where: { id: req.params.id, status: true, role: 'user', designation: 'student', status: true, is_active: true, }, });
     if (!user) { return next(new ErrorHandler('STUDENT NOT FOUND!', 404)); };
-    const student = await Student.findOne({ where: { user_id: user?.id, status: true } });
+    const student = await Student.findOne({ where: { user_id: user?.id, status: true, is_active: true, } });
     if (!student) { return next(new ErrorHandler('STUDENT NOT FOUND!', 404)); };
 
     const isUpdated = await user.update({ name, email, mobile, id_prf, gender });
@@ -166,6 +212,49 @@ export const getFilterOpts = TryCatch(async (req, resp, next) => {
 
     const filter_opts = { courses, branches, years, batches };
     resp.status(200).json({ success: true, filter_opts });
+});
+
+
+export const getOnBoardStudents = TryCatch(async (req, resp, next) => {
+    const users = await User.findAll({
+        where: { status: true, is_active: false, },
+        include: [{
+            model: Student, foreignKey: 'user_id', as: 'student', required: true,
+            where: { status: true, is_active: false, }
+        }]
+    });
+
+    resp.status(200).json({ success: true, users });
+});
+
+
+export const getOnBoardStudentById = TryCatch(async (req, resp, next) => {
+    const user = await User.findOne({
+        include: [{
+            model: Student, foreignKey: 'user_id', as: 'student', required: true,
+            where: { status: true, is_active: false, user_id: req.params.id }
+        }], where: { status: true, is_active: false, id: req.params.id },
+    });
+    if (!user) {
+        return next(new ErrorHandler('STUDENT NOT FOUND!', 404));
+    };
+
+    resp.status(200).json({ success: true, user });
+});
+
+
+export const editOnboardStudent = TryCatch(async (req, resp, next) => {
+    const { user_id, student_id, status } = req.body;
+    const user = await User.findOne({ where: { status: true, is_active: false, id: user_id }, });
+    const student = await Student.findOne({ where: { status: true, is_active: false, user_id, id: student_id } });
+    if (!user || !student) {
+        return next(new ErrorHandler('STUDENT NOT FOUND!', 404));
+    };
+
+    await user.update({ is_active: true, status: status === 'approve' ? true : false });
+    await student.update({ is_active: true, status: status === 'approve' ? true : false });
+    resp.status(200)
+        .json({ success: true, message: status === 'approve' ? 'APPLICATION APPROVED SUCCESSFULLY!' : 'SORRY! APPLICATION REJECTED!' });
 });
 
 

@@ -117,6 +117,10 @@ const Student = Connect.define("students", {
             return this.setDataValue("langs", JSON.stringify(value));
         }
     },
+    is_active: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: true
+    },
     user_id: {
         type: DataTypes.INTEGER,
     },

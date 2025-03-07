@@ -39,7 +39,7 @@ export const getPlacementById = TryCatch(async (req, resp, next) => {
     const placement = await Placement.findOne({
         where: { status: true, id: req.params.id },
         include: [
-            { model: User, foreignKey: 'user_id', as: 'user', attributes: ['id', 'name'], },
+            { model: User, foreignKey: 'user_id', as: 'user', attributes: ['id', 'name', 'email'], where: { status: true }, },
             {
                 model: Company, foreignKey: 'company_id', as: 'company', where: { status: true },
                 attributes: ['id', 'title', 'phone', 'email', 'web', 'logo']
@@ -74,7 +74,7 @@ export const createPlacement = TryCatch(async (req, resp, next) => {
     const placement = await Placement.create({
         title, type, place_status, status_details, selection_details, criteria, other_details,
         contact_per, company_contact, reg_sdate, reg_edate, reg_stime, reg_etime, rereg_edate, rereg_etime,
-        reg_details, ctc, stipend, add_comment, history, company_id: Number(company_id),
+        reg_details, ctc, stipend, add_comment, history, company_id: Number(company_id), user_id: req.user.id,
         attach_student: attach_student ? attach_student : null, attach_tpo: attach_tpo ? attach_tpo : null,
     });
 

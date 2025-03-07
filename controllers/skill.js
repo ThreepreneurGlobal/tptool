@@ -21,7 +21,7 @@ export const createSkill = TryCatch(async (req, resp, next) => {
         return next(new ErrorHandler('SKILL ALREADY CREATED!', 400));
     };
 
-    await Skill.create({ title, short_name, description, category, sub_category });
+    await Skill.create({ title, short_name, description, category, sub_category, user_id: req.user.id });
     resp.status(201).json({ success: true, message: 'SKILL CREATED...' });
 });
 

@@ -14,16 +14,18 @@ import Application from "../../models/application.js";
 
 export const myPlacements = TryCatch(async (req, resp, next) => {
     const user = await User.findOne({
-        where: { id: req.user.id, status: true }, attributes: ['id', 'name', 'email'],
+        where: { id: req.user.id, status: true, is_active: true }, attributes: ['id', 'name', 'email'],
         include: [
-            { model: Student, foreignKey: 'user_id', as: 'student', },
             {
-                model: Skill, as: 'skills', required: false, attributes: ['id', 'title'],
-                through: { model: UserSkill, attributes: ['id', 'rating'] }
+                model: Student, foreignKey: 'user_id', as: 'student', where: { status: true, is_active: true },
+                include: [{
+                    model: Skill, as: 'skills', required: false, attributes: ['id', 'title'],
+                    through: { model: UserSkill, attributes: ['id', 'rating'] }
+                }],
             },
         ]
     });
-    const userSkillIds = user?.skills?.map(item => item?.id);
+    const userSkillIds = user?.student?.skills?.map(item => item?.id);
 
     const placements = await Placement.findAll({
         where: { status: true, },
@@ -58,16 +60,18 @@ export const myPlacements = TryCatch(async (req, resp, next) => {
 
 export const myPlaceById = TryCatch(async (req, resp, next) => {
     const user = await User.findOne({
-        where: { id: req.user.id, status: true }, attributes: ['id', 'name', 'email'],
+        where: { id: req.user.id, status: true, is_active: true, }, attributes: ['id', 'name', 'email'],
         include: [
-            { model: Student, foreignKey: 'user_id', as: 'student', },
             {
-                model: Skill, as: 'skills', required: false, attributes: ['id', 'title'],
-                through: { model: UserSkill, attributes: ['id', 'rating'] }
+                model: Student, foreignKey: 'user_id', as: 'student', where: { status: true, is_active: true },
+                include: [{
+                    model: Skill, as: 'skills', required: false, attributes: ['id', 'title'],
+                    through: { model: UserSkill, attributes: ['id', 'rating'] }
+                }]
             },
         ]
     });
-    const userSkillIds = user?.skills?.map(item => item?.id);
+    const userSkillIds = user?.student?.skills?.map(item => item?.id);
 
     const placement = await Placement.findOne({
         where: { id: req.params.id, status: true, },

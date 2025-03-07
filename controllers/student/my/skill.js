@@ -4,16 +4,21 @@ import UserSkill from '../../../models/user_skill.js';
 import TryCatch, { ErrorHandler } from '../../../utils/trycatch.js';
 import Student from '../../../models/student.js';
 
+// UserSkill.sync({ alter: true, force: true });
 
 export const addSkill = TryCatch(async (req, resp, next) => {
     const { skill_id, rating, description } = req.body;
     const student = await Student.findOne({ where: { user_id: req.user.id, status: true } });
-    const existed = await UserSkill.findOne({ where: { [Op.and]: [{ skill_id }, { user_id: req.user.id }] } });
+    if (!student) {
+        return next(new ErrorHandler('STUDENT NOT FOUND!', 404));
+    };
+
+    const existed = await UserSkill.findOne({ where: { skill_id, student_id: student?.id, status: true } });
     if (existed) {
         return next(new ErrorHandler('SKILL ALREADY EXISTS!', 400));
     };
 
-    await UserSkill.create({ skill_id, user_id: req.user.id, student_id: student?.id, rating, description });
+    await UserSkill.create({ skill_id, rating, description, student_id: student?.id });
     resp.status(201).json({ success: true, message: 'SKILL ADDED!' });
 });
 
@@ -21,7 +26,7 @@ export const addSkill = TryCatch(async (req, resp, next) => {
 export const editSkill = TryCatch(async (req, resp, next) => {
     const { skill_id, rating, description } = req.body;
     const student = await Student.findOne({ where: { user_id: req.user.id, status: true } });
-    const skill = await UserSkill.findOne({ where: { id: req.params.id, user_id: req.user.id, status: true } });
+    const skill = await UserSkill.findOne({ where: { id: req.params.id, student_id: student?.id, status: true } });
     if (!skill) {
         return next(new ErrorHandler('SKILL NOT FOUND!', 404));
     };
@@ -32,7 +37,12 @@ export const editSkill = TryCatch(async (req, resp, next) => {
 
 
 export const deleteSkill = TryCatch(async (req, resp, next) => {
-    const skill = await UserSkill.findOne({ where: { id: req.params.id, user_id: req.user.id, status: true } });
+    const student = await Student.findOne({ where: { user_id: req.user.id, status: true } });
+    if (!student) {
+        return next(new ErrorHandler('STUDENT NOT FOUND!', 404));
+    };
+
+    const skill = await UserSkill.findOne({ where: { id: req.params.id, student_id: student?.id, status: true, is_active: true, } });
     if (!skill) {
         return next(new ErrorHandler('SKILL NOT FOUND!', 404));
     };

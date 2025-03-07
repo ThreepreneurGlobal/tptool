@@ -53,6 +53,10 @@ const User = Connect.define("users", {
     instagram: { type: DataTypes.TEXT },
     linkedin: { type: DataTypes.TEXT },
     whatsapp: { type: DataTypes.TEXT },
+    is_active: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: true
+    },
     role: {
         type: DataTypes.ENUM('admin', 'super', 'user'),
         defaultValue: "user"
@@ -60,7 +64,7 @@ const User = Connect.define("users", {
     status: {
         type: DataTypes.BOOLEAN,
         defaultValue: true
-    }
+    },
 }, { timestamps: true, createdAt: "created_at", updatedAt: "updated_at" });
 
 

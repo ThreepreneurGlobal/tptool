@@ -9,11 +9,11 @@ import TryCatch from '../utils/trycatch.js';
 
 export const getCoursesBranches = TryCatch(async (req, resp, next) => {
     const courses = await Student.findAll({
-        attributes: [[Student.sequelize.fn('DISTINCT', Student.sequelize.col('course')), 'course']], raw: true,
+        attributes: [[Student.sequelize.fn('DISTINCT', Student.sequelize.col('course')), 'course']], raw: true, where: { status: true, is_active: true }
     });
 
     const branches = await Student.findAll({
-        attributes: [[Student.sequelize.fn('DISTINCT', Student.sequelize.col('branch')), 'branch']], raw: true,
+        attributes: [[Student.sequelize.fn('DISTINCT', Student.sequelize.col('branch')), 'branch']], raw: true, where: { status: true, is_active: true }
     });
 
     resp.status(200)

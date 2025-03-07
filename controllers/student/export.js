@@ -37,11 +37,11 @@ export const exportStudent = TryCatch(async (req, resp, next) => {
     };
 
     const users = await User.findAll({
-        where: { id: { [Op.in]: ids }, status: true, role: 'user' },
+        where: { id: { [Op.in]: ids }, status: true, is_active: true, role: 'user' },
         attributes: ['id', 'name', 'email', 'mobile', 'gender', 'address', 'city', 'pin_code', 'id_prf'],
         include: [
             {
-                model: Student, foreignKey: 'user_id', as: 'student', required: true,
+                model: Student, foreignKey: 'user_id', as: 'student', required: true, where: { is_active: true, status: true },
                 attributes: { exclude: ['interested_in', 'langs', 'user_id', 'status', 'created_at', 'updated_at'] }
             }
         ]

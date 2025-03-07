@@ -12,7 +12,11 @@ router.use(isAuthenticatedUser);
 
 
 // STUDENT
+router.post('/create', createSkill);
+
 router.post('/student/add', studentAddSkill);
+
+router.get('/get', getSkills);
 
 router.put('/student/edit/:id', studentEditSkill);
 
@@ -20,17 +24,13 @@ router.put('/student/delete/:id', studentDeleteSkill);
 
 router.get('/add/options', addSkillOpts);
 
+router.get('/options', getSkillOpts);
+
 
 // ADMIN
-router.post('/create', isAutherizeRole('admin'), createSkill);
-
 router.put('/update/:id', isAutherizeRole('admin'), editSkill);
 
 router.get('/get/:id', isAutherizeRole('admin'), getSkillById);
-
-router.get('/get', isAutherizeRole('admin'), getSkills);
-
-router.get('/options', isAutherizeRole('admin'), getSkillOpts);
 
 
 export default router;
