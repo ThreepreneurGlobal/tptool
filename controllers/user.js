@@ -30,7 +30,7 @@ export const loginUser = TryCatch(async (req, resp, next) => {
         return next(new ErrorHandler('PLEASE ENTER MAIL ID AND PASSWORD', 401));
     };
 
-    const user = await User.findOne({ where: { email } });
+    const user = await User.findOne({ where: { email, status: true } });
     if (!user) {
         return next(new ErrorHandler("PLEASE ENTER VALID MAIL ID AND PASSWORD!", 401));
     };
@@ -65,7 +65,7 @@ export const updateProfile = TryCatch(async (req, resp, next) => {
     const { gender, address, city, pin_code, facebook, twitter, instagram, linkedin, whatsapp } = req.body;
     const avatar = req.file?.path;
 
-    const user = await User.findByPk(req.user.id);
+    const user = await User.findOne({ where: { id: req.user.id, status: true } });
 
     if (avatar && user.avatar) {
         fs.rm(user.avatar, () => { console.log('OLD FILE REMOVED SUCCESSFULLY...'); });

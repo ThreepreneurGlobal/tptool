@@ -8,7 +8,6 @@ import TryCatch, { ErrorHandler } from '../../../utils/trycatch.js';
 
 export const addCertificate = TryCatch(async (req, resp, next) => {
     const certificates = req?.files;
-    console.log(JSON.stringify(certificates));
 
     const student = await Student.findOne({
         where: { user_id: req.user.id, status: true }, attributes: ['id', 'user_id']

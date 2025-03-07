@@ -5,7 +5,8 @@ import Student from "../../models/student.js";
 
 export const getCollegeCoursesOpts = async () => {
     const data = await Student.findAll({
-        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('course')), 'course']], raw: true,
+        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('course')), 'course']],
+        raw: true, where: { status: true, is_active: true },
     });
 
     const courses = data?.filter(item => item?.course !== null && item?.course !== '')
@@ -19,7 +20,8 @@ export const getCollegeCoursesOpts = async () => {
 
 export const getCollegeBranchesOpts = async () => {
     const data = await Student.findAll({
-        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('branch')), 'branch']], raw: true,
+        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('branch')), 'branch']],
+        raw: true, where: { status: true, is_active: true },
     });
 
     const branches = data?.filter(item => item?.branch !== null && item?.branch !== '')
@@ -34,7 +36,8 @@ export const getCollegeBranchesOpts = async () => {
 
 export const getCollegeEdYearOpts = async () => {
     const data = await Student.findAll({
-        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('current_yr')), 'current_yr']], raw: true,
+        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('current_yr')), 'current_yr']],
+        raw: true, where: { status: true, is_active: true },
     });
 
     const years = data?.filter(item => item?.current_yr !== null && item?.current_yr !== '')
@@ -49,7 +52,8 @@ export const getCollegeEdYearOpts = async () => {
 
 export const getCollegeTwelveStreamOpts = async () => {
     const data = await Student.findAll({
-        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('twelve_stream')), 'twelve_stream']], raw: true,
+        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('twelve_stream')), 'twelve_stream']],
+        raw: true, where: { status: true, is_active: true },
     });
 
     const twelve_streams = data?.filter(item => item?.twelve_stream !== null && item?.twelve_stream !== '')
@@ -64,7 +68,8 @@ export const getCollegeTwelveStreamOpts = async () => {
 
 export const getCollegeTenBoardOpts = async () => {
     const data = await Student.findAll({
-        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('ten_board')), 'ten_board']], raw: true,
+        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('ten_board')), 'ten_board']],
+        raw: true, where: { status: true, is_active: true },
     });
 
     const ten_boards = data?.filter(item => item?.ten_board !== null && item?.ten_board !== '')
@@ -79,7 +84,8 @@ export const getCollegeTenBoardOpts = async () => {
 
 export const getCollegeTwelveBoardOpts = async () => {
     const data = await Student.findAll({
-        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('twelve_board')), 'twelve_board']], raw: true,
+        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('twelve_board')), 'twelve_board']],
+        raw: true, where: { status: true, is_active: true },
     });
 
     const twelve_boards = data?.filter(item => item?.twelve_board !== null && item?.twelve_board !== '')
@@ -94,7 +100,8 @@ export const getCollegeTwelveBoardOpts = async () => {
 
 export const getCollegeDiplomaOpts = async () => {
     const data = await Student.findAll({
-        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('diploma')), 'diploma']], raw: true,
+        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('diploma')), 'diploma']],
+        raw: true, where: { status: true, is_active: true },
     });
 
     const diplomas = data?.filter(item => item?.diploma !== null && item?.diploma !== '')
@@ -109,7 +116,8 @@ export const getCollegeDiplomaOpts = async () => {
 
 export const getCollegeDiplomaStreamOpts = async () => {
     const data = await Student.findAll({
-        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('diploma_branch')), 'diploma_branch']], raw: true,
+        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('diploma_branch')), 'diploma_branch']],
+        raw: true, where: { status: true, is_active: true },
     });
 
     const diploam_branches = data?.filter(item => item?.diploma_branch !== null && item?.diploma_branch !== '')
@@ -124,7 +132,8 @@ export const getCollegeDiplomaStreamOpts = async () => {
 
 export const getCollegeDegreeOpts = async () => {
     const data = await Student.findAll({
-        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('degree_name')), 'degree_name']], raw: true,
+        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('degree_name')), 'degree_name']],
+        raw: true, where: { status: true, is_active: true },
     });
 
     const degree_names = data?.filter(item => item?.degree_name !== null && item?.degree_name !== '')
@@ -139,7 +148,8 @@ export const getCollegeDegreeOpts = async () => {
 
 export const getCollegeDegreeStreamOpts = async () => {
     const data = await Student.findAll({
-        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('degree_branch')), 'degree_branch']], raw: true,
+        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('degree_branch')), 'degree_branch']],
+        raw: true, where: { status: true, is_active: true },
     });
 
     const degree_branches = data?.filter(item => item?.degree_branch !== null && item?.degree_branch !== '')
@@ -154,7 +164,8 @@ export const getCollegeDegreeStreamOpts = async () => {
 
 export const getCollegeDegreeUniversityOpts = async () => {
     const data = await Student.findAll({
-        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('degree_university')), 'degree_university']], raw: true,
+        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('degree_university')), 'degree_university']],
+        raw: true, where: { status: true, is_active: true },
     });
 
     const degree_universities = data?.filter(item => item?.degree_university !== null && item?.degree_university !== '')
@@ -169,7 +180,8 @@ export const getCollegeDegreeUniversityOpts = async () => {
 
 export const getCollegeBatchOpts = async () => {
     const data = await Student.findAll({
-        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('batch')), 'batch']], raw: true,
+        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('batch')), 'batch']],
+        raw: true, where: { status: true, is_active: true },
     });
 
     const batches = data?.filter(item => item?.batch !== null && item?.batch !== '')

@@ -8,10 +8,10 @@ import TryCatch, { ErrorHandler } from "../../../utils/trycatch.js";
 
 
 export const addProject = TryCatch(async (req, resp, next) => {
-    const { title, description, url, project_status, rating, skills } = req.body;
+    const { title, description, url, project_status, rating, git_hub, start_date, end_date } = req.body;
     const prev_img = req?.file?.path;
 
-    const student = await Student.findOne({ where: { user_id: req.user.id }, attributes: ['id', 'user_id'] });
+    const student = await Student.findOne({ where: { user_id: req.user.id, status: true, }, attributes: ['id', 'user_id'] });
     if (!student) {
         return next(new ErrorHandler('INVALID STUDENT!', 403));
     };
@@ -24,7 +24,7 @@ export const addProject = TryCatch(async (req, resp, next) => {
 
     await Project.create({
         title, description, url, project_status, rating, user_id: req.user.id, student_id: student?.id,
-        prev_img: prev_img ? prev_img : null,
+        git_hub, start_date, end_date, prev_img: prev_img ? prev_img : null,
     });
 
     resp.status(201).json({ success: true, message: 'PROJECT ADDED!' });
@@ -32,7 +32,7 @@ export const addProject = TryCatch(async (req, resp, next) => {
 
 
 export const editProject = TryCatch(async (req, resp, next) => {
-    const { title, description, url, project_status, rating, skills } = req.body;
+    const { title, description, url, project_status, rating, git_hub, start_date, end_date } = req.body;
     const prev_img = req?.files[0]?.path;
 
     const student = await Student.findOne({ where: { user_id: req.user.id, status: true }, attributes: ['id', 'user_id'] });
@@ -51,7 +51,8 @@ export const editProject = TryCatch(async (req, resp, next) => {
     };
 
     await project.update({
-        title, description, url, project_status, rating, prev_img: prev_img ? prev_img : project?.prev_img,
+        title, description, url, project_status, rating, git_hub, start_date, end_date,
+        prev_img: prev_img ? prev_img : project?.prev_img,
     });
     resp.status(201).json({ success: true, message: 'PROJECT UPDATED!' });
 });

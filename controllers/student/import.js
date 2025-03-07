@@ -61,7 +61,7 @@ export const importStudent = TryCatch(async (req, resp, next) => {
 
         const user = await User.create({
             name: Name?.toLowerCase(), email: Mail_ID, password, mobile: Contact,
-            gender: Gender?.toLowerCase(), id_prf: ID
+            gender: Gender?.toLowerCase(), id_prf: ID, status: true, is_active: true,
         });
         users.push(user);
 
@@ -74,7 +74,7 @@ export const importStudent = TryCatch(async (req, resp, next) => {
                 diploma_stream: Diploma_Stream, diploma_yr, diploma_per: Diploma_Score,
                 degree_name: Degree_Name, degree_university: Degree_University, degree_branch: Degree_Branch,
                 degree_yr, degree_per: Degree_Score, ed_gap: Education_Gap, gap_desc: Gap_Reason,
-                disability: Disability === 'yes' ? true : false,
+                disability: Disability === 'yes' ? true : false, status: true, is_active: true,
             });
         };
     }));

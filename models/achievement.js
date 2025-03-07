@@ -3,21 +3,29 @@ import { DataTypes } from 'sequelize';
 import Connect from '../utils/connect.js';
 
 
-const UserSkill = Connect.define('user_skills', {
+const Achievement = Connect.define('achievements', {
     id: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
         unique: true,
-        primaryKey: true
+        primaryKey: true,
     },
-    rating: {
-        type: DataTypes.FLOAT(10, 2),
-        defaultValue: 0,
+    title: {
+        type: DataTypes.STRING,
     },
     description: {
         type: DataTypes.TEXT,
     },
-    skill_id: {
+    org_name: {
+        type: DataTypes.STRING,
+    },
+    date: {
+        type: DataTypes.DATE,
+    },
+    certificate: {
+        type: DataTypes.TEXT,
+    },
+    user_id: {
         type: DataTypes.INTEGER,
     },
     student_id: {
@@ -26,10 +34,10 @@ const UserSkill = Connect.define('user_skills', {
     status: {
         type: DataTypes.BOOLEAN,
         defaultValue: true,
-    }
+    },
 }, {
     timestamps: true, createdAt: 'created_at', updatedAt: 'updated_at'
 });
 
 
-export default UserSkill;
+export default Achievement;
