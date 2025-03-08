@@ -47,7 +47,7 @@ export const loginUser = TryCatch(async (req, resp, next) => {
 export const myProfile = TryCatch(async (req, resp, next) => {
     const user = await User.findOne({
         where: { id: req.user.id, status: true },
-        attributes: { exclude: ["password", "status", "created_at", "updated_at"] },
+        attributes: { exclude: ["password", "status", "is_active", "created_at", "updated_at"] },
     });
 
     resp.status(200).json({ success: true, user });

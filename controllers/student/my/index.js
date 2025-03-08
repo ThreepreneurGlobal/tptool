@@ -16,7 +16,7 @@ import sendToken from '../../../utils/token.js';
 
 export const myStudentProfile = TryCatch(async (req, resp, next) => {
     const student = await Student.findOne({
-        where: { user_id: req.user.id, status: true }, attributes: { exclude: ['user_id', 'status'] },
+        where: { user_id: req.user.id, status: true }, attributes: { exclude: ['user_id', 'role', 'status', 'is_active'] },
         include: [
             {
                 model: Skill, through: { model: UserSkill, attributes: ['id', 'rating'] },
