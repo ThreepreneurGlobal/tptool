@@ -17,7 +17,7 @@ export const createCompany = TryCatch(async (req, resp, next) => {
     } = req.body;
     const logo = req.file?.path;
 
-    const existed = await Company.findOne({ where: { [Op.or]: [{ title }, { reg_no }, { email }] } });
+    const existed = await Company.findOne({ where: { [Op.or]: [{ title }, { reg_no }, { email }], status: true } });
     if (existed) {
         return next(new ErrorHandler('COMPANY ALREADY EXISTS!', 400));
     };
@@ -96,7 +96,7 @@ export const editCompany = TryCatch(async (req, resp, next) => {
 
     //Exist Skill
     const existSkills = await CompanySkill.findAll({
-        where: { company_id: company.id }, attributes: ['skill_id', 'id']
+        where: { company_id: company?.id }, attributes: ['skill_id', 'id']
     });
     const existSkillIds = existSkills.map(skill => skill?.skill_id);
 
