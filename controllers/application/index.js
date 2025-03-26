@@ -3,13 +3,18 @@ import Company from '../../models/company.js';
 import PlacePosition from '../../models/place_position.js';
 import Placement from '../../models/placement.js';
 import User from '../../models/user.js';
+import { getAppStatusOpts } from '../../utils/opt/application.js';
 import TryCatch, { ErrorHandler } from '../../utils/trycatch.js';
 
 
 
 export const getApplications = TryCatch(async (req, resp, next) => {
+    const { app_status } = req.query;
+    const where = { status: true };
+    if (app_status) { where.app_status = app_status; };
+
     const applications = await Application.findAll({
-        where: { status: true }, order: [['created_at', 'DESC']],
+        where, order: [['created_at', 'DESC']],
         attributes: { exclude: ['placement_id', 'position_id', 'user_id', 'company_id', 'status'] },
         include: [
             { model: PlacePosition, foreignKey: 'position_id', as: 'position', attributes: ['id', 'title', 'type', 'opening'], },
@@ -76,6 +81,14 @@ export const deleteApplication = TryCatch(async (req, resp, next) => {
 
     await application.update({ status: false });
     resp.status(200).json({ success: true, message: 'APPLICATION DELETED!' });
+});
+
+
+export const appFilterOpts = TryCatch(async (req, resp, next) => {
+    const [statuses] = await Promise.all([getAppStatusOpts()]);
+
+    const filter_opts = { statuses };
+    resp.status(200).json({ success: true, filter_opts });
 });
 
 

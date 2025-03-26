@@ -7,7 +7,7 @@ import PositionSkill from '../models/position_skill.js';
 import Skill from '../models/skill.js';
 import User from '../models/user.js';
 import UserSkill from '../models/user_skill.js';
-import { getSkillCategoriesOpts, getSkillsOpts, getSkillSubCategoriesOpts } from '../utils/opt/skill.js';
+import { getSkillCategoriesOpts, getSkillGrpSubCategoriesOpts, getSkillsOpts, getSkillSubCategoriesOpts } from '../utils/opt/skill.js';
 import { toLowerCaseFields } from '../utils/strFeature.js';
 import TryCatch, { ErrorHandler } from '../utils/trycatch.js';
 import Student from '../models/student.js';
@@ -40,8 +40,16 @@ export const editSkill = TryCatch(async (req, resp, next) => {
 
 
 export const getSkills = TryCatch(async (req, resp, next) => {
+    const { category, sub_category } = req.query;
+    const where = { status: true };
+    if (category) { where.category = category; };
+    if (sub_category) {
+        const sub_category_array = Array.isArray(sub_category) ? sub_category : [sub_category];
+        where.sub_category = { [Op.in]: sub_category_array };
+    };
+
     const skills = await Skill.findAll({
-        where: { status: true }, attributes: { exclude: ['status', 'created_at', 'updated_at'] }
+        where, attributes: { exclude: ['status', 'created_at', 'updated_at'] }
     });
 
     resp.status(200).json({ success: true, skills });
@@ -72,6 +80,16 @@ export const addSkillOpts = TryCatch(async (req, resp, next) => {
     const skill_opts = await getSkillsOpts();
 
     resp.status(201).json({ success: true, skill_opts });
+});
+
+
+export const skillFilterOpts = TryCatch(async (req, resp, next) => {
+    const [categories, sub_categories] = await Promise.all([
+        getSkillCategoriesOpts(), getSkillGrpSubCategoriesOpts()
+    ]);
+
+    const filter_opts = { categories, sub_categories };
+    resp.status(201).json({ success: true, filter_opts });
 });
 
 

@@ -1,6 +1,7 @@
 import { Sequelize } from "sequelize";
 import PlacePosition from "../../models/place_position.js";
 import Placement from "../../models/placement.js";
+import Company from "../../models/company.js";
 
 
 
@@ -39,4 +40,23 @@ export const getPlacePositionOpts = async () => {
         .map(item => ({ label: item?.type?.toUpperCase(), value: item?.type }));
 
     return position_types;
+};
+
+
+export const getPlaceCompanyOpts = async () => {
+    const apiObj = {};
+    const ids = await Placement.findAll({
+        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('company_id')), 'company_id']], raw: true,
+    });
+
+    const api = await Company.findAll({ where: { id: ids?.map(i=> i?.company_id), status: true }, attributes: ['id', 'title', 'type'] });
+    api?.forEach((item) => {
+        if (!apiObj[item?.type]) {
+            apiObj[item?.type] = { label: item?.type?.toUpperCase(), options: [] };
+        };
+        apiObj[item?.type]?.options?.push({ label: item?.title?.toUpperCase(), value: item?.id });
+    });
+
+    const companies = Object.values(apiObj);
+    return companies;
 };

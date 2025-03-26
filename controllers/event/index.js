@@ -6,7 +6,7 @@ import User from '../../models/user.js';
 import { convertDateToString } from '../../utils/dateFeature.js';
 import mailTransporter from '../../utils/mail.js';
 import { getCompanyOpts } from '../../utils/opt/company.js';
-import { getBranchOpts, getCourseOpts, getPositionOpts } from '../../utils/opt/event.js';
+import { getBranchOpts, getCategoryOpts, getCourseOpts, getPositionOpts } from '../../utils/opt/event.js';
 import TryCatch, { ErrorHandler } from '../../utils/trycatch.js';
 
 // Event.sync({ alter: true, force: true });
@@ -64,7 +64,7 @@ export const createEvent = TryCatch(async (req, resp, next) => {
 
     for (const company of companies) {
         const { positions, batches, courses, branches, company_id } = company;
-        const create = await EventCompany.create({ positions, batches, courses, branches, company_id, event_id: event?.id });
+        const create = await EventCompany.create({ positions, batches, courses, branches, company_id: Number(company_id), event_id: event?.id });
         if (!create) {
             return new ErrorHandler('EVENT COMPANY NOT CREATED!', 400);
         };
@@ -73,9 +73,9 @@ export const createEvent = TryCatch(async (req, resp, next) => {
     // SEND EMAIL FOR ALL COLLEGE STUDENTS!
     const users = await User.findAll({ where: { status: true, is_active: true, role: 'user' }, attributes: ['id', 'name', 'email'] });
     const receiver = {
-        from: "",
+        from: process.env.MAIL_USER,
         to: users?.map(item => item?.email),
-        subject: `Application for ${app?.position}.`,
+        subject: `Join Us for ${event?.title} at Your College!`,
         html: `
             <p>Dear Students,</p>
 
@@ -116,7 +116,7 @@ export const editEvent = TryCatch(async (req, resp, next) => {
 
     const existingCompanies = await EventCompany.findAll({ where: { event_id: event?.id, status: true } });
     const existingCompanyIds = existingCompanies?.map(item => item?.id);
-    const reqCompanyIds = companies?.map(comp => Number(comp?.company_id)).filter(company_id => company_id !== undefined);
+    const reqCompanyIds = companies?.map(comp => Number(comp?.id)).filter(id => id !== undefined);
     const companyToDelete = existingCompanyIds?.filter(id => !reqCompanyIds?.includes(id));
 
     for (const company of companies) {
@@ -124,22 +124,23 @@ export const editEvent = TryCatch(async (req, resp, next) => {
         if (id) {
             const existCompany = existingCompanies?.find(comp => comp?.id === Number(id));
             if (existCompany) {
-                await existCompany.update({ positions, batches, courses, branches, company_id });
+                await existCompany.update({ positions, batches, courses, branches, company_id: Number(company_id) });
             };
         } else {
-            const create = await EventCompany.create({ positions, batches, courses, branches, company_id, event_id: event?.id });
+            const create = await EventCompany.create({ positions, batches, courses, branches, company_id: Number(company_id), event_id: event?.id });
             if (!create) {
                 return new ErrorHandler('EVENT COMPANY NOT CREATED!', 400);
             };
         };
     };
 
-    const deleteEventComp = await EventCompany.findOne({ where: { id: companyToDelete, status: true } });
-    if (!deleteEventComp) {
-        return next(new ErrorHandler('EVENT ORGANISATION NOT FOUND!', 404));
+    for (const deleteComp of companyToDelete) {
+        const deleteEventComp = await EventCompany.findOne({ where: { id: deleteComp, status: true } });
+        if (deleteEventComp) {
+            await deleteEventComp.update({ status: false });
+        };
     };
 
-    deleteEventComp.update({ status: false });
     resp.status(200).json({ success: true, message: 'EVENT UPDATED!' });
 });
 
@@ -185,6 +186,14 @@ export const getEventOpts = TryCatch(async (req, resp, next) => {
 
     const event_opts = { positions, courses, branches, company_opts };
     resp.status(200).json({ success: true, event_opts });
+});
+
+
+export const getEventFilterOpts = TryCatch(async (req, resp, next) => {
+    const [categories] = await Promise.all([getCategoryOpts()]);
+
+    const filter_opts = { categories };
+    resp.status(200).json({ success: true, filter_opts });
 });
 
 

@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { Op, Sequelize } from 'sequelize';
+import { col, fn, Op, Sequelize } from 'sequelize';
 
 import Company from '../../models/company.js';
 import CompanySkill from '../../models/company_skill.js';
@@ -43,11 +43,27 @@ export const createCompany = TryCatch(async (req, resp, next) => {
 
 
 export const getCompanies = TryCatch(async (req, resp, next) => {
-    const companies = await Company.findAll({
-        where: { status: true },
-        attributes: ['id', 'title', 'reg_no', 'email', 'phone', 'type', 'web', 'logo'],
-    });
+    const { type, work_type, work_domain } = req.query;
+    const where = { status: true };
+    if (type) { where.type = type; };
+    if (work_type) {
+        const work_type_array = Array.isArray(work_type) ? work_type : [work_type];
+        const workTypeConditions = work_type_array?.map(item => {
+            return fn('JSON_CONTAINS', col('work_types'), JSON.stringify(item));
+        });
+        where[Op.or] = workTypeConditions;
+    };
+    if (work_domain) {
+        const domain_array = Array.isArray(work_domain) ? work_domain : [work_domain];
+        const domainConditions = domain_array?.map(item => {
+            return fn('JSON_CONTAINS', col('work_domains'), JSON.stringify(item));
+        });
+        where[Op.or] = domainConditions;
+    };
 
+    const companies = await Company.findAll({
+        where, attributes: ['id', 'title', 'reg_no', 'email', 'phone', 'type', 'web', 'logo'],
+    });
     resp.status(200).json({ success: true, companies });
 });
 
@@ -127,6 +143,16 @@ export const createCompanyOpts = TryCatch(async (req, resp, next) => {
 
     const company_opts = { types, works, domains, skills };
     resp.status(200).json({ success: true, company_opts });
+});
+
+
+export const filterCompanyOpts = TryCatch(async (req, resp, next) => {
+    const [types, work_types, domains] = await Promise.all([
+        getCompanyTypeOpts(), getCompanyWorkOpts(), getCompanyDomainOpts()
+    ]);
+
+    const filter_opts = { types, work_types, domains };
+    resp.status(200).json({ success: true, filter_opts });
 });
 
 

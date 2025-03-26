@@ -1,6 +1,6 @@
 import express from 'express';
 import { isAuthenticatedUser, isAutherizeRole } from '../middlewares/auth.js';
-import { createEvent, editEvent, getEventAppById, getEventApps, getEventById, getEventOpts, getEvents } from '../controllers/event/index.js';
+import { createEvent, editEvent, getEventAppById, getEventApps, getEventById, getEventFilterOpts, getEventOpts, getEvents } from '../controllers/event/index.js';
 import { applyEvent } from '../controllers/event/student.js';
 import upload from '../utils/upload.js';
 
@@ -19,6 +19,8 @@ router.post('/app/create', upload.single('resume'), applyEvent);
 router.use(isAuthenticatedUser);
 
 router.get('/get', getEvents);
+
+router.get('/filter/opts', getEventFilterOpts);
 
 router.post('/create', isAutherizeRole('admin'), createEvent);
 

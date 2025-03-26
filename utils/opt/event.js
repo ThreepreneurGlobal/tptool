@@ -42,3 +42,18 @@ export const getBranchOpts = async () => {
 
     return branches;
 };
+
+
+export const getCategoryOpts = async () => {
+    const data = await Event.findAll({
+        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('category')), 'category']], raw: true,
+    });
+
+    const categories = data?.filter(item => item?.category !== null && item?.category !== '')
+        .map(item => ({
+            label: item?.category?.toUpperCase(),
+            value: item?.category
+        }));
+
+    return categories;
+};
