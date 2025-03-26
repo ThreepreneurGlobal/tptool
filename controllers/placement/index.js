@@ -8,15 +8,20 @@ import Placement from '../../models/placement.js';
 import Skill from '../../models/skill.js';
 import User from '../../models/user.js';
 import TryCatch, { ErrorHandler } from '../../utils/trycatch.js';
-import { getPlaceDriveOpts, getPlacePositionOpts, getPlaceStatusOpts } from '../../utils/opt/place.js';
+import { getPlaceCompanyOpts, getPlaceDriveOpts, getPlacePositionOpts, getPlaceStatusOpts } from '../../utils/opt/place.js';
 import { getSkillsOpts } from '../../utils/opt/skill.js';
 import { getCompanyOpts } from '../../utils/opt/company.js';
 
 
 
 export const getPlacements = TryCatch(async (req, resp, next) => {
+    const { company_id, place_status } = req.query;
+    const where = { status: true };
+    if (company_id) { where.company_id = company_id; };
+    if (place_status) { where.place_status = place_status; };
+
     const placements = await Placement.findAll({
-        where: { status: true, }, order: [['created_at', 'DESC']],
+        where, order: [['created_at', 'DESC']],
         include: [
             {
                 model: PlacePosition, foreignKey: 'placement_id', as: 'positions', attributes: ['id', 'title', 'opening'],
@@ -198,6 +203,14 @@ export const getPlaceOptions = TryCatch(async (req, resp, next) => {
 
     const place_options = { statuses, drives, position_types, skills, companies };
     resp.status(200).json({ success: true, place_options });
+});
+
+
+export const getPlaceFilterOpts = TryCatch(async (req, resp, next) => {
+    const [companies, statuses] = await Promise.all([getPlaceCompanyOpts(), getPlaceStatusOpts()]);
+
+    const filter_opts = { companies, statuses };
+    resp.status(200).json({ success: true, filter_opts });
 });
 
 

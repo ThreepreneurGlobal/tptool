@@ -48,4 +48,12 @@ const excelToDate = (date, errorMsgs, Name) => {
 };
 
 
-export { formattedDate, excelToDate };
+const convertDateToString = (input_date) => {
+    const date = new Date(input_date);
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    return date.getDate() + '/' + months[date.getMonth() - 1] + '/' + date.getFullYear();
+};
+
+
+export { formattedDate, excelToDate, convertDateToString };

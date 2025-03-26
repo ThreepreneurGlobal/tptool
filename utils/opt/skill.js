@@ -48,3 +48,20 @@ export const getSkillSubCategoriesOpts = async () => {
 
     return sub_categories;
 };
+
+
+export const getSkillGrpSubCategoriesOpts = async () => {
+    const apiObj = {};
+    const api = await Skill.findAll({
+        where: { status: true }, attributes: ['category', 'sub_category'], group: ['category', 'sub_category'], 
+    });
+
+    api?.forEach((item) => {
+        if (!apiObj[item?.category]) {
+            apiObj[item?.category] = { label: item?.category?.toUpperCase(), options: [] };
+        };
+        apiObj[item?.category]?.options?.push({ label: item?.sub_category?.toUpperCase(), value: item?.sub_category });
+    });
+
+    return Object.values(apiObj);
+};

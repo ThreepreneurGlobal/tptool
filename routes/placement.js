@@ -1,6 +1,6 @@
 import express from 'express';
 
-import { createPlacement, editPlacement, getPlacementById, getPlacements, getPlaceOptions } from '../controllers/placement/index.js';
+import { createPlacement, editPlacement, getPlaceFilterOpts, getPlacementById, getPlacements, getPlaceOptions } from '../controllers/placement/index.js';
 import { myPlaceById, myPlacements } from '../controllers/placement/student.js';
 import { isAuthenticatedUser, isAutherizeRole } from '../middlewares/auth.js';
 import upload from '../utils/upload.js';
@@ -28,6 +28,8 @@ router.put('/update/:id', isAutherizeRole('admin'),
     upload.fields([{ name: 'attach_student' }, { name: 'attach_tpo' }]), editPlacement);
 
 router.get('/options', isAutherizeRole('admin'), getPlaceOptions);
+
+router.get('/filter/opts', isAutherizeRole('admin'), getPlaceFilterOpts);
 
 
 export default router;
