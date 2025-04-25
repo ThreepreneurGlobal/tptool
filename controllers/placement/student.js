@@ -1,4 +1,5 @@
 import { Op } from "sequelize";
+import Application from "../../models/application.js";
 import Company from "../../models/company.js";
 import PlacePosition from "../../models/place_position.js";
 import Placement from "../../models/placement.js";
@@ -8,7 +9,6 @@ import Student from "../../models/student.js";
 import User from "../../models/user.js";
 import UserSkill from "../../models/user_skill.js";
 import TryCatch, { ErrorHandler } from "../../utils/trycatch.js";
-import Application from "../../models/application.js";
 
 
 

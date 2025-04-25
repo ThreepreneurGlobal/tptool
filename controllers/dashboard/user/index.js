@@ -1,19 +1,19 @@
-import { Op, Sequelize } from 'sequelize';
+import { Op } from 'sequelize';
 
-import Company from '../../../models/company.js';
-import Placement from '../../../models/placement.js';
-import PlacePosition from '../../../models/place_position.js';
-import User from '../../../models/user.js';
-import TryCatch, { ErrorHandler } from '../../../utils/trycatch.js';
-import PositionSkill from '../../../models/position_skill.js';
-import UserSkill from '../../../models/user_skill.js';
 import Application from '../../../models/application.js';
+import Certificate from '../../../models/certificate.js';
+import Company from '../../../models/company.js';
+import PlacePosition from '../../../models/place_position.js';
+import Placement from '../../../models/placement.js';
+import PositionSkill from '../../../models/position_skill.js';
+import Project from '../../../models/project.js';
+import Skill from '../../../models/skill.js';
+import Student from '../../../models/student.js';
+import User from '../../../models/user.js';
+import UserSkill from '../../../models/user_skill.js';
+import TryCatch from '../../../utils/trycatch.js';
 import { modifiedPlacements } from './placement.js';
 import { calculatePercentageChange } from './utils.js';
-import Student from '../../../models/student.js';
-import Skill from '../../../models/skill.js';
-import Certificate from '../../../models/certificate.js';
-import Project from '../../../models/project.js';
 
 
 const userDash = TryCatch(async (req, resp, next) => {

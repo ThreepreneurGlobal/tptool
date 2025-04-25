@@ -1,16 +1,18 @@
+import bcryptjs from 'bcryptjs';
 import { Op } from 'sequelize';
-import Certificate from '../../../models/certificate.js';
-import Project from '../../../models/project.js';
-import Skill from '../../../models/skill.js';
+
 import Achievement from '../../../models/achievement.js';
 import Application from '../../../models/application.js';
+import Certificate from '../../../models/certificate.js';
+import Experience from '../../../models/experience.js';
+import PlacePosition from '../../../models/place_position.js';
+import Project from '../../../models/project.js';
+import Skill from '../../../models/skill.js';
 import Student from '../../../models/student.js';
 import User from '../../../models/user.js';
 import UserSkill from '../../../models/user_skill.js';
-import TryCatch, { ErrorHandler } from '../../../utils/trycatch.js';
-import Experience from '../../../models/experience.js';
-import PlacePosition from '../../../models/place_position.js';
 import sendToken from '../../../utils/token.js';
+import TryCatch, { ErrorHandler } from '../../../utils/trycatch.js';
 
 
 
@@ -110,7 +112,8 @@ export const registerStudent = TryCatch(async (req, resp, next) => {
         password = (first.substring(0, 6)).charAt(0).toUpperCase() + first.substring(1, 6).toLowerCase() + "@123#";
     };
 
-    const user = await User.create({ name, mobile, email, password, id_prf, gender, is_active: false });
+    const hash_pass = await bcryptjs.hash(password, 10);
+    const user = await User.create({ name, mobile, email, password: hash_pass, id_prf, gender, is_active: false });
     if (!user) {
         return next(new ErrorHandler('REGISTRATION FAILED!', 400));
     };

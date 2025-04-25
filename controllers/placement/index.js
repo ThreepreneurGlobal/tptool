@@ -1,16 +1,15 @@
 import fs from 'fs';
-import { Sequelize, where } from 'sequelize';
 
 import Company from '../../models/company.js';
 import PlacePosition from '../../models/place_position.js';
-import PositionSkill from '../../models/position_skill.js';
 import Placement from '../../models/placement.js';
+import PositionSkill from '../../models/position_skill.js';
 import Skill from '../../models/skill.js';
 import User from '../../models/user.js';
-import TryCatch, { ErrorHandler } from '../../utils/trycatch.js';
+import { getCompanyOpts } from '../../utils/opt/company.js';
 import { getPlaceCompanyOpts, getPlaceDriveOpts, getPlacePositionOpts, getPlaceStatusOpts } from '../../utils/opt/place.js';
 import { getSkillsOpts } from '../../utils/opt/skill.js';
-import { getCompanyOpts } from '../../utils/opt/company.js';
+import TryCatch, { ErrorHandler } from '../../utils/trycatch.js';
 
 
 
@@ -70,16 +69,16 @@ export const getPlacementById = TryCatch(async (req, resp, next) => {
 export const createPlacement = TryCatch(async (req, resp, next) => {
     const {
         title, type, place_status, status_details, selection_details, criteria, other_details,
-        contact_per, company_contact, reg_sdate, reg_edate, reg_stime, reg_etime, rereg_edate, rereg_etime,
-        reg_details, ctc, stipend, add_comment, history, company_id, positions,
+        contact_per, company_contact, reg_start_date, reg_end_date, rereg_end_date, reg_details,
+        ctc, stipend, add_comment, history, company_id, positions,
     } = req.body;
     const attach_student = req.files?.['attach_student']?.[0]?.path || null;
     const attach_tpo = req.files?.['attach_tpo']?.[0]?.path || null;
 
     const placement = await Placement.create({
         title, type, place_status, status_details, selection_details, criteria, other_details,
-        contact_per, company_contact, reg_sdate, reg_edate, reg_stime, reg_etime, rereg_edate, rereg_etime,
-        reg_details, ctc, stipend, add_comment, history, company_id: Number(company_id), user_id: req.user.id,
+        contact_per, company_contact, reg_start_date, reg_end_date, rereg_end_date, reg_details,
+        ctc, stipend, add_comment, history, company_id: Number(company_id), user_id: req.user.id,
         attach_student: attach_student ? attach_student : null, attach_tpo: attach_tpo ? attach_tpo : null,
     });
 
@@ -111,8 +110,8 @@ export const createPlacement = TryCatch(async (req, resp, next) => {
 export const editPlacement = TryCatch(async (req, resp, next) => {
     const {
         title, type, place_status, status_details, selection_details, criteria, other_details,
-        contact_per, company_contact, reg_sdate, reg_edate, reg_stime, reg_etime, rereg_edate, rereg_etime,
-        reg_details, ctc, stipend, add_comment, history, company_id, positions,
+        contact_per, company_contact, reg_start_date, reg_end_date, rereg_end_date, reg_details,
+        ctc, stipend, add_comment, history, company_id, positions,
     } = req.body;
     const attach_student = req.files['attach_student'] && req.files['attach_student'][0].path;
     const attach_tpo = req.files['attach_tpo'] && req.files['attach_tpo'][0].path;
@@ -132,9 +131,9 @@ export const editPlacement = TryCatch(async (req, resp, next) => {
     };
 
     await placement.update({
-        title, type, place_status, status_details, selection_details, criteria, other_details,
-        contact_per, company_contact, reg_sdate, reg_edate, reg_stime, reg_etime, rereg_edate, rereg_etime,
-        reg_details, ctc, stipend, add_comment, history, company_id: Number(company_id), attach_tpo: attach_tpo ? attach_tpo :
+        title, type, place_status, status_details, selection_details, criteria, other_details, contact_per,
+        company_contact, reg_start_date, reg_end_date, rereg_end_date, reg_details, ctc, stipend, add_comment,
+        history, company_id: Number(company_id), attach_tpo: attach_tpo ? attach_tpo :
             placement?.attach_tpo, attach_student: attach_student ? attach_student : placement?.attach_student,
     });
 
@@ -153,35 +152,39 @@ export const editPlacement = TryCatch(async (req, resp, next) => {
                     await existPosition.update({ title, type, opening });
 
                     // SKILLS
-                    const existingSkills = await PositionSkill.findAll({ where: { position_id: existPosition?.id, status: true } });
-                    const existingSkillIds = existingSkills?.map(skill => skill?.skill_id);
-                    const newSkillIds = [...new Set(skills)]?.filter(skill => Number.isInteger(Number(skill)));
+                    const existingSkills = await PositionSkill.findAll({ where: { position_id: existPosition?.id, placement_id: placement?.id } });
+                    const existTrueSkillIds = existingSkills?.filter(item => item?.status === true).map(item => item?.skill_id);
+                    const existFalsSkillIds = existingSkills?.filter(item => item?.status === false).map(item => item?.skill_id);
+                    const deleteSkills = existTrueSkillIds?.filter(id => !skills?.map(item => Number(item)).includes(id));
+                    const newSkills = skills?.map(item => Number(item)).filter(id => !existTrueSkillIds?.includes(id)).filter(id => !existFalsSkillIds?.includes(id));
 
-                    const skillsToRemove = existingSkills?.filter(skill => !newSkillIds?.includes(skill?.skill_id));
-                    for (const skill of skillsToRemove) {
-                        await skill.update({ status: false });
+                    // MODIFY SKILL
+                    for (const skill of deleteSkills) {
+                        const record = await PositionSkill.findOne({ where: { skill_id: skill, position_id: existPosition?.id, placement_id: placement?.id, status: true } });
+                        if (!record) return;
+                        await record.update({ status: false });
                     };
-
-                    const skillsToAdd = newSkillIds?.filter(skill => !existingSkillIds?.includes(skill));
-                    for (const skill of skillsToAdd) {
-                        await PositionSkill.upsert({
-                            skill_id: Number(skill), placement_id: placement?.id, position_id: Number(existPosition?.id)
-                        });
+                    for (const skill of newSkills) {
+                        const record = await PositionSkill.create({ skill_id: skill, position_id: existPosition?.id, placement_id: placement?.id });
+                        if (!record) return;
+                    };
+                    for (const skill of existFalsSkillIds) {
+                        const record = await PositionSkill.findOne({ where: { skill_id: skill, position_id: existPosition?.id, placement_id: placement?.id, status: false } });
+                        if (!record) return;
+                        await record.update({ status: true });
                     };
                 };
             } else {
                 const newPosition = await PlacePosition.create({
                     title, type, opening, placement_id: placement?.id, company_id: Number(company_id),
                 });
-                if (!newPosition) {
-                    // return next(new ErrorHandler('PLACEMENT POSITION NOT CREATED!', 400));
-                    return;
-                };
+                if (!newPosition) return;
 
                 for (const skill of skills) {
-                    await PositionSkill.upsert({
+                    const record = await PositionSkill.upsert({
                         skill_id: Number(skill), placement_id: Number(placement?.id), position_id: Number(newPosition?.id),
                     });
+                    if (!record) return;
                 };
             };
         };

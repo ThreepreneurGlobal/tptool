@@ -5,12 +5,12 @@ import CompanySkill from '../models/company_skill.js';
 import PlacePosition from '../models/place_position.js';
 import PositionSkill from '../models/position_skill.js';
 import Skill from '../models/skill.js';
+import Student from '../models/student.js';
 import User from '../models/user.js';
 import UserSkill from '../models/user_skill.js';
 import { getSkillCategoriesOpts, getSkillGrpSubCategoriesOpts, getSkillsOpts, getSkillSubCategoriesOpts } from '../utils/opt/skill.js';
 import { toLowerCaseFields } from '../utils/strFeature.js';
 import TryCatch, { ErrorHandler } from '../utils/trycatch.js';
-import Student from '../models/student.js';
 
 
 export const createSkill = TryCatch(async (req, resp, next) => {

@@ -1,6 +1,6 @@
 import { DataTypes } from 'sequelize';
 
-import Connect from '../utils/connect.js';
+import Connect from './index.js';
 
 
 const UserSkill = Connect.define('user_skills', {

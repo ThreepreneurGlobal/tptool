@@ -1,6 +1,6 @@
 import { DataTypes } from 'sequelize';
 
-import Connect from '../utils/connect.js';
+import Connect from './index.js';
 
 
 const Placement = Connect.define('placements', {
@@ -41,24 +41,24 @@ const Placement = Connect.define('placements', {
     company_contact: {
         type: DataTypes.STRING,
     },
-    reg_sdate: {
+    reg_start_date: {
         type: DataTypes.DATE,
     },
-    reg_edate: {
+    reg_end_date: {
         type: DataTypes.DATE,
     },
-    reg_stime: {
-        type: DataTypes.TIME,
-    },
-    reg_etime: {
-        type: DataTypes.TIME,
-    },
-    rereg_edate: {
+    // reg_stime: {
+    //     type: DataTypes.TIME,
+    // },
+    // reg_etime: {
+    //     type: DataTypes.TIME,
+    // },
+    rereg_end_date: {
         type: DataTypes.DATE,
     },
-    rereg_etime: {
-        type: DataTypes.TIME,
-    },
+    // rereg_etime: {
+    //     type: DataTypes.TIME,
+    // },
     reg_details: {
         type: DataTypes.TEXT,
     },

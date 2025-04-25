@@ -1,7 +1,7 @@
+import bcryptjs from 'bcryptjs';
 import fs from 'fs';
 import { Op } from 'sequelize';
 
-import Student from '../models/student.js';
 import User from '../models/user.js';
 import sendToken from '../utils/token.js';
 import TryCatch, { ErrorHandler } from '../utils/trycatch.js';
@@ -15,7 +15,8 @@ export const createAdmin = TryCatch(async (req, resp, next) => {
         return next(new ErrorHandler(`${existed.name} ALREADY EXISTS!`, 500));
     };
 
-    const user = await User.create({ name, mobile, email, password, designation, id_prf, role: 'admin' });
+    const hash_pass = await bcryptjs.hash(password, 10);
+    const user = await User.create({ name, mobile, email, password: hash_pass, designation, id_prf, role: 'admin' });
     if (!user) {
         return next(new ErrorHandler('REGISTRATION FAILED!', 500));
     };
@@ -47,7 +48,7 @@ export const loginUser = TryCatch(async (req, resp, next) => {
 export const myProfile = TryCatch(async (req, resp, next) => {
     const user = await User.findOne({
         where: { id: req.user.id, status: true },
-        attributes: { exclude: ["password", "status", "created_at", "updated_at"] },
+        attributes: { exclude: ["password", "auth_token", "status", "created_at", "updated_at"] },
     });
 
     resp.status(200).json({ success: true, user });
@@ -55,6 +56,9 @@ export const myProfile = TryCatch(async (req, resp, next) => {
 
 
 export const logoutUser = TryCatch(async (req, resp, next) => {
+    const user = await User.findOne({ where: { id: req.user.id, status: true } });
+    await user.update({ auth_token: null });
+
     resp
         .status(200)
         .json({ success: true, message: "LOGGED OUT SUCCESSFULLY..." });

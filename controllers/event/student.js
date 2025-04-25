@@ -1,12 +1,11 @@
 import { Op } from 'sequelize';
-import Company from '../../models/company.js';
+
 import Event from '../../models/event.js';
 import EventApplication from '../../models/event_app.js';
 import EventCompany from '../../models/event_company.js';
-import Student from '../../models/student.js';
-import TryCatch, { ErrorHandler } from '../../utils/trycatch.js';
-import mailTransporter from '../../utils/mail.js';
 import { convertDateToString } from '../../utils/dateFeature.js';
+import mailTransporter from '../../utils/mail.js';
+import TryCatch, { ErrorHandler } from '../../utils/trycatch.js';
 
 
 export const applyEvent = TryCatch(async (req, resp, next) => {

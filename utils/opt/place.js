@@ -1,7 +1,7 @@
 import { Sequelize } from "sequelize";
+import Company from "../../models/company.js";
 import PlacePosition from "../../models/place_position.js";
 import Placement from "../../models/placement.js";
-import Company from "../../models/company.js";
 
 
 

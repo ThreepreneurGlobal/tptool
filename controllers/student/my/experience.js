@@ -1,5 +1,6 @@
-import { Op } from 'sequelize';
 import fs from 'fs';
+import { Op } from 'sequelize';
+
 import Experience from '../../../models/experience.js';
 import Student from '../../../models/student.js';
 import User from '../../../models/user.js';
