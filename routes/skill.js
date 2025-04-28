@@ -1,8 +1,8 @@
 import express from 'express';
 
 import { addSkillOpts, createSkill, editSkill, getSkillById, getSkillOpts, getSkills, skillFilterOpts } from '../controllers/skill.js';
-import { isAuthenticatedUser, isAutherizeRole } from '../middlewares/auth.js';
 import { addSkill as studentAddSkill, deleteSkill as studentDeleteSkill, editSkill as studentEditSkill } from '../controllers/student/my/skill.js';
+import { isAuthenticatedUser, isAutherizeRole } from '../middlewares/auth.js';
 
 
 const router = express.Router();

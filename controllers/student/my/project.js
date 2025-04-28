@@ -16,7 +16,7 @@ export const addProject = TryCatch(async (req, resp, next) => {
         return next(new ErrorHandler('INVALID STUDENT!', 403));
     };
     const exists = await Project.findOne({
-        where: { [Op.and]: [{ title }, { url }, { user_id: req.user.id }, { student_id: student?.id }] },
+        where: { [Op.and]: [{ title }, { user_id: req.user.id }, { student_id: student?.id }] },
     });
     if (exists) {
         return next(new ErrorHandler('PROJECT ALREADY EXISTS!', 400));

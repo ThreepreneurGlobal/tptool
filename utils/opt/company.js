@@ -1,4 +1,5 @@
 import { Sequelize } from "sequelize";
+
 import Company from "../../models/company.js";
 
 

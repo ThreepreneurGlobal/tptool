@@ -1,7 +1,7 @@
 import express from 'express';
-import { isAuthenticatedUser, isAutherizeRole } from '../middlewares/auth.js';
 import { createEvent, editEvent, getEventAppById, getEventApps, getEventById, getEventFilterOpts, getEventOpts, getEvents } from '../controllers/event/index.js';
 import { applyEvent } from '../controllers/event/student.js';
+import { isAuthenticatedUser, isAutherizeRole } from '../middlewares/auth.js';
 import upload from '../utils/upload.js';
 
 

@@ -1,13 +1,13 @@
 import fs from 'fs';
-import { col, fn, Op, Sequelize } from 'sequelize';
+import { col, fn, Op } from 'sequelize';
 
 import Company from '../../models/company.js';
 import CompanySkill from '../../models/company_skill.js';
 import Placement from '../../models/placement.js';
 import Skill from '../../models/skill.js';
-import TryCatch, { ErrorHandler } from '../../utils/trycatch.js';
 import { getCompanyDomainOpts, getCompanyTypeOpts, getCompanyWorkOpts } from '../../utils/opt/company.js';
 import { getSkillsOpts } from '../../utils/opt/skill.js';
+import TryCatch, { ErrorHandler } from '../../utils/trycatch.js';
 
 
 export const createCompany = TryCatch(async (req, resp, next) => {

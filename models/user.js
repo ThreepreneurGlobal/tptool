@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { DataTypes } from 'sequelize';
 
-import Connect from '../utils/connect.js';
+import Connect from './index.js';
 
 
 const User = Connect.define("users", {
@@ -28,7 +28,6 @@ const User = Connect.define("users", {
     },
     password: {
         type: DataTypes.STRING,
-        allowNull: false
     },
     avatar: {
         type: DataTypes.TEXT
@@ -53,6 +52,7 @@ const User = Connect.define("users", {
     instagram: { type: DataTypes.TEXT },
     linkedin: { type: DataTypes.TEXT },
     whatsapp: { type: DataTypes.TEXT },
+    auth_token: { type: DataTypes.STRING },
     is_active: {
         type: DataTypes.BOOLEAN,
         defaultValue: true
@@ -68,11 +68,6 @@ const User = Connect.define("users", {
 }, { timestamps: true, createdAt: "created_at", updatedAt: "updated_at" });
 
 
-User.addHook("beforeCreate", async (user) => {
-    if (user.changed("password")) {
-        user.password = await bcrypt.hash(user.password, 10);
-    };
-});
 
 User.prototype.comparePass = async function (enteredPass) {
     return await bcrypt.compare(enteredPass, this.password);

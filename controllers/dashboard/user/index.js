@@ -1,19 +1,19 @@
-import { Op, Sequelize } from 'sequelize';
+import { Op } from 'sequelize';
 
-import Company from '../../../models/company.js';
-import Placement from '../../../models/placement.js';
-import PlacePosition from '../../../models/place_position.js';
-import User from '../../../models/user.js';
-import TryCatch, { ErrorHandler } from '../../../utils/trycatch.js';
-import PositionSkill from '../../../models/position_skill.js';
-import UserSkill from '../../../models/user_skill.js';
 import Application from '../../../models/application.js';
+import Certificate from '../../../models/certificate.js';
+import Company from '../../../models/company.js';
+import PlacePosition from '../../../models/place_position.js';
+import Placement from '../../../models/placement.js';
+import PositionSkill from '../../../models/position_skill.js';
+import Project from '../../../models/project.js';
+import Skill from '../../../models/skill.js';
+import Student from '../../../models/student.js';
+import User from '../../../models/user.js';
+import UserSkill from '../../../models/user_skill.js';
+import TryCatch from '../../../utils/trycatch.js';
 import { modifiedPlacements } from './placement.js';
 import { calculatePercentageChange } from './utils.js';
-import Student from '../../../models/student.js';
-import Skill from '../../../models/skill.js';
-import Certificate from '../../../models/certificate.js';
-import Project from '../../../models/project.js';
 
 
 const userDash = TryCatch(async (req, resp, next) => {
@@ -41,7 +41,7 @@ const userDash = TryCatch(async (req, resp, next) => {
     // FIND MY ALL PLACEMENTS PROMISE
     const rawPlacements = await Placement.findAll({
         where: { status: true, },
-        attributes: ['id', 'title', 'type', 'place_status', 'reg_sdate', 'reg_edate', 'rereg_edate'], order: [['created_at', 'DESC']],
+        attributes: ['id', 'title', 'type', 'place_status', 'reg_start_date', 'reg_end_date', 'rereg_end_date'], order: [['created_at', 'DESC']],
         include: [
             {
                 model: PlacePosition, foreignKey: 'placement_id', as: 'positions', attributes: ['id', 'title', 'opening'],

@@ -1,3 +1,4 @@
+import bcryptjs from 'bcryptjs';
 import fs from 'fs';
 import { Op } from 'sequelize';
 import XLSX from 'xlsx';
@@ -59,8 +60,9 @@ export const importStudent = TryCatch(async (req, resp, next) => {
             return;
         };
 
+        const hash_pass = await bcryptjs.hash(password, 10);
         const user = await User.create({
-            name: Name?.toLowerCase(), email: Mail_ID, password, mobile: Contact,
+            name: Name?.toLowerCase(), email: Mail_ID, password: hash_pass, mobile: Contact,
             gender: Gender?.toLowerCase(), id_prf: ID, status: true, is_active: true,
         });
         users.push(user);
@@ -68,7 +70,7 @@ export const importStudent = TryCatch(async (req, resp, next) => {
         if (user) {
             await Student.create({
                 dob, course: Course, branch: Branch, batch, current_yr: Studying,
-                enroll: Enrollment, ten_yr, ten_board: Tenth_Board, 
+                enroll: Enrollment, ten_yr, ten_board: Tenth_Board,
                 ten_per: Tenth_Score, twelve_yr, twelve_board: Twelth_Board, user_id: user?.id,
                 twelve_stream: Twelth_Stream, twelve_per: Twelth_Score, diploma: Diploma_Name,
                 diploma_stream: Diploma_Stream, diploma_yr, diploma_per: Diploma_Score,

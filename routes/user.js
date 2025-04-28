@@ -1,6 +1,7 @@
 import express from 'express';
 
 import adminDash from '../controllers/dashboard/admin/index.js';
+import userDash from '../controllers/dashboard/user/index.js';
 import { createFeedback } from '../controllers/feedback.js';
 import { exportStudent, generateTemplate } from '../controllers/student/export.js';
 import { importStudent } from '../controllers/student/import.js';
@@ -14,7 +15,6 @@ import { createAdmin, loginUser, logoutUser, myProfile, updateProfile } from '..
 import { isAuthenticatedUser, isAutherizeRole } from '../middlewares/auth.js';
 import upload from '../utils/upload.js';
 import xlxUpload from '../utils/xlxUpload.js';
-import userDash from '../controllers/dashboard/user/index.js';
 
 
 const router = express.Router();
