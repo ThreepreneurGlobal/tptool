@@ -41,7 +41,7 @@ const userDash = TryCatch(async (req, resp, next) => {
     // FIND MY ALL PLACEMENTS PROMISE
     const rawPlacements = await Placement.findAll({
         where: { status: true, },
-        attributes: ['id', 'title', 'type', 'place_status', 'reg_sdate', 'reg_edate', 'rereg_edate'], order: [['created_at', 'DESC']],
+        attributes: ['id', 'title', 'type', 'place_status', 'reg_start_date', 'reg_end_date', 'rereg_end_date'], order: [['created_at', 'DESC']],
         include: [
             {
                 model: PlacePosition, foreignKey: 'placement_id', as: 'positions', attributes: ['id', 'title', 'opening'],

@@ -21,8 +21,8 @@ const adminDash = TryCatch(async (req, resp, next) => {
 
     const last7Days = [];
     const last10Months = [];
-    const last6Months = [];
-    const last5Years = [];
+    const last12Months = [];
+    const last10Years = [];
     const last9Hours = [];
     let date_range = [];
 
@@ -33,25 +33,25 @@ const adminDash = TryCatch(async (req, resp, next) => {
         last7Days.push(date.toISOString().split('T')[0]);
     };
 
-    // Last 10 Days
+    // Last 10 Months
     for (let i = 0; i < 10; i++) {
         const date = new Date();
         date.setMonth(today.getMonth() - i);
         last10Months.push(date.toISOString().split('T')[0]);
     };
 
-    // Last 6 Months
-    for (let i = 0; i < 6; i++) {
+    // Last 12 Months
+    for (let i = 0; i < 12; i++) {
         const date = new Date();
         date.setMonth(today.getMonth() - i);
-        last6Months.push(date.toISOString().split('T')[0]);
+        last12Months.push(date.toISOString().split('T')[0]);
     };
 
-    // Last 5 Years
-    for (let i = 0; i < 5; i++) {
+    // Last 10 Years
+    for (let i = 0; i < 10; i++) {
         const date = new Date();
         date.setFullYear(today.getFullYear() - i);
-        last5Years.push(date.toISOString().split('T')[0]);
+        last10Years.push(date.toISOString().split('T')[0]);
     };
 
     // Last 9 Hours
@@ -66,10 +66,10 @@ const adminDash = TryCatch(async (req, resp, next) => {
             date_range = last7Days;
             break;
         case 'month':
-            date_range = last6Months;
+            date_range = last12Months;
             break;
         case 'year':
-            date_range = last5Years;
+            date_range = last10Years;
             break;
         default:
             date_range = last7Days;

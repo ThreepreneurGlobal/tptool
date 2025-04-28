@@ -29,7 +29,7 @@ export const myPlacements = TryCatch(async (req, resp, next) => {
 
     const placements = await Placement.findAll({
         where: { status: true, },
-        attributes: ['id', 'title', 'type', 'place_status', 'reg_sdate', 'reg_edate', 'rereg_edate'], order: [['created_at', 'DESC']],
+        attributes: ['id', 'title', 'type', 'place_status', 'reg_start_date', 'reg_end_date', 'rereg_end_date'], order: [['created_at', 'DESC']],
         include: [
             {
                 model: PlacePosition, foreignKey: 'placement_id', as: 'positions', attributes: ['id', 'title', 'opening'],
@@ -75,7 +75,7 @@ export const myPlaceById = TryCatch(async (req, resp, next) => {
 
     const placement = await Placement.findOne({
         where: { id: req.params.id, status: true, },
-        attributes: ['id', 'title', 'type', 'place_status', 'reg_sdate', 'reg_edate', 'rereg_edate', 'criteria', 'attach_student', 'selection_details'],
+        attributes: ['id', 'title', 'type', 'place_status', 'reg_start_date', 'reg_end_date', 'rereg_end_date', 'criteria', 'attach_student', 'selection_details'],
         include: [
             {
                 model: PlacePosition, foreignKey: 'placement_id', as: 'positions', attributes: ['id', 'title', 'opening'],
