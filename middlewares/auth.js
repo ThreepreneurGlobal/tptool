@@ -10,17 +10,22 @@ const isAuthenticatedUser = TryCatch(async (req, resp, next) => {
         return next(new ErrorHandler("PLEASE LOGIN FIRST!", 403));
     };
 
-    const auth_user = await User.findOne({ where: { auth_token, status: true }, attributes: ['id', 'name', 'auth_token'] });
-    if (!auth_user || auth_user?.auth_token !== auth_token) {
-        return next(new ErrorHandler("PLEASE LOGIN FIRST!", 403));
-    };
-
     const decode = jwt.verify(auth_token, process.env.JWT_SECRET);
     if (!decode) {
         return next(new ErrorHandler("PLEASE LOGIN FIRST!", 403));
     };
 
-    req.user = await User.findByPk(decode.id, { attributes: ['id', 'name', 'role', 'email'] });
+    const user = await User.findByPk(decode.id, { attributes: ['id', 'name', 'role', 'email', 'auth_tokens'] });
+    if (!user) {
+        return next(new ErrorHandler("PLEASE LOGIN FIRST!", 403));
+    };
+
+    const auth_tokens = user?.auth_tokens || [];
+    if (!auth_tokens?.includes(auth_token)) {
+        return next(new ErrorHandler("PLEASE LOGIN FIRST!", 403));
+    };
+
+    req.user = user;
     next();
 });
 

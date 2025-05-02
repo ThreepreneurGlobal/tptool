@@ -18,7 +18,7 @@ try {
     console.error("DISCONNECTED", error.message);
 };
 
-//Update DB Structure and Delete Old Structure with Old Data.
+//UPDATE DB STRUCTURE AND DELETE OLD STRUCTURE WITH OLD DATA.
 // Connect.sync({ alter: true, force: true })
 //     .then(() => {
 //         console.log("ALL MODELS SYNCHRONIZED SUCCESSFULLY...");

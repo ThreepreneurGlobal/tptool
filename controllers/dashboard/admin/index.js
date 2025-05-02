@@ -149,6 +149,7 @@ const adminDash = TryCatch(async (req, resp, next) => {
             endDate = new Date(date);
             endDate.setMonth(endDate.getMonth() + 1);
             endDate.setDate(0); // End of the month
+            endDate.setHours(23, 59, 59, 999);
         } else if (time_period === 'year') {
             startDate = new Date(date);
             startDate.setMonth(0, 1); // Start of the year
@@ -206,6 +207,7 @@ const adminDash = TryCatch(async (req, resp, next) => {
         endDate = new Date(date);
         endDate.setMonth(endDate.getMonth() + 1);
         endDate.setDate(0); // End of the month
+        endDate.setHours(23, 59, 59, 999);
 
         const cardWhereCondition = { where: { created_at: { [Op.between]: [startDate, endDate] }, status: true } };
         const last10MonthStudentCountPromise = Student.count({ ...cardWhereCondition });
