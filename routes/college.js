@@ -1,24 +1,27 @@
-import express from 'express';
+import { Router } from 'express';
 
-import { editMyCollege, myCollege } from '../controllers/college/index.js';
-import { getCollegeOpts, getCoursesBranches } from '../controllers/my_college.js';
+import { createCollege, editCollege, getCollegeById, getCollegeOptions, getColleges, getUniversityOptions } from '../controllers/college/index.js';
 import { isAuthenticatedUser, isAutherizeRole } from '../middlewares/auth.js';
-import upload from '../utils/upload.js';
 
 
-const router = express.Router();
 
-router.get('/options', getCollegeOpts)
+const router = Router();
 
 
-// Auth Routes
+// AUTH ROUTES
 router.use(isAuthenticatedUser);
 
-router.get('/myorg', isAutherizeRole('admin'), myCollege);
+router.post('/create', isAutherizeRole('super'), createCollege);
 
-router.put('/edit/myorg', isAutherizeRole('admin'), upload.single('logo'), editMyCollege);
+router.get('/get', isAutherizeRole('super'), getColleges);
 
-router.get('/course-branch/get', isAutherizeRole('admin'), getCoursesBranches);
+router.get('/get/:id', isAutherizeRole('super'), getCollegeById);
+
+router.put('/edit/profile', isAutherizeRole('admin'), editCollege);
+
+router.get('/option/get', isAutherizeRole('super'), getCollegeOptions);
+
+router.get('/option/university', isAutherizeRole('super'), getUniversityOptions);
 
 
 export default router;

@@ -1,30 +1,25 @@
-import express from 'express';
+import { Router } from 'express';
 
-import applicationRouter from './application.js';
-import collegeRouter from './college.js';
-import companyRouter from './company.js';
-import eventRouter from './event.js';
-import placementRouter from './placement.js';
-import skillRouter from './skill.js';
-import userRouter from './user.js';
+import superDashboard from '../controllers/dashboard/index.js';
+import { isAuthenticatedUser, isAutherizeRole } from '../middlewares/auth.js';
+import college_router from './college.js';
+import credential_router from './credential.js';
+import user_router from './user.js';
 
 
-const router = express.Router();
+
+const router = Router();
 
 
-router.use('/user', userRouter);
+router.use('/user', user_router);
 
-router.use('/college', collegeRouter);
+router.use('/college', college_router);
 
-router.use('/company', companyRouter);
+router.use('/credential', credential_router);
 
-router.use('/skill', skillRouter);
+// DASHBOARD
+router.get('/dashboard', isAuthenticatedUser, isAutherizeRole('super'), superDashboard);
 
-router.use('/placement', placementRouter);
-
-router.use('/application', applicationRouter);
-
-router.use('/event', eventRouter);
 
 
 export default router;

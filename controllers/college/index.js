@@ -1,21 +1,47 @@
-import fs from 'fs';
+import crypto from 'crypto';
+import { Op } from 'sequelize';
 
-import College from '../../models/super/college.js';
-import SuperUser from '../../models/super/user.js';
+import College from '../../models/college.js';
+import User from '../../models/user.js';
+import { getCollegeOpts, getUniversityOpts } from '../../utils/options/college.js';
 import TryCatch, { ErrorHandler } from '../../utils/trycatch.js';
 
 
+export const createCollege = TryCatch(async (req, resp, next) => {
+    const { name, reg_no, contact, email, type, university, city, state, country, pin_code,
+        establish_yr, principal_name, principal_contact, principal_email } = req.body;
 
-export const myCollege = TryCatch(async (req, resp, next) => {
-    const super_user = await SuperUser.findOne({
-        where: { email: req.user.email, status: true, is_active: true },
-        attributes: ['id', 'name', 'email', 'role', 'college_id']
-    });
-    if (!super_user) {
-        return next(new ErrorHandler('USER NOT FOUND!', 404));
+    const exists = await College.findOne({ where: { [Op.or]: [{ reg_no }, { email }], status: true } });
+    if (exists) {
+        return next(new ErrorHandler('COLLEGE ALREADY EXISTS!', 400));
     };
 
-    const college = await College.findOne({ where: { id: super_user?.college_id, status: true } });
+    const hash = crypto.createHash('sha256').update(reg_no + Date.now().toString()).digest('hex');
+
+    const college = await College.create({
+        name, reg_no, contact, email, university, principal_name, principal_contact, principal_email,
+        type, city, state, country, pin_code, establish_yr, college_id: hash.substring(0, 10),
+    });
+    if (!college) {
+        return next(new ErrorHandler('COLLEGE NOT CREATED!', 400));
+    };
+
+    resp.status(201).json({ success: true, message: college?.name?.toUpperCase() + ' CREATED!' });
+});
+
+
+export const getColleges = TryCatch(async (req, resp, next) => {
+    const colleges = await College.findAll({
+        where: { status: true }, order: [['created_at', 'DESC']],
+        attributes: ['id', 'name', 'email', 'contact', 'type', 'university', 'city', 'state', 'country']
+    });
+
+    resp.status(200).json({ success: true, colleges });
+});
+
+
+export const getCollegeById = TryCatch(async (req, resp, next) => {
+    const college = await College.findOne({ where: { id: req.params.id, status: true } });
     if (!college) {
         return next(new ErrorHandler('COLLEGE NOT FOUND!', 404));
     };
@@ -24,34 +50,36 @@ export const myCollege = TryCatch(async (req, resp, next) => {
 });
 
 
-
-export const editMyCollege = TryCatch(async (req, resp, next) => {
-    const {
-        name, contact, web, description, address, city, state, country, pin_code, establish_yr, principal_name,
-        principal_email, principal_contact, facebook, twitter, instagram, linkedin, youtube,
-    } = req.body;
+export const editCollege = TryCatch(async (req, resp, next) => {
+    const { admin_email, name, contact, email, type, university, address, city, state,
+        country, pin_code, establish_yr, web, principal_name, principal_contact,
+        principal_email, facebook, twitter, instagram, linkedin, youtube } = req.body;
     const logo = req.file?.path;
 
-    const super_user = await SuperUser.findOne({
-        where: { email: req.user.email, status: true, is_active: true },
-        attributes: ['id', 'name', 'email', 'role', 'college_id']
-    });
-    if (!super_user) {
-        return next(new ErrorHandler('USER NOT FOUND!', 404));
-    };
-
-    const college = await College.findOne({ where: { id: super_user?.college_id, status: true } });
+    const user = await User.findOne({ where: { email: admin_email, status: true, role: 'admin' }, attributes: ['id', 'college_id', 'role'] });
+    const college = await College.findOne({ where: { id: user?.college_id, status: true } });
     if (!college) {
         return next(new ErrorHandler('COLLEGE NOT FOUND!', 404));
     };
 
-    if (college?.logo && logo) {
-        fs.rm(college?.logo, () => console.log('OLD COLLEGE LOGO DELETED!'));
-    };
-
     await college.update({
-        name, contact, web, address, city, state, country, pin_code, establish_yr, principal_name, principal_email,
-        principal_contact, description, facebook, twitter, instagram, linkedin, youtube, logo: logo ? logo : college?.logo,
+        name, contact, email, type, university, address, city, state, country, pin_code,
+        establish_yr, web, principal_name, principal_contact, principal_email, facebook,
+        twitter, instagram, linkedin, youtube, logo: logo ? logo : college?.logo,
     });
-    resp.status(200).json({ success: true, message: 'COLLEGE PROFILE UPDATED!' });
+    resp.status(200).json({ success: true, message: 'COLLEGE PROFILE UPDATED SUCCESSFULLY!' });
+});
+
+
+export const getCollegeOptions = TryCatch(async (req, resp, next) => {
+    const [college_opts] = await Promise.all([getCollegeOpts()]);
+
+    resp.status(200).json({ success: true, college_opts });
+});
+
+
+export const getUniversityOptions = TryCatch(async (req, resp, next) => {
+    const [university_opts] = await Promise.all([getUniversityOpts()]);
+
+    resp.status(200).json({ success: true, university_opts });
 });

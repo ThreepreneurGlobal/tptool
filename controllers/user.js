@@ -7,48 +7,51 @@ import sendToken from '../utils/token.js';
 import TryCatch, { ErrorHandler } from '../utils/trycatch.js';
 
 
-export const createAdmin = TryCatch(async (req, resp, next) => {
-    const { name, mobile, email, password, designation, id_prf } = req.body;
+export const registerUser = TryCatch(async (req, resp, next) => {
+    const { name, mobile, email, password } = req.body;
+    if (!name || !email || !mobile || !password) {
+        return next(new ErrorHandler('ALL FIELDS REQUIRED!', 400));
+    };
 
-    const existed = await User.findOne({ [Op.or]: [{ name }, { email }, { mobile }] });
-    if (existed) {
-        return next(new ErrorHandler(`${existed.name} ALREADY EXISTS!`, 500));
+    const exists = await User.findOne({ where: { [Op.or]: [{ email }, { mobile }] } });
+    if (exists) {
+        return next(new ErrorHandler('USER ALREADY REGISTERED!', 400));
     };
 
     const hash_pass = await bcryptjs.hash(password, 10);
-    const user = await User.create({ name, mobile, email, password: hash_pass, designation, id_prf, role: 'admin' });
+    const user = await User.create({ name, mobile, email, password: hash_pass, designation: 'super admin', role: 'super' });
     if (!user) {
-        return next(new ErrorHandler('REGISTRATION FAILED!', 500));
+        return next(new ErrorHandler('USER NOT REGISTERED!', 400));
     };
 
-    sendToken(user, 201, resp);
+    resp.status(201).json({ success: true, message: 'SUPER ADMIN REGISTERED SUCCESSFULLY!' });
 });
 
 
 export const loginUser = TryCatch(async (req, resp, next) => {
     const { email, password } = req.body;
     if (!email || !password) {
-        return next(new ErrorHandler('PLEASE ENTER MAIL ID AND PASSWORD', 401));
+        return next(new ErrorHandler('MAIL ID AND PASSWORD REQUIRED!', 400));
     };
 
-    const user = await User.findOne({ where: { email, status: true } });
+    const user = await User.findOne({ where: { email, status: true }, attributes: ['id', 'name', 'email', 'password'] });
     if (!user) {
-        return next(new ErrorHandler("PLEASE ENTER VALID MAIL ID AND PASSWORD!", 401));
+        return next(new ErrorHandler('INVALID MAIL ID OR PASSWORD!', 403));
     };
 
-    const isPassMatch = await user.comparePass(password);
-    if (!isPassMatch) {
-        return next(new ErrorHandler("PLEASE ENTER VALID MAIL ID AND PASSWORD!", 401));
+    const isMatched = await user.comparePass(password);
+    if (!isMatched) {
+        return next(new ErrorHandler('INVALID MAIL ID OR PASSWORD!', 403));
     };
 
     sendToken(user, 200, resp);
 });
 
 
-export const myProfile = TryCatch(async (req, resp, next) => {
+export const myProfileUser = TryCatch(async (req, resp, next) => {
     const user = await User.findOne({
         where: { id: req.user.id, status: true },
-        attributes: { exclude: ["password", "auth_token", "status", "created_at", "updated_at"] },
+        attributes: { exclude: ['password', 'otp', 'otp_valid', 'auth_tokens', 'college_id', 'created_at', 'updated_at'] }
     });
 
     resp.status(200).json({ success: true, user });
@@ -56,30 +59,34 @@ export const myProfile = TryCatch(async (req, resp, next) => {
 
 
 export const logoutUser = TryCatch(async (req, resp, next) => {
-    const user = await User.findOne({ where: { id: req.user.id, status: true } });
-    await user.update({ auth_token: null });
+    const auth_token = req.headers['authorization'];
+    const user = await User.findOne({ where: { id: req.user.id, status: true }, attributes: ['id', 'auth_tokens'] });
 
-    resp
-        .status(200)
-        .json({ success: true, message: "LOGGED OUT SUCCESSFULLY..." });
+    const auth_tokens = user?.auth_tokens?.filter(token => token !== auth_token);
+    await user.update({ auth_tokens });
+    resp.status(200).json({ success: true, message: 'LOGGED OUT SUCCESSFULLY!' });
 });
 
 
-export const updateProfile = TryCatch(async (req, resp, next) => {
-    const { gender, address, city, pin_code, facebook, twitter, instagram, linkedin, whatsapp } = req.body;
+export const editMyProfile = TryCatch(async (req, resp, next) => {
+    const { name, email, mobile, address, city, state, country, pin_code,
+        designation, facebook, twitter, instagram, linkedin } = req.body;
     const avatar = req.file?.path;
 
-    const user = await User.findOne({ where: { id: req.user.id, status: true } });
+    const user = await User.findOne({
+        where: { id: req.user.id, status: true },
+        attributes: { exclude: ['password', 'created_at', 'updated_at'] }
+    });
 
-    if (avatar && user.avatar) {
-        fs.rm(user.avatar, () => { console.log('OLD FILE REMOVED SUCCESSFULLY...'); });
+    if (avatar && user?.avatar) {
+        fs.rm(user?.avatar, () => console.log('OLD AVATAR DELETED!'));
     };
 
-    await user.update({ gender, address, city, pin_code, facebook, twitter, instagram, linkedin, whatsapp, avatar: avatar ? avatar : user.avatar });
-    resp.status(200).json({ success: true, message: "PROFILE UPDATED SUCCESSFULLY..." });
+    await user.update({
+        name, email, mobile, address, city, state, country, pin_code, designation,
+        facebook, twitter, instagram, linkedin, avatar: avatar ? avatar : user?.avatar,
+    });
+    resp.status(200).json({ success: true, message: 'PROFILE UPDATED SUCCESSFULLY!' });
 });
 
 
-//User to Student Association
-// User.hasOne(Student, { foreignKey: "userId", as: "student" });
-// Student.belongsTo(User, { foreignKey: "userId", as: "user" });

@@ -1,11 +1,9 @@
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
 import { DataTypes } from 'sequelize';
 
-import Connect from './index.js'
+import Connect from './index.js';
 
 
-const User = Connect.define('users', {
+const College = Connect.define('colleges', {
     id: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
@@ -14,23 +12,39 @@ const User = Connect.define('users', {
     },
     name: {
         type: DataTypes.STRING,
-        allowNull: false,
     },
-    mobile: {
+    reg_no: {
+        type: DataTypes.STRING,
+    },
+    contact: {
         type: DataTypes.STRING,
     },
     email: {
         type: DataTypes.STRING,
-        allowNull: false,
         validate: {
             isEmail: { msg: 'INVALID MAIL ID!' },
         },
     },
-    password: {
+    description: {
+        type: DataTypes.TEXT,
+    },
+    web: {
+        type: DataTypes.STRING,
+        validate: {
+            isUrl: { msg: 'INVALID WEBSITE URL!' },
+        },
+    },
+    logo: {
+        type: DataTypes.TEXT,
+    },
+    type: {
+        type: DataTypes.ENUM('govt', 'private', 'autonomous'),
+    },
+    college_id: {
         type: DataTypes.STRING,
     },
-    avatar: {
-        type: DataTypes.TEXT,
+    university: {
+        type: DataTypes.STRING,
     },
     address: { type: DataTypes.TEXT, },
     city: { type: DataTypes.STRING, },
@@ -39,8 +53,20 @@ const User = Connect.define('users', {
     pin_code: {
         type: DataTypes.STRING,
     },
-    designation: {
+    establish_yr: {
+        type: DataTypes.DATE,
+    },
+    principal_name: {
         type: DataTypes.STRING,
+    },
+    principal_contact: {
+        type: DataTypes.STRING,
+    },
+    principal_email: {
+        type: DataTypes.STRING,
+        validate: {
+            isEmail: { msg: 'INVALID MAIL ID!' },
+        },
     },
     facebook: {
         type: DataTypes.TEXT,
@@ -58,27 +84,12 @@ const User = Connect.define('users', {
         type: DataTypes.TEXT,
         validate: { isUrl: { msg: 'INVALID LINKEDIN PROFILE URL!' } },
     },
-    otp: {
-        type: DataTypes.STRING,
-    },
-    otp_valid: {
-        type: DataTypes.DATE,
-    },
-    auth_tokens: {
+    youtube: {
         type: DataTypes.TEXT,
-        get: function () {
-            return JSON.parse(this.getDataValue('auth_tokens'));
-        },
-        set: function (value) {
-            return this.setDataValue('auth_tokens', JSON.stringify(value));
-        },
+        validate: { isUrl: { msg: 'INVALID YOUTUBE PROFILE URL!' } },
     },
-    role: {
-        type: DataTypes.ENUM('admin', 'super', 'user'),
-        defaultValue: 'user',
-    },
-    college_id: {
-        type: DataTypes.INTEGER,
+    valid_from: {
+        type: DataTypes.DATE,
     },
     is_active: {
         type: DataTypes.BOOLEAN,
@@ -93,14 +104,4 @@ const User = Connect.define('users', {
 });
 
 
-
-User.prototype.comparePass = async function (enteredPass) {
-    return await bcrypt.compare(enteredPass, this.password);
-};
-
-User.prototype.getJWToken = function () {
-    return jwt.sign({ id: this.id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRE });
-};
-
-
-export default User;
+export default College;
