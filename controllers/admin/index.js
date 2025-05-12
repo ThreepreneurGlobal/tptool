@@ -15,10 +15,20 @@ export const getAdmins = TryCatch(async (req, resp, next) => {
 });
 
 
+export const getDeactiveAdmins = TryCatch(async (req, resp, next) => {
+    const users = await User.findAll({
+        where: { role: 'admin', status: true, is_active: false }, attributes: ['id', 'name', 'mobile', 'email', 'avatar'],
+        include: [{ model: College, foreignKey: 'college_id', as: 'college', required: true, attributes: ['id', 'name', 'logo', 'type', 'city'] }]
+    });
+
+    resp.status(200).json({ success: true, users });
+});
+
+
 export const getAdminById = TryCatch(async (req, resp, next) => {
     const user = await User.findOne({
-        where: { id: req.params.id, status: true, is_active: true },
-        attributes: { exclude: ['password', 'college_id', 'is_active', 'status'] },
+        where: { id: req.params.id, status: true },
+        attributes: { exclude: ['password', 'college_id', 'status'] },
         include: [{
             model: College, foreignKey: 'college_id', as: 'college', required: true,
             attributes: ['id', 'name', 'reg_no', 'contact', 'email', 'web', 'logo', 'type', 'university', 'city', 'state']
@@ -51,6 +61,42 @@ export const editAdmin = TryCatch(async (req, resp, next) => {
         twitter, instagram, linkedin, avatar: avatar ? avatar : user?.avatar,
     });
     resp.status(200).json({ success: true, message: 'ADMIN UPDATED!' });
+});
+
+
+export const deactiveAdmin = TryCatch(async (req, resp, next) => {
+    const user = await User.findOne({
+        where: { id: req.params.id, status: true, is_active: true },
+        attributes: { exclude: ['password', 'college_id', 'status'] },
+        include: [{
+            model: College, foreignKey: 'college_id', as: 'college', required: true,
+            attributes: ['id', 'name', 'reg_no', 'contact', 'email', 'web', 'logo', 'type', 'university', 'city', 'state']
+        }],
+    });
+    if (!user) {
+        return next(new ErrorHandler('USER NOT FOUND!', 404));
+    };
+
+    await user.update({ is_active: false });
+    resp.status(200).json({ success: true, message: 'ADMIN DEACTIVATED SUCCESSFULLY!' });
+});
+
+
+export const activeAdmin = TryCatch(async (req, resp, next) => {
+    const user = await User.findOne({
+        where: { id: req.params.id, status: true, is_active: false },
+        attributes: { exclude: ['password', 'college_id', 'status'] },
+        include: [{
+            model: College, foreignKey: 'college_id', as: 'college', required: true,
+            attributes: ['id', 'name', 'reg_no', 'contact', 'email', 'web', 'logo', 'type', 'university', 'city', 'state']
+        }],
+    });
+    if (!user) {
+        return next(new ErrorHandler('USER NOT FOUND!', 404));
+    };
+
+    await user.update({ is_active: true });
+    resp.status(200).json({ success: true, message: 'ADMIN ACTIVATED SUCCESSFULLY!' });
 });
 
 

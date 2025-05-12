@@ -71,6 +71,28 @@ export const editCollege = TryCatch(async (req, resp, next) => {
 });
 
 
+export const activeCollege = TryCatch(async (req, resp, next) => {
+    const college = await College.findOne({ where: { id: req.params.id, is_active: false, status: true } });
+    if (!college) {
+        return next(new ErrorHandler('COLLEGE NOT FOUND!', 404));
+    };
+
+    await college.update({ is_active: true });
+    resp.status(200).json({ success: true, message: 'COLLEGE ACTIVATED SUCCESSFULLY!' });
+});
+
+
+export const deactiveCollege = TryCatch(async (req, resp, next) => {
+    const college = await College.findOne({ where: { id: req.params.id, is_active: true, status: true } });
+    if (!college) {
+        return next(new ErrorHandler('COLLEGE NOT FOUND!', 404));
+    };
+
+    await college.update({ is_active: false });
+    resp.status(200).json({ success: true, message: 'COLLEGE DEACTIVATED SUCCESSFULLY!' });
+});
+
+
 export const getCollegeOptions = TryCatch(async (req, resp, next) => {
     const [college_opts] = await Promise.all([getCollegeOpts()]);
 

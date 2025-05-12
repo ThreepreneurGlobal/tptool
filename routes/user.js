@@ -1,7 +1,7 @@
 import { Router } from 'express';
 
 import { createAdmin, createPassword, verifyOtp } from '../controllers/admin/create.js';
-import { getAdminById, getAdmins } from '../controllers/admin/index.js';
+import { activeAdmin, deactiveAdmin, getAdminById, getAdmins, getDeactiveAdmins } from '../controllers/admin/index.js';
 import { editMyProfile, loginUser, logoutUser, myProfileUser, registerUser } from '../controllers/user.js';
 import { isAuthenticatedUser, isAutherizeRole } from '../middlewares/auth.js';
 import upload from '../utils/upload.js';
@@ -37,6 +37,12 @@ router.post('/admin/create', isAutherizeRole('super'), createAdmin);
 router.put('/admin/otp-verify', isAutherizeRole('super'), verifyOtp);
 
 router.put('/admin/password/create', isAutherizeRole('super'), createPassword);
+
+router.get('/admin/deactive/get', isAutherizeRole('super'), getDeactiveAdmins);
+
+router.put('/admin/status/active/:id', isAutherizeRole('super'), activeAdmin);
+
+router.put('/admin/status/deactive/:id', isAutherizeRole('super'), deactiveAdmin);
 
 
 export default router;
