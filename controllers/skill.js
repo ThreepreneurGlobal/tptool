@@ -13,6 +13,7 @@ import { toLowerCaseFields } from '../utils/strFeature.js';
 import TryCatch, { ErrorHandler } from '../utils/trycatch.js';
 
 
+// CREATE SKILL
 export const createSkill = TryCatch(async (req, resp, next) => {
     const { title, short_name, description, category, sub_category } = toLowerCaseFields(req.body);
 
@@ -26,6 +27,8 @@ export const createSkill = TryCatch(async (req, resp, next) => {
 });
 
 
+
+// UPDATE SKILL
 export const editSkill = TryCatch(async (req, resp, next) => {
     const { title, short_name, description, category, sub_category } = req.body;
 
@@ -39,6 +42,7 @@ export const editSkill = TryCatch(async (req, resp, next) => {
 });
 
 
+// ALL SKILLS RECORDS
 export const getSkills = TryCatch(async (req, resp, next) => {
     const { category, sub_category } = req.query;
     const where = { status: true };
@@ -56,6 +60,7 @@ export const getSkills = TryCatch(async (req, resp, next) => {
 });
 
 
+// SINGLE SKILL RECORD
 export const getSkillById = TryCatch(async (req, resp, next) => {
     const skill = await Skill.findOne({ where: { id: req.params.id, status: true } });
     if (!skill) {
@@ -66,6 +71,7 @@ export const getSkillById = TryCatch(async (req, resp, next) => {
 });
 
 
+// OPTIONS FOR FILTER SKILL
 export const getSkillOpts = TryCatch(async (req, resp, next) => {
     const [categories, sub_categories] = await Promise.all([
         getSkillCategoriesOpts(), getSkillSubCategoriesOpts()
@@ -76,6 +82,7 @@ export const getSkillOpts = TryCatch(async (req, resp, next) => {
 });
 
 
+// OPTIONS FOR CREATE SKILL
 export const addSkillOpts = TryCatch(async (req, resp, next) => {
     const skill_opts = await getSkillsOpts();
 
@@ -83,6 +90,7 @@ export const addSkillOpts = TryCatch(async (req, resp, next) => {
 });
 
 
+// OPTIONS FOR FILTER SKILL
 export const skillFilterOpts = TryCatch(async (req, resp, next) => {
     const [categories, sub_categories] = await Promise.all([
         getSkillCategoriesOpts(), getSkillGrpSubCategoriesOpts()

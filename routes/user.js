@@ -1,7 +1,5 @@
 import express from 'express';
 
-import adminDash from '../controllers/dashboard/admin/index.js';
-import userDash from '../controllers/dashboard/user/index.js';
 import { createFeedback } from '../controllers/feedback.js';
 import { exportStudent, generateTemplate } from '../controllers/student/export.js';
 import { importStudent } from '../controllers/student/import.js';
@@ -27,10 +25,10 @@ router.post('/login', loginUser);
 router.post('/student/register', registerStudent);
 
 
-// Auth Routes
+// AUTH ROUTES
 router.use(isAuthenticatedUser);
 
-// User
+// USER
 router.get('/myprofile', myProfile);
 
 router.get('/logout', logoutUser);
@@ -86,12 +84,6 @@ router.get('/student/onboards', isAutherizeRole('admin'), getOnBoardStudents);
 router.get('/student/onboard/:id', isAutherizeRole('admin'), getOnBoardStudentById);
 
 router.put('/student/onboard/edit', isAutherizeRole('admin'), editOnboardStudent);
-
-
-// Dashboard
-router.get('/admin/dashboard', isAutherizeRole('admin'), adminDash);
-
-router.get('/student/dashboard', userDash);
 
 
 export default router;

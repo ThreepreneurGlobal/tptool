@@ -15,7 +15,7 @@ import sendToken from '../../../utils/token.js';
 import TryCatch, { ErrorHandler } from '../../../utils/trycatch.js';
 
 
-
+// STUDENT: MY PROFILE RECORD
 export const myStudentProfile = TryCatch(async (req, resp, next) => {
     const student = await Student.findOne({
         where: { user_id: req.user.id, status: true }, attributes: { exclude: ['user_id', 'role', 'status', 'is_active'] },
@@ -86,6 +86,7 @@ export const myStudentProfile = TryCatch(async (req, resp, next) => {
 });
 
 
+// STUDENT: REGISTER
 export const registerStudent = TryCatch(async (req, resp, next) => {
     const {
         name, mobile, email, id_prf, dob, course, branch, batch, current_yr, enroll, ten_yr, gender,

@@ -11,7 +11,7 @@ import UserSkill from "../../models/user_skill.js";
 import TryCatch, { ErrorHandler } from "../../utils/trycatch.js";
 
 
-
+// STUDENT ALL PLACEMENTS RECORDS
 export const myPlacements = TryCatch(async (req, resp, next) => {
     const user = await User.findOne({
         where: { id: req.user.id, status: true, is_active: true }, attributes: ['id', 'name', 'email'],
@@ -58,6 +58,7 @@ export const myPlacements = TryCatch(async (req, resp, next) => {
 });
 
 
+// STUDENT PLACEMENT SINGLE RECORD
 export const myPlaceById = TryCatch(async (req, resp, next) => {
     const user = await User.findOne({
         where: { id: req.user.id, status: true, is_active: true, }, attributes: ['id', 'name', 'email'],

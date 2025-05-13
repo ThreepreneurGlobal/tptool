@@ -6,6 +6,7 @@ import Student from '../../../models/student.js';
 
 // UserSkill.sync({ alter: true, force: true });
 
+// CREATE STUDENT SKILL RECORD
 export const addSkill = TryCatch(async (req, resp, next) => {
     const { skill_id, rating, description } = req.body;
     const student = await Student.findOne({ where: { user_id: req.user.id, status: true } });
@@ -23,6 +24,7 @@ export const addSkill = TryCatch(async (req, resp, next) => {
 });
 
 
+// UPDATE STUDENT SKILL RECORD
 export const editSkill = TryCatch(async (req, resp, next) => {
     const { skill_id, rating, description } = req.body;
     const student = await Student.findOne({ where: { user_id: req.user.id, status: true } });
@@ -36,6 +38,7 @@ export const editSkill = TryCatch(async (req, resp, next) => {
 });
 
 
+// DELETE STUDENT SKILL RECORD
 export const deleteSkill = TryCatch(async (req, resp, next) => {
     const student = await Student.findOne({ where: { user_id: req.user.id, status: true } });
     if (!student) {

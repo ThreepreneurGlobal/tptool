@@ -7,6 +7,7 @@ import {
 import TryCatch from '../utils/trycatch.js';
 
 
+// ALL COURSES AND BRANCHES RECORDS IN COLLEGE
 export const getCoursesBranches = TryCatch(async (req, resp, next) => {
     const courses = await Student.findAll({
         attributes: [[Student.sequelize.fn('DISTINCT', Student.sequelize.col('course')), 'course']], raw: true, where: { status: true, is_active: true }
@@ -25,7 +26,7 @@ export const getCoursesBranches = TryCatch(async (req, resp, next) => {
 });
 
 
-
+// OPTIONS FOR STUDENT CREATE
 export const getCollegeOpts = TryCatch(async (req, resp, next) => {
     const courses = await getCollegeCoursesOpts();
     const branches = await getCollegeBranchesOpts();

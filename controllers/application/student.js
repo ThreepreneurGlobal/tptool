@@ -6,7 +6,7 @@ import Placement from '../../models/placement.js';
 import TryCatch, { ErrorHandler } from '../../utils/trycatch.js';
 
 
-
+// CREATE APPLICATION
 export const createApplication = TryCatch(async (req, resp, next) => {
     const { placement_id, position_id, company_id } = req.body;
     const exists = await Application.findOne({
@@ -21,6 +21,7 @@ export const createApplication = TryCatch(async (req, resp, next) => {
 });
 
 
+// MY APPLICATIONS RECORD
 export const myApplications = TryCatch(async (req, resp, next) => {
     const applications = await Application.findAll({
         where: { status: true, user_id: req.user.id }, order: [['created_at', 'DESC']],
@@ -35,6 +36,8 @@ export const myApplications = TryCatch(async (req, resp, next) => {
     resp.status(200).json({ success: true, applications });
 });
 
+
+// MY APPLICATION RECORD
 export const myAppById = TryCatch(async (req, resp, next) => {
     const application = await Application.findOne({
         where: { status: true, id: req.params.id, user_id: req.user.id }, order: [['created_at', 'DESC']],
@@ -45,7 +48,7 @@ export const myAppById = TryCatch(async (req, resp, next) => {
             { model: Company, foreignKey: 'company_id', as: 'company', attributes: ['id', 'title', 'web'], },
         ]
     });
-    
+
     if (!application) {
         return next(new ErrorHandler('APPLICATION NOT FOUND!', 404));
     };

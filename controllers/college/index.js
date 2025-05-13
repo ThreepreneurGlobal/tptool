@@ -5,7 +5,7 @@ import SuperUser from '../../models/super/user.js';
 import TryCatch, { ErrorHandler } from '../../utils/trycatch.js';
 
 
-
+// MY COLLEGE
 export const myCollege = TryCatch(async (req, resp, next) => {
     const super_user = await SuperUser.findOne({
         where: { email: req.user.email, status: true, is_active: true },
@@ -25,6 +25,7 @@ export const myCollege = TryCatch(async (req, resp, next) => {
 
 
 
+// UPDATE COLLEGE
 export const editMyCollege = TryCatch(async (req, resp, next) => {
     const {
         name, contact, web, description, address, city, state, country, pin_code, establish_yr, principal_name,

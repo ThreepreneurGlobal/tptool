@@ -6,6 +6,7 @@ import User from '../../models/user.js';
 import TryCatch, { ErrorHandler } from '../../utils/trycatch.js';
 
 
+// GENERATE STUDENT UPLOADER EXCEL FILE TEMPLATE
 export const generateTemplate = TryCatch(async (req, resp, next) => {
     const workbook = XLSX.utils.book_new();
     const worksheet = XLSX.utils.aoa_to_sheet([[
@@ -29,6 +30,7 @@ export const generateTemplate = TryCatch(async (req, resp, next) => {
 });
 
 
+// EXPORT ALL STUDENT RECORDS IN EXCEL FILE
 export const exportStudent = TryCatch(async (req, resp, next) => {
     const { ids } = req.body;
 

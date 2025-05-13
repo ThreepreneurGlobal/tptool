@@ -11,7 +11,7 @@ const router = express.Router();
 router.get('/options', getCollegeOpts)
 
 
-// Auth Routes
+// AUTH ROUTES
 router.use(isAuthenticatedUser);
 
 router.get('/myorg', isAutherizeRole('admin'), myCollege);

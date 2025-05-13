@@ -10,6 +10,7 @@ import { getSkillsOpts } from '../../utils/opt/skill.js';
 import TryCatch, { ErrorHandler } from '../../utils/trycatch.js';
 
 
+// CREATE COMPANY IN MY COLLEGE
 export const createCompany = TryCatch(async (req, resp, next) => {
     const {
         title, description, reg_no, phone, phone_alt, email, email_alt, type, team_size,
@@ -42,6 +43,7 @@ export const createCompany = TryCatch(async (req, resp, next) => {
 });
 
 
+// ALL COMPANIES RECORDS
 export const getCompanies = TryCatch(async (req, resp, next) => {
     const { type, work_type, work_domain } = req.query;
     const where = { status: true };
@@ -68,6 +70,7 @@ export const getCompanies = TryCatch(async (req, resp, next) => {
 });
 
 
+// SINGLE COMPANY RECORD
 export const getCompanyById = TryCatch(async (req, resp, next) => {
     const company = await Company.findOne({
         where: { id: req.params.id, status: true },
@@ -86,6 +89,7 @@ export const getCompanyById = TryCatch(async (req, resp, next) => {
 });
 
 
+// UPDATE SINGLE RECORD
 export const editCompany = TryCatch(async (req, resp, next) => {
     const {
         title, description, reg_no, phone, phone_alt, email, email_alt, type, team_size,
@@ -136,6 +140,7 @@ export const editCompany = TryCatch(async (req, resp, next) => {
 });
 
 
+// FILTER OPTIONS FOR CREATE COMPANY
 export const createCompanyOpts = TryCatch(async (req, resp, next) => {
     const [types, works, domains, skills] = await Promise.all([
         getCompanyTypeOpts(), getCompanyWorkOpts(), getCompanyDomainOpts(), getSkillsOpts()
@@ -146,6 +151,7 @@ export const createCompanyOpts = TryCatch(async (req, resp, next) => {
 });
 
 
+// FILTER OPTIONS FOR FIND COMPANY
 export const filterCompanyOpts = TryCatch(async (req, resp, next) => {
     const [types, work_types, domains] = await Promise.all([
         getCompanyTypeOpts(), getCompanyWorkOpts(), getCompanyDomainOpts()

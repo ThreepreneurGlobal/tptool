@@ -52,7 +52,15 @@ const User = Connect.define("users", {
     instagram: { type: DataTypes.TEXT },
     linkedin: { type: DataTypes.TEXT },
     whatsapp: { type: DataTypes.TEXT },
-    auth_token: { type: DataTypes.STRING },
+    auth_tokens: {
+        type: DataTypes.TEXT,
+        get: function () {
+            return JSON.parse(this.getDataValue('auth_tokens'));
+        },
+        set: function (value) {
+            return this.setDataValue('auth_tokens', JSON.stringify(value));
+        },
+    },
     is_active: {
         type: DataTypes.BOOLEAN,
         defaultValue: true

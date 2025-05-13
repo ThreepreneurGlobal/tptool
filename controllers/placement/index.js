@@ -12,7 +12,7 @@ import { getSkillsOpts } from '../../utils/opt/skill.js';
 import TryCatch, { ErrorHandler } from '../../utils/trycatch.js';
 
 
-
+// ALL PLACEMENTS RECORDS
 export const getPlacements = TryCatch(async (req, resp, next) => {
     const { company_id, place_status } = req.query;
     const where = { status: true };
@@ -39,6 +39,7 @@ export const getPlacements = TryCatch(async (req, resp, next) => {
 });
 
 
+// SINGLE PLACEMENT RECORD
 export const getPlacementById = TryCatch(async (req, resp, next) => {
     const placement = await Placement.findOne({
         where: { status: true, id: req.params.id },
@@ -66,6 +67,7 @@ export const getPlacementById = TryCatch(async (req, resp, next) => {
 });
 
 
+// CREATE PLACEMENT RECORD
 export const createPlacement = TryCatch(async (req, resp, next) => {
     const {
         title, type, place_status, status_details, selection_details, criteria, other_details,
@@ -107,6 +109,7 @@ export const createPlacement = TryCatch(async (req, resp, next) => {
 });
 
 
+// UPDATE PLACEMENT RECORD
 export const editPlacement = TryCatch(async (req, resp, next) => {
     const {
         title, type, place_status, status_details, selection_details, criteria, other_details,
@@ -199,6 +202,7 @@ export const editPlacement = TryCatch(async (req, resp, next) => {
 });
 
 
+// OPTIONS FOR CREATE PLACEMENT
 export const getPlaceOptions = TryCatch(async (req, resp, next) => {
     const [statuses, drives, position_types, skills, companies] = await Promise.all([
         getPlaceStatusOpts(), getPlaceDriveOpts(), getPlacePositionOpts(), getSkillsOpts(), getCompanyOpts()
@@ -209,6 +213,7 @@ export const getPlaceOptions = TryCatch(async (req, resp, next) => {
 });
 
 
+// OPTIONS FOR FILTER PLACEMENT
 export const getPlaceFilterOpts = TryCatch(async (req, resp, next) => {
     const [companies, statuses] = await Promise.all([getPlaceCompanyOpts(), getPlaceStatusOpts()]);
 

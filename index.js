@@ -1,4 +1,3 @@
-import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import express from 'express';
@@ -17,7 +16,6 @@ app.use(cors({
         'http://localhost:5173', process.env.CORS_URL01,
     ]
 }));
-app.use(cookieParser());
 
 // Upload Files
 app.use("/upload", express.static("upload"));
