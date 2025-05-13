@@ -1,5 +1,7 @@
 import { ErrorHandler } from "../utils/trycatch.js";
 
+
+// ERROR MIDDLEWARE
 const ErrorMiddleware = (err, req, resp, next) => {
     err.statusCode = err.statusCode || 500;
     err.message = err.message || "INTERNAL SERVER ERROR!";

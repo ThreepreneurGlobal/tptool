@@ -7,6 +7,7 @@ import TryCatch, { ErrorHandler } from '../../../utils/trycatch.js';
 
 // Certificate.sync();
 
+// CREATE STUDENT CERTIFICATE RECORD
 export const addCertificate = TryCatch(async (req, resp, next) => {
     const certificates = req?.files;
 
@@ -33,6 +34,7 @@ export const addCertificate = TryCatch(async (req, resp, next) => {
 });
 
 
+// DELETE STUDENT CERTIFICATE RECORD
 export const deleteCertificate = TryCatch(async (req, resp, next) => {
     const certificate = await Certificate.findOne({
         where: { id: req.body.id, user_id: req.user.id, status: true }

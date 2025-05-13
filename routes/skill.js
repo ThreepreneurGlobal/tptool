@@ -7,7 +7,7 @@ import { isAuthenticatedUser, isAutherizeRole } from '../middlewares/auth.js';
 
 const router = express.Router();
 
-// Auth Routes
+// AUTH ROUTES
 router.use(isAuthenticatedUser);
 
 

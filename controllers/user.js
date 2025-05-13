@@ -3,11 +3,12 @@ import fs from 'fs';
 import { Op } from 'sequelize';
 
 import User from '../models/user.js';
-import sendToken from '../utils/token.js';
+import sendToken, { cleanExpTokens } from '../utils/token.js';
 import TryCatch, { ErrorHandler } from '../utils/trycatch.js';
 import SuperUser from '../models/super/user.js';
 
 
+// SELF CREATE USING ONLY TESTING
 export const createAdmin = TryCatch(async (req, resp, next) => {
     const { name, mobile, email, password, designation, id_prf } = req.body;
 
@@ -26,6 +27,7 @@ export const createAdmin = TryCatch(async (req, resp, next) => {
 });
 
 
+// LOGIN USER
 export const loginUser = TryCatch(async (req, resp, next) => {
     const { email, password } = req.body;
     if (!email || !password) {
@@ -46,16 +48,19 @@ export const loginUser = TryCatch(async (req, resp, next) => {
 });
 
 
+// MY PROFILE RECORD
 export const myProfile = TryCatch(async (req, resp, next) => {
     const user = await User.findOne({
         where: { id: req.user.id, status: true },
         attributes: { exclude: ["password", "auth_tokens", "status", "created_at", "updated_at"] },
     });
 
+    await cleanExpTokens(user?.id);
     resp.status(200).json({ success: true, user });
 });
 
 
+// USER LOGOUT
 export const logoutUser = TryCatch(async (req, resp, next) => {
     const auth_token = req.headers['auth_token'];
     const user = await User.findOne({ where: { id: req.user.id, status: true }, attributes: ['id', 'auth_tokens'] });
@@ -68,6 +73,7 @@ export const logoutUser = TryCatch(async (req, resp, next) => {
 });
 
 
+// UPDATE MY PROFILE
 export const updateProfile = TryCatch(async (req, resp, next) => {
     const { gender, address, city, pin_code, facebook, twitter, instagram, linkedin, whatsapp } = req.body;
     const avatar = req.file?.path;

@@ -14,7 +14,7 @@ import UserSkill from '../../models/user_skill.js';
 import { getCollegeBatchOpts, getCollegeBranchesOpts, getCollegeCoursesOpts, getCollegeEdYearOpts } from '../../utils/opt/college.js';
 import TryCatch, { ErrorHandler } from '../../utils/trycatch.js';
 
-
+// ALL STUDENTS RECORDS
 export const getStudents = TryCatch(async (req, resp, next) => {
     const { course, branch, batch, current_yr, gender } = req.query;
     const whereClause = { status: true, is_active: true };
@@ -57,6 +57,7 @@ export const getStudents = TryCatch(async (req, resp, next) => {
 });
 
 
+// CREATE STUDENT
 export const createStudent = TryCatch(async (req, resp, next) => {
     const {
         name, mobile, email, id_prf, dob, course, branch, batch, current_yr, enroll, ten_yr, gender,
@@ -105,6 +106,7 @@ export const createStudent = TryCatch(async (req, resp, next) => {
 });
 
 
+// SINGLE STUDENT RECORD WITH RELATED ALL FEATURES
 export const studentById = TryCatch(async (req, resp, next) => {
     const user = await User.findOne({
         where: { id: req.params.id, status: true, is_active: true, role: 'user', designation: 'student' },
@@ -179,6 +181,7 @@ export const studentById = TryCatch(async (req, resp, next) => {
 });
 
 
+// UPDATE STUDENT RECORD
 export const editStudent = TryCatch(async (req, resp, next) => {
     const {
         name, mobile, email, id_prf, dob, course, branch, batch, current_yr, enroll, ten_yr, gender,
@@ -207,6 +210,7 @@ export const editStudent = TryCatch(async (req, resp, next) => {
 });
 
 
+// OPTIONS FOR STUDENT FILETER
 export const getFilterOpts = TryCatch(async (req, resp, next) => {
     const [courses, branches, years, batches] = await Promise.all([
         getCollegeCoursesOpts(), getCollegeBranchesOpts(), getCollegeEdYearOpts(), getCollegeBatchOpts()
@@ -217,6 +221,7 @@ export const getFilterOpts = TryCatch(async (req, resp, next) => {
 });
 
 
+// ALL ONBOARD STUDENTS RECORDS
 export const getOnBoardStudents = TryCatch(async (req, resp, next) => {
     const users = await User.findAll({
         where: { status: true, is_active: false, },
@@ -230,6 +235,7 @@ export const getOnBoardStudents = TryCatch(async (req, resp, next) => {
 });
 
 
+// SINGLE ONBOARD STUDENT RECORD
 export const getOnBoardStudentById = TryCatch(async (req, resp, next) => {
     const user = await User.findOne({
         include: [{
@@ -245,6 +251,7 @@ export const getOnBoardStudentById = TryCatch(async (req, resp, next) => {
 });
 
 
+// UPDATE ONBOARD STUDENT
 export const editOnboardStudent = TryCatch(async (req, resp, next) => {
     const { user_id, student_id, status } = req.body;
     const user = await User.findOne({ where: { status: true, is_active: false, id: user_id }, });

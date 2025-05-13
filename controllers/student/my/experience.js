@@ -7,7 +7,7 @@ import User from '../../../models/user.js';
 import TryCatch, { ErrorHandler } from '../../../utils/trycatch.js';
 
 
-
+// CREATE STUDENT EXPERIENCE RECORD
 export const addExperience = TryCatch(async (req, resp, next) => {
     const { description, start_date, end_date, position,
         org_name, location, work_type, category } = req.body;
@@ -32,6 +32,7 @@ export const addExperience = TryCatch(async (req, resp, next) => {
 });
 
 
+// SINGLE STUDENT EXPERIENCE RECORD
 export const experienceById = TryCatch(async (req, resp, next) => {
     const experience = await Experience.findOne({ where: { id: req.params.id, status: true } });
     if (!experience) {
@@ -42,6 +43,7 @@ export const experienceById = TryCatch(async (req, resp, next) => {
 });
 
 
+// UPDATE STUDENT EXPERIENCE RECORD
 export const editExperience = TryCatch(async (req, resp, next) => {
     const { description, start_date, end_date, position,
         org_name, location, work_type, category } = req.body;

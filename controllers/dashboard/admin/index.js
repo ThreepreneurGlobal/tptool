@@ -14,11 +14,13 @@ import { calculatePercentageChange } from './utils.js';
 const adminDash = TryCatch(async (req, resp, next) => {
     const { time_period } = req.query;
 
+    // ALL DATES
     const today = new Date();
     const startOfCurrentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
     const startOfPreviousMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
     const endOfPreviousMonth = new Date(startOfCurrentMonth - 1);
 
+    // ALL DATE RANGE LABELS IN ARRAY
     const last7Days = [];
     const last10Months = [];
     const last12Months = [];
@@ -61,6 +63,7 @@ const adminDash = TryCatch(async (req, resp, next) => {
         last9Hours.push(date.toISOString().split('T')[0] + ' ' + date.getHours() + ':00:00'); // Store date and hour
     };
 
+    // SET TIME PERIOD
     switch (time_period) {
         case 'week':
             date_range = last7Days;
@@ -76,12 +79,14 @@ const adminDash = TryCatch(async (req, resp, next) => {
             break;
     };
 
+    // SET INITIAL VALUES
     const app_received_time = new Array(last9Hours.length).fill(0);
     const col_line_chart = {
         placement: new Array(date_range.length).fill(0), application: new Array(date_range.length).fill(0),
         shortlist: new Array(date_range.length).fill(0), offer: new Array(date_range.length).fill(0),
     };
 
+    // SET ALL PROMISES
     const studentsLenPromise = User.count({ where: { status: true, is_active: true, role: 'user', designation: 'student' } });
     const companiesLenPromise = Company.count({ where: { status: true } });
     const placementsLenPromise = Placement.count({ where: { status: true } });
@@ -127,6 +132,7 @@ const adminDash = TryCatch(async (req, resp, next) => {
         }], attributes: ['id', 'app_status', 'updated_at'], where: { status: true }, order: [['updated_at', 'DESC']], limit: 10,
     });
 
+    // CALL ALL PROMISES
     const [
         studentsLen, companiesLen, placementsLen, applicationsLen, admins, placePositions, latest_place_positions,
         currentStudentCount, previousStudentCount, currentCompanyCount, previousCompanyCount, currentPlacementCount,
@@ -140,6 +146,7 @@ const adminDash = TryCatch(async (req, resp, next) => {
         studentActivityFeedPromise, placementActivityFeedPromise, applicationActivityFeedPromise,
     ]);
 
+    // ARRANGE COLUMN LINE CHART VALUES
     const promises = date_range?.map(async (date, idx) => {
         let startDate, endDate;
 
@@ -177,6 +184,7 @@ const adminDash = TryCatch(async (req, resp, next) => {
     });
     await Promise.all(promises);
 
+    // ARRANGE APPLICATION RECEIVED TIME
     const nineHrsPromise = last9Hours?.map(async (dateHour, idx) => {
         const startDate = new Date(dateHour);
         startDate.setMinutes(0, 0, 0);
@@ -188,6 +196,7 @@ const adminDash = TryCatch(async (req, resp, next) => {
     });
     await Promise.all(nineHrsPromise);
 
+    // ARRANGE CARD DATA
     const studentBadge = calculatePercentageChange(currentStudentCount, previousStudentCount);
     const companyBadge = calculatePercentageChange(currentCompanyCount, previousCompanyCount);
     const placementBadge = calculatePercentageChange(currentPlacementCount, previousPlacementCount);
@@ -226,6 +235,7 @@ const adminDash = TryCatch(async (req, resp, next) => {
     });
     await Promise.all(tenMonthsPromise);
 
+    // SHOW RECENT ADDED JOBS
     const vacancies = placePositions?.map(item => ({
         id: item?.placement?.id, img: item?.placement?.company?.logo, title: item?.title,
         company: item?.placement?.company?.title,
@@ -233,6 +243,7 @@ const adminDash = TryCatch(async (req, resp, next) => {
         vacancy: item?.opening,
     }));
 
+    // SHOW ACTIVITY FEEDS
     const activity_feeds = [
         ...studentActivityFeed?.map(item => ({ grp: 'student', ...item.toJSON() })),
         ...skillActivityFeed?.map(item => ({ grp: 'skill', ...item.toJSON() })),
@@ -242,6 +253,7 @@ const adminDash = TryCatch(async (req, resp, next) => {
     ];
     activity_feeds?.sort((a, b) => new Date(b?.updated_at) - new Date(a?.updated_at)).slice(0, 10);
 
+    // COMBINE ALL VALUES IN OBJECT
     const stats = {
         cards_data, vacancies, admins, col_line_chart, app_received_time, latest_place_positions,
         activity_feeds,

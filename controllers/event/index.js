@@ -13,7 +13,7 @@ import TryCatch, { ErrorHandler } from '../../utils/trycatch.js';
 // EventCompany.sync({ alter: true, force: true });
 // EventApplication.sync({ alter: true, force: true });
 
-
+// ALL EVENTS RECORDS
 export const getEvents = TryCatch(async (req, resp, next) => {
     const { category } = req.query;
 
@@ -32,6 +32,7 @@ export const getEvents = TryCatch(async (req, resp, next) => {
 });
 
 
+// SINGLE EVENT RECORD
 export const getEventById = TryCatch(async (req, resp, next) => {
     const event = await Event.findOne({
         where: { status: true, id: req.params.id }, attributes: { exclude: ['company_id'] },
@@ -49,6 +50,7 @@ export const getEventById = TryCatch(async (req, resp, next) => {
 });
 
 
+// CREATE EVENT
 export const createEvent = TryCatch(async (req, resp, next) => {
     const { title, description, category, start_date, end_date, companies } = req.body;
 
@@ -102,6 +104,7 @@ export const createEvent = TryCatch(async (req, resp, next) => {
 });
 
 
+// UPDATE EVENT
 export const editEvent = TryCatch(async (req, resp, next) => {
     const { title, description, category, start_date, end_date, companies } = req.body;
 
@@ -145,6 +148,7 @@ export const editEvent = TryCatch(async (req, resp, next) => {
 });
 
 
+// ALL EVENT APPLICATIONS
 export const getEventApps = TryCatch(async (req, resp, next) => {
     const { category } = req.query;
     const where = { status: true };
@@ -161,6 +165,7 @@ export const getEventApps = TryCatch(async (req, resp, next) => {
 });
 
 
+// SINGLE EVENT APPLICATIONS
 export const getEventAppById = TryCatch(async (req, resp, next) => {
     const event_app = await EventApplication.findOne({
         include: [{
@@ -177,6 +182,7 @@ export const getEventAppById = TryCatch(async (req, resp, next) => {
 });
 
 
+// OPTIONS FOR CREATE EVENT
 export const getEventOpts = TryCatch(async (req, resp, next) => {
     const [
         positions, courses, branches, company_opts,
@@ -189,6 +195,7 @@ export const getEventOpts = TryCatch(async (req, resp, next) => {
 });
 
 
+// OPTIONS FOR FILTER EVENT
 export const getEventFilterOpts = TryCatch(async (req, resp, next) => {
     const [categories] = await Promise.all([getCategoryOpts()]);
 

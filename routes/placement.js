@@ -8,7 +8,7 @@ import upload from '../utils/upload.js';
 
 const router = express.Router();
 
-// Auth Routes
+// AUTH ROUTES
 router.use(isAuthenticatedUser);
 
 router.get('/student/get', myPlacements);

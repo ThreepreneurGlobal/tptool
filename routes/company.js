@@ -7,7 +7,7 @@ import upload from '../utils/upload.js';
 
 const router = express.Router();
 
-// Auth Routes
+// AUTH ROUTES
 router.use(isAuthenticatedUser);
 
 router.post('/create', isAutherizeRole('admin'), upload.single('logo'), createCompany);

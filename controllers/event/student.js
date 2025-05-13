@@ -8,6 +8,7 @@ import mailTransporter from '../../utils/mail.js';
 import TryCatch, { ErrorHandler } from '../../utils/trycatch.js';
 
 
+// CREATE EVENT APPLICATION
 export const applyEvent = TryCatch(async (req, resp, next) => {
     const { name, email, mobile, college_name, batch, course, branch,
         current_yr, position, event_id, company_id, event_comp_id } = req.body;

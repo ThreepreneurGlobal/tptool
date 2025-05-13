@@ -6,7 +6,7 @@ import User from "../../../models/user.js";
 import TryCatch, { ErrorHandler } from "../../../utils/trycatch.js";
 
 
-
+// CREATE STUDENT PROJECT RECORD
 export const addProject = TryCatch(async (req, resp, next) => {
     const { title, description, url, project_status, rating, git_hub, start_date, end_date } = req.body;
     const prev_img = req?.file?.path;
@@ -31,6 +31,7 @@ export const addProject = TryCatch(async (req, resp, next) => {
 });
 
 
+// UPDATE STUDENT EXPERIENCE RECORD
 export const editProject = TryCatch(async (req, resp, next) => {
     const { title, description, url, project_status, rating, git_hub, start_date, end_date } = req.body;
     const prev_img = req?.files[0]?.path;

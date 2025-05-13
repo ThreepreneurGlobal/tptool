@@ -9,13 +9,13 @@ import upload from '../utils/upload.js';
 const router = express.Router();
 
 
-// Public Routes
+// PUBLIC ROUTES
 router.get('/get/:id', getEventById);
 
 router.post('/app/create', upload.single('resume'), applyEvent);
 
 
-// Auth Routes
+// AUTH ROUTES
 router.use(isAuthenticatedUser);
 
 router.get('/get', getEvents);

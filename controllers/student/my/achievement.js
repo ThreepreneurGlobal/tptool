@@ -7,6 +7,7 @@ import User from '../../../models/user.js';
 import TryCatch, { ErrorHandler } from '../../../utils/trycatch.js';
 
 
+// CREATE STUDENT ACHIEVEMENT RECORD
 export const addAchievement = TryCatch(async (req, resp, next) => {
     const { title, description, date, org_name } = req.body;
     const certificate = req.file?.path;
@@ -27,6 +28,7 @@ export const addAchievement = TryCatch(async (req, resp, next) => {
 });
 
 
+// UPDATE STUDENT ACHIEVEMENT RECORD
 export const editAchievement = TryCatch(async (req, resp, next) => {
     const { title, description, date, org_name } = req.body;
     const certificate = req.file?.path;
@@ -43,13 +45,14 @@ export const editAchievement = TryCatch(async (req, resp, next) => {
         fs.rm(achievement.certificate, () => console.log('OLD FILE DELETED!'));
     };
 
-    await achievement.update({ 
+    await achievement.update({
         title, description, date, org_name, certificate: certificate ? certificate : achievement.certificate,
     });
     resp.status(201).json({ success: true, message: 'ACHIEVEMENT RECORD UPDATED!' });
 });
 
 
+// SINGLE STUDENT ACHIEVEMENT RECORD
 export const getAchievementById = TryCatch(async (req, resp, next) => {
     const achievement = await Achievement.findOne({ where: { status: true, id: req.params.id } });
     if (!achievement) {
@@ -60,6 +63,7 @@ export const getAchievementById = TryCatch(async (req, resp, next) => {
 });
 
 
+// DELETE STUDENT ACHIEVEMENT RECORD
 export const deleteAchievement = TryCatch(async (req, resp, next) => { });
 
 

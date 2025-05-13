@@ -1,5 +1,8 @@
 import express from 'express';
 
+import adminDash from '../controllers/dashboard/admin/index.js';
+import userDash from '../controllers/dashboard/user/index.js';
+import { isAuthenticatedUser, isAutherizeRole } from '../middlewares/auth.js';
 import applicationRouter from './application.js';
 import collegeRouter from './college.js';
 import companyRouter from './company.js';
@@ -25,6 +28,12 @@ router.use('/placement', placementRouter);
 router.use('/application', applicationRouter);
 
 router.use('/event', eventRouter);
+
+
+// DASHBOARD
+router.get('/admin/dashboard', isAuthenticatedUser, isAutherizeRole('admin'), adminDash);
+
+router.get('/student/dashboard', isAuthenticatedUser, userDash);
 
 
 export default router;

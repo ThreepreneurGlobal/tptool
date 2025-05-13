@@ -7,7 +7,7 @@ import { getAppStatusOpts } from '../../utils/opt/application.js';
 import TryCatch, { ErrorHandler } from '../../utils/trycatch.js';
 
 
-
+// ALL APPLICATIONS RECORD
 export const getApplications = TryCatch(async (req, resp, next) => {
     const { app_status } = req.query;
     const where = { status: true };
@@ -28,6 +28,7 @@ export const getApplications = TryCatch(async (req, resp, next) => {
 });
 
 
+// SINGLE APPLICATION RECORD
 export const applicationById = TryCatch(async (req, resp, next) => {
     const application = await Application.findOne({
         where: { status: true, id: req.params.id },
@@ -50,6 +51,7 @@ export const applicationById = TryCatch(async (req, resp, next) => {
 });
 
 
+// UPDATE APPLICATION
 export const editApplication = TryCatch(async (req, resp, next) => {
     const { app_status, app_status_detail } = req.body;
     const application = await Application.findOne({ where: { status: true, id: req.params.id }, });
@@ -73,6 +75,7 @@ export const editApplication = TryCatch(async (req, resp, next) => {
 });
 
 
+// DELETE APPLICATION
 export const deleteApplication = TryCatch(async (req, resp, next) => {
     const application = await Application.findOne({ where: { status: true, id: req.params.id }, });
     if (!application) {
@@ -84,6 +87,7 @@ export const deleteApplication = TryCatch(async (req, resp, next) => {
 });
 
 
+// APPLICATION FILTER OPTIONS
 export const appFilterOpts = TryCatch(async (req, resp, next) => {
     const [statuses] = await Promise.all([getAppStatusOpts()]);
 

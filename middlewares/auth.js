@@ -4,6 +4,7 @@ import User from '../models/user.js';
 import TryCatch, { ErrorHandler } from '../utils/trycatch.js';
 
 
+// AUTHENTICATION
 const isAuthenticatedUser = TryCatch(async (req, resp, next) => {
     const auth_token = req.headers['auth_token'];
     if (!auth_token) {
@@ -30,6 +31,7 @@ const isAuthenticatedUser = TryCatch(async (req, resp, next) => {
 });
 
 
+// AUTHERIZATION FOR SPECIFIC APIS
 const isAutherizeRole = (...roles) => {
     return (req, resp, next) => {
         if (!roles.includes(req.user.role)) {
