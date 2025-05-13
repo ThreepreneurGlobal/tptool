@@ -1,14 +1,14 @@
 import bcryptjs from 'bcryptjs';
 import crypto from 'crypto';
-import { Op, Sequelize, DataTypes } from "sequelize";
+import { DataTypes, Op, Sequelize } from "sequelize";
 
 import College from "../../models/college.js";
 import Credential from "../../models/credential.js";
+import SecondUser from '../../models/second/user.js';
 import User from "../../models/user.js";
+import { decryptData, getIPAddress } from '../../utils/hashing.js';
 import mailTransporter from "../../utils/mail.js";
 import TryCatch, { ErrorHandler } from "../../utils/trycatch.js";
-import SecondUser from '../../models/second/user.js';
-import { decryptData } from '../../utils/hashing.js';
 
 
 
@@ -40,9 +40,14 @@ export const createAdmin = TryCatch(async (req, resp, next) => {
     const db_user = decryptData(credential?.db_user);
     const db_pass = decryptData(credential?.db_pass);
     const db_host = decryptData(credential?.db_host);
+    
+    const db_ip_add = await getIPAddress(db_host);
+    if (!db_ip_add) {
+        return next(new ErrorHandler('INVALID DB HOSTING!', 400));
+    };
 
     const collegeDb = new Sequelize(db_name, db_user, db_pass, {
-        host: db_host,
+        host: db_ip_add,
         // port: credential?.db_port,
         dialect: 'mysql',
     });

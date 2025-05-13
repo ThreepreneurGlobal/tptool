@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import dns from 'dns/promises';
 
 
 const algorithm = 'aes-256-cbc';
@@ -19,4 +20,30 @@ export const decryptData = (input_value) => {
     let decrypted = decipher.update(input_value, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
     return decrypted;
+};
+
+
+// export const getIPAddress = async (web_url = '') => {
+//     let ip_address = '';
+//     dns.lookup(web_url, { family: 4 }, (err, address, family) => {
+//         if (err) {
+//             console.error(err.message);
+//         };
+//         ip_address = address;
+//     });
+//     return ip_address;
+// };
+
+export const getIPAddress = async (domain = '') => {
+    try {
+        // REMOVE HTTPS/HTTP
+        const url = new URL(domain);
+
+        // ADD URL IN THIS METHOD AND RETURN
+        const { address } = await dns.lookup(url.hostname, { family: 4 });
+        return address;
+    } catch (error) {
+        console.error(error.message);
+        return null;
+    }
 };
