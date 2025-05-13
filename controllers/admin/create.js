@@ -40,7 +40,7 @@ export const createAdmin = TryCatch(async (req, resp, next) => {
     const db_user = decryptData(credential?.db_user);
     const db_pass = decryptData(credential?.db_pass);
     const db_host = decryptData(credential?.db_host);
-    
+
     const db_ip_add = await getIPAddress(db_host);
     if (!db_ip_add) {
         return next(new ErrorHandler('INVALID DB HOSTING!', 400));
@@ -200,8 +200,13 @@ export const createPassword = TryCatch(async (req, resp, next) => {
     const db_pass = decryptData(credential?.db_pass);
     const db_host = decryptData(credential?.db_host);
 
+    const db_ip_add = await getIPAddress(db_host);
+    if (!db_ip_add) {
+        return next(new ErrorHandler('INVALID DB HOSTING!', 400));
+    };
+
     const collegeDb = new Sequelize(db_name, db_user, db_pass, {
-        host: db_host,
+        host: db_ip_add,
         // port: credential?.db_port,
         dialect: 'mysql',
     });
