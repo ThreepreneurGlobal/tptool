@@ -1,6 +1,7 @@
 import fs from 'fs';
 
 import College from '../../models/college.js';
+import Credential from '../../models/credential.js';
 import User from '../../models/user.js';
 import TryCatch, { ErrorHandler } from '../../utils/trycatch.js';
 
@@ -31,7 +32,8 @@ export const getAdminById = TryCatch(async (req, resp, next) => {
         attributes: { exclude: ['password', 'college_id', 'status'] },
         include: [{
             model: College, foreignKey: 'college_id', as: 'college', required: true,
-            attributes: ['id', 'name', 'reg_no', 'contact', 'email', 'web', 'logo', 'type', 'university', 'city', 'state']
+            include: [{ model: Credential, as: 'credential', attributes: ['id', 'front_host_url', 'back_host_url'] }],
+            attributes: ['id', 'name', 'reg_no', 'contact', 'email', 'web', 'logo', 'type', 'university', 'city', 'state'],
         }],
     });
     if (!user) {

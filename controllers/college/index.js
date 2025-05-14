@@ -2,6 +2,7 @@ import crypto from 'crypto';
 import { Op } from 'sequelize';
 
 import College from '../../models/college.js';
+import Credential from '../../models/credential.js';
 import User from '../../models/user.js';
 import { getCollegeOpts, getUniversityOpts } from '../../utils/options/college.js';
 import TryCatch, { ErrorHandler } from '../../utils/trycatch.js';
@@ -41,7 +42,10 @@ export const getColleges = TryCatch(async (req, resp, next) => {
 
 
 export const getCollegeById = TryCatch(async (req, resp, next) => {
-    const college = await College.findOne({ where: { id: req.params.id, status: true } });
+    const college = await College.findOne({
+        where: { id: req.params.id, status: true },
+        include: [{ model: Credential, as: 'credential', attributes: ['id', 'front_host_url', 'back_host_url'] }]
+    });
     if (!college) {
         return next(new ErrorHandler('COLLEGE NOT FOUND!', 404));
     };

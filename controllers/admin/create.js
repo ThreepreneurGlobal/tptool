@@ -79,58 +79,41 @@ export const createAdmin = TryCatch(async (req, resp, next) => {
     const options = {
         from: process.env.MAIL_USER,
         to: email,
-        subject: 'Your One-Time Password (OTP) for Verification',
+        subject: 'Your TPConnect One Time Password (OTP) for Verification',
         html: `
-        <html lang="en">
+            <!DOCTYPE html>
+            <html lang="en">
             <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>OTP Verification</title>
-                <style>
-                    body {
-                        font-family: Arial, sans-serif;
-                        background-color: #f4f4f4;
-                        margin: 0;
-                        padding: 0;
-                    }
-                    .container {
-                        width: 100vw;
-                        margin: 0 auto;
-                        background-color: #ffffff;
-                        padding: 20px;
-                        border-radius: 8px;
-                        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-                    }
-                    .otp {
-                        font-size: 24px;
-                        font-weight: bold;
-                        color: #007bff;
-                        margin: 20px 0;
-                        text-align: center;
-                    }
-                    .footer {
-                        text-align: center;
-                        font-size: 12px;
-                        color: #777;
-                        margin-top: 20px;
-                    }
-                </style>
+                <title>OTP FOR TPConnect</title>
             </head>
-            <body>
-                <div class="container">
-                    <div class="content">
-                        <p>Dear ${user?.name},</p>
-                        <p>Thank you for using our service. Your One-Time Password (OTP) for verification is:</p>
-                        <div class="otp">${otp}</div>
-                        <p>Please enter this OTP in the application to complete your verification process. This OTP is valid for 5 minutes.</p>
-                        <p>If you did not request this OTP, please ignore this email.</p>
-                    </div>
-                    <div class="footer">
-                        <p>&copy; 2025 TPConnect. All rights reserved.</p>
-                    </div>
-                </div>
+            <body style="font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0;">
+                <table align="center" width="100%" cellpadding="0" cellspacing="0"
+                    style="max-width: 600px; background-color: #ffffff; border: 1px solid #e0e0e0; margin-top: 50px;border-radius: 1vmax;">
+                    <tr>
+                        <td style="padding: 20px; text-align: center; background-color: #2c89e6; color: #ffffff;">
+                            <h2>Verify Your Email</h2>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 30px; text-align: center;">
+                            <p style="font-size: 16px; color: #333;">Hello, ${user?.name}</p>
+                            <p style="font-size: 16px; color: #333;">Your One-Time Password (OTP) for verification is:</p>
+                            <h1 style="background-color: #f0f0f0; display: inline-block; padding: 10px 20px; border-radius: 5px; color: #2c3e50; letter-spacing: 4px;">
+                                ${otp}
+                            </h1>
+                            <p style="font-size: 14px; color: #999; margin-top: 20px;">This OTP is valid for 05 minutes. Do not share it with anyone.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 20px; text-align: center; font-size: 12px; color: #aaa;">
+                            &copy;${new Date().getFullYear()} TPConnect. All rights reserved.
+                        </td>
+                    </tr>
+                </table>
             </body>
-        </html>
+            </html>
         `,
     };
 
@@ -233,20 +216,59 @@ export const createPassword = TryCatch(async (req, resp, next) => {
         to: user?.email,
         subject: 'Your TPConnect Account is Ready!',
         html: `
-            <p>Dear <strong>${user?.name}</strong>,</p>
-            <p>Your account has been successfully created. Below are your login details:</p>
-            <p><strong>Email:</strong> ${user?.email} <br>
-            <strong>Password:</strong> ${new_pass}</p>
-            <p>You can access your account by clicking the button below:</p>
-            <p style="text-align: center;">
-                <a href="${credential?.front_host_url}/login" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Login to Your Account</a>
-            </p>
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8" />
+                <title>TPConnect Account</title>
+            </head>
+            <body style="font-family: Arial, sans-serif; background-color: #f6f6f6; margin: 0; padding: 0;">
+                <table align="center" cellpadding="0" cellspacing="0" width="100%"
+                    style="max-width: 600px; background-color: #ffffff; margin-top: 40px; border: 1px solid #ddd;">
+                    <tr>
+                        <td style="background-color: #4390dc; color: #ffffff; padding: 20px; text-align: center;">
+                            <h2>Welcome to TPConnect</h2>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 30px;">
+                            <p style="font-size: 16px; color: #333;">Hi ${user?.name?.toUpperCase()},</p>
+                            <p style="font-size: 16px; color: #333;">
+                                Your account has been created successfully. Below are your login credentials:
+                            </p>
 
-            <p>If you did not request this account, please contact our support team immediately.</p>
-            <p>
-                Best Regards, <br>
-                <strong>TPConnect</strong>
-            </p>
+                            <table style="margin: 20px 0; padding: 10px; background-color: #f9f9f9; border-radius: 5px;"
+                                width="100%">
+                                <tr>
+                                    <td style="padding: 10px; font-weight: bold;">Email:</td>
+                                    <td style="padding: 10px;">${user?.email}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 10px; font-weight: bold;">Password:</td>
+                                    <td style="padding: 10px;">${new_pass}</td>
+                                </tr>
+                            </table>
+
+                            <div style="text-align: center; margin: 30px 0;">
+                                <a href="${credential?.front_host_url}/login" target="_blank"
+                                    style="background-color: #3498db; color: #fff; text-decoration: none; padding: 12px 25px; border-radius: 5px; font-size: 16px; display: inline-block;">
+                                    Login
+                                </a>
+                            </div>
+
+                            <p style="font-size: 14px; color: #666;">If you have any questions, feel free to contact our support team.</p>
+
+                            <p style="font-size: 16px; color: #333;">Regards,<br>TPConnect Team</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: center; font-size: 12px; color: #999; padding: 20px; background-color: #f0f0f0;">
+                            &copy; ${new Date().getFullYear()} TPConnect. All rights reserved.
+                        </td>
+                    </tr>
+                </table>
+            </body>
+            </html>
         `,
     };
     await mailTransporter.sendMail(options, (error, info) => {

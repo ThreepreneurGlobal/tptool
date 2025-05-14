@@ -91,4 +91,4 @@ export const editCredential = TryCatch(async (req, resp, next) => {
 
 // CREDENTIAL - COLLEGE RELATION
 Credential.belongsTo(College, { foreignKey: 'college_id', as: 'college' });
-College.hasOne(Credential, { foreignKey: 'college_id', as: 'college' });
+College.hasOne(Credential, { foreignKey: 'college_id', as: 'credential' });
