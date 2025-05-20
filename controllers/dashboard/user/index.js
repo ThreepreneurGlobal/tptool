@@ -29,30 +29,51 @@ const userDash = TryCatch(async (req, resp, next) => {
         include: [
             {
                 model: Student, foreignKey: 'user_id', as: 'student', where: { status: true },
-                include: [{
-                    model: Skill, as: 'skills', required: false, attributes: ['id', 'title'],
-                    through: { model: UserSkill, attributes: ['id', 'rating'] }
-                }]
+                // include: [{
+                //     model: Skill, as: 'skills', required: false, attributes: ['id', 'title'],
+                //     through: { model: UserSkill, attributes: ['id', 'rating'] }
+                // }]
             },
         ]
     });
-    const userSkillIds = user?.student?.skills?.map(item => item?.id);
+
+    const user_skill_data = await UserSkill.findAll({ where: { student_id: user?.student?.id, status: true }, attributes: ['id', 'rating', 'skill_id'] });
+    const userSkillIds = await user_skill_data.map(item => item?.skill_id);
+
+    // const userSkillIds = user?.student?.skills?.map(item => item?.id);
 
     // FIND MY ALL PLACEMENTS PROMISE
-    const rawPlacements = await Placement.findAll({
+    let rawPlacements = await Placement.findAll({
         where: { status: true, },
-        attributes: ['id', 'title', 'type', 'place_status', 'reg_start_date', 'reg_end_date', 'rereg_end_date'], order: [['created_at', 'DESC']],
+        attributes: ['id', 'title', 'type', 'place_status', 'reg_start_date', 'reg_end_date', 'rereg_end_date', 'company_id'], order: [['created_at', 'DESC']],
         include: [
             {
                 model: PlacePosition, foreignKey: 'placement_id', as: 'positions', attributes: ['id', 'title', 'opening'],
-                include: [{
-                    model: Skill, as: 'skills', where: { id: { [Op.in]: userSkillIds }, status: true }, required: true,
-                    through: { model: PositionSkill, attributes: [] }, attributes: ['id', 'title'],
-                }]
+                // include: [{
+                //     model: Skill, as: 'skills', where: { id: { [Op.in]: userSkillIds }, status: true }, required: true,
+                //     through: { model: PositionSkill, attributes: [] }, attributes: ['id', 'title'],
+                // }]
             },
-            { model: Company, foreignKey: 'company_id', as: 'company', attributes: ['id', 'title', 'web'] }
+            // { model: Company, foreignKey: 'company_id', as: 'company', attributes: ['id', 'title', 'web'] }
         ]
     });
+
+    rawPlacements = await Promise.all(rawPlacements?.map(async (placement) => {
+        Promise.all(placement?.positions?.map(async (position) => {
+            const position_skills = await PositionSkill.findAll({ where: { position_id: position?.id }, attributes: ['id', 'skill_id'] });
+            const skills = await Promise.all(position_skills?.map(async (item) => {
+                const skill_promise = await fetch(process.env.SUPER_SERVER + '/v1/master/skill/get/' + item?.skill_id);
+                const { skill } = await skill_promise.json();
+                return { id: skill?.id, title: skill?.title, category: skill?.category };
+            }));
+
+            return { ...position.toJSON(), skills };
+        }));
+
+        const promise = await fetch(process.env.SUPER_SERVER + '/v1/master/company/get/' + placement?.company_id);
+        const { company: { id, title, web } } = await promise.json();
+        return { ...placement.toJSON(), company: { id, title, web } };
+    }));
 
     // Filter placements to remove positions that have no matching skills
     const placements = modifiedPlacements(rawPlacements, userSkillIds);

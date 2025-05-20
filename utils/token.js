@@ -17,7 +17,7 @@ const sendToken = async (user, statusCode, resp) => {
     resp
         .status(statusCode)
         .json({
-            success: true, auth_token,
+            success: true, auth_token, role: user?.role,
             message: `HELLO ${user?.name?.toUpperCase()}...`
         });
 };

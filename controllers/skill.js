@@ -103,17 +103,17 @@ export const skillFilterOpts = TryCatch(async (req, resp, next) => {
 
 
 // Company-Skill Relation
-Company.belongsToMany(Skill, { through: CompanySkill, as: 'skills', foreignKey: 'company_id', otherKey: 'skill_id' });
-Skill.belongsToMany(Company, { through: CompanySkill, as: 'companies', foreignKey: 'skill_id', otherKey: 'company_id' });
+// Company.belongsToMany(Skill, { through: CompanySkill, as: 'skills', foreignKey: 'company_id', otherKey: 'skill_id' });
+// Skill.belongsToMany(Company, { through: CompanySkill, as: 'companies', foreignKey: 'skill_id', otherKey: 'company_id' });
 
 // Position-Skill Relation
-PlacePosition.belongsToMany(Skill, { through: PositionSkill, as: 'skills', foreignKey: 'position_id', otherKey: 'skill_id' });
-Skill.belongsToMany(PlacePosition, { through: PositionSkill, as: 'positions', foreignKey: 'skill_id', otherKey: 'position_id' });
+// PlacePosition.belongsToMany(Skill, { through: PositionSkill, as: 'skills', foreignKey: 'position_id', otherKey: 'skill_id' });
+// Skill.belongsToMany(PlacePosition, { through: PositionSkill, as: 'positions', foreignKey: 'skill_id', otherKey: 'position_id' });
 
 // User-Skill Relation
 User.belongsToMany(Skill, { through: UserSkill, as: 'skills', foreignKey: 'user_id', otherKey: 'skill_id' });
 Skill.belongsToMany(User, { through: UserSkill, as: 'users', foreignKey: 'skill_id', otherKey: 'user_id' });
 
 // Student-Skill Relation
-Student.belongsToMany(Skill, { through: UserSkill, as: 'skills', foreignKey: 'student_id', otherKey: 'skill_id' });
-Skill.belongsToMany(Student, { through: UserSkill, as: 'students', foreignKey: 'skill_id', otherKey: 'student_id' });
+// Student.belongsToMany(Skill, { through: UserSkill, as: 'skills', foreignKey: 'student_id', otherKey: 'skill_id' });
+// Skill.belongsToMany(Student, { through: UserSkill, as: 'students', foreignKey: 'skill_id', otherKey: 'student_id' });

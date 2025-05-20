@@ -114,10 +114,11 @@ export const studentById = TryCatch(async (req, resp, next) => {
         include: [
             {
                 model: Student, foreignKey: 'user_id', as: 'student', where: { status: true, is_active: true },
-                include: [{
-                    model: Skill, through: { model: UserSkill, attributes: ['id', 'rating'] },
-                    as: 'skills', required: false, attributes: ['id', 'title'], where: { status: true },
-                }], attributes: { exclude: ['user_id', 'status', 'updated_at', 'created_at'] }, required: true,
+                // include: [{
+                //     model: Skill, through: { model: UserSkill, attributes: ['id', 'rating'] },
+                //     as: 'skills', required: false, attributes: ['id', 'title'], where: { status: true },
+                // }],
+                attributes: { exclude: ['user_id', 'status', 'updated_at', 'created_at'] }, required: true,
             },
             {
                 model: Certificate, foreignKey: 'user_id', as: 'certificates', required: false,
@@ -142,6 +143,16 @@ export const studentById = TryCatch(async (req, resp, next) => {
     if (!user) {
         return next(new ErrorHandler('STUDENT NOT FOUND!', 404));
     };
+
+    const user_skill_data = await UserSkill.findAll({ where: { student_id: user?.student?.id, status: true }, attributes: ['id', 'rating', 'skill_id'] });
+    const user_skill_ids = await user_skill_data.map(item => item?.skill_id);
+
+    const skills = await Promise.all(user_skill_ids?.map(async (item) => {
+        const skill_promise = await fetch(process.env.SUPER_SERVER + '/v1/master/skill/get/' + item);
+        const { skill } = await skill_promise.json();
+        const rate = user_skill_data?.filter(data => data.skill_id === item)[0];
+        return { id: skill?.id, title: skill?.title, category: skill?.category, rating: rate?.rating };
+    }));
 
     const applications = await Application.findAll({
         where: { user_id: user.id, status: true }, attributes: ['id', 'app_status', 'position_id']
@@ -177,7 +188,8 @@ export const studentById = TryCatch(async (req, resp, next) => {
             data: Object.values(internshipStatusCounts),
         },
     };
-    resp.status(200).json({ success: true, user: { ...user.toJSON(), statistics } });
+    const modified_user = { ...user.toJSON(), student: { ...user?.student?.toJSON(), skills } };
+    resp.status(200).json({ success: true, user: modified_user, statistics });
 });
 
 

@@ -6,9 +6,7 @@ import Placement from '../../models/placement.js';
 import PositionSkill from '../../models/position_skill.js';
 import Skill from '../../models/skill.js';
 import User from '../../models/user.js';
-import { getCompanyOpts } from '../../utils/opt/company.js';
-import { getPlaceCompanyOpts, getPlaceDriveOpts, getPlacePositionOpts, getPlaceStatusOpts } from '../../utils/opt/place.js';
-import { getSkillsOpts } from '../../utils/opt/skill.js';
+import { getPlaceCompanyOpts, getPlacePositionOpts, getPlaceStatusOpts } from '../../utils/opt/place.js';
 import TryCatch, { ErrorHandler } from '../../utils/trycatch.js';
 
 
@@ -25,17 +23,35 @@ export const getPlacements = TryCatch(async (req, resp, next) => {
             {
                 model: PlacePosition, foreignKey: 'placement_id', as: 'positions', attributes: ['id', 'title', 'opening'],
                 include: [
-                    {
-                        model: Skill, as: 'skills', required: false, attributes: ['id', 'title'],
-                        through: { model: PositionSkill, attributes: [] }
-                    },
+                    // {
+                    //     model: Skill, as: 'skills', required: false, attributes: ['id', 'title'],
+                    //     through: { model: PositionSkill, attributes: [] }
+                    // },
                 ]
             },
-            { model: Company, foreignKey: 'company_id', as: 'company', attributes: ['id', 'title'] }
+            // { model: Company, foreignKey: 'company_id', as: 'company', attributes: ['id', 'title'] }
         ]
     });
 
-    resp.status(200).json({ success: true, placements });
+    const modified = await Promise.all(placements.map(async (item) => {
+        const promise = await fetch(process.env.SUPER_SERVER + '/v1/master/company/get/' + item?.company_id);
+        const { company } = await promise.json();
+
+        const positions = await Promise.all(item?.positions?.map(async (position) => {
+            const position_skills = await PositionSkill.findAll({ where: { position_id: position?.id }, attributes: ['id', 'skill_id'] });
+            const skills = await Promise.all(position_skills?.map(async (item) => {
+                const skill_promise = await fetch(process.env.SUPER_SERVER + '/v1/master/skill/get/' + item?.skill_id);
+                const { skill } = await skill_promise.json();
+                return { id: skill?.id, title: skill?.title, category: skill?.category };
+            }));
+
+            return { ...position.toJSON(), skills };
+        }));
+
+        return { ...item.toJSON(), positions, company: { id: company?.id, title: company?.title } };
+    }));
+
+    resp.status(200).json({ success: true, placements: modified });
 });
 
 
@@ -45,16 +61,16 @@ export const getPlacementById = TryCatch(async (req, resp, next) => {
         where: { status: true, id: req.params.id },
         include: [
             { model: User, foreignKey: 'user_id', as: 'user', attributes: ['id', 'name', 'email'], where: { status: true }, },
+            // {
+            //     model: Company, foreignKey: 'company_id', as: 'company', where: { status: true },
+            //     attributes: ['id', 'title', 'phone', 'email', 'web', 'logo']
+            // },
             {
-                model: Company, foreignKey: 'company_id', as: 'company', where: { status: true },
-                attributes: ['id', 'title', 'phone', 'email', 'web', 'logo']
-            },
-            {
-                model: PlacePosition, foreignKey: 'placement_id', as: 'positions', attributes: ['id', 'title', 'type', 'opening'],
-                include: [{
-                    model: Skill, through: { model: PositionSkill, attributes: [], where: { status: true } },
-                    as: 'skills', required: false, attributes: ['id', 'title', 'category'],
-                }], where: { status: true },
+                model: PlacePosition, foreignKey: 'placement_id', as: 'positions', where: { status: true }, attributes: ['id', 'title', 'type', 'opening'],
+                // include: [{
+                //     model: Skill, through: { model: PositionSkill, attributes: ['skill_id'], where: { status: true } },
+                //     as: 'skills', required: false, attributes: ['id', 'title', 'category'],
+                // }],
             },
         ]
     });
@@ -63,7 +79,28 @@ export const getPlacementById = TryCatch(async (req, resp, next) => {
         return next(new ErrorHandler('PLACEMENT NOT FOUND!', 404));
     };
 
-    resp.status(200).json({ success: true, placement });
+    const comp_promise = await fetch(process.env.SUPER_SERVER + '/v1/master/company/get/' + placement?.company_id);
+    const { company } = await comp_promise.json();
+
+    const positions = await Promise.all(placement?.positions?.map(async (position) => {
+        const position_skills = await PositionSkill.findAll({ where: { position_id: position?.id }, attributes: ['id', 'skill_id'] });
+        const skills = await Promise.all(position_skills?.map(async (item) => {
+            const skill_promise = await fetch(process.env.SUPER_SERVER + '/v1/master/skill/get/' + item?.skill_id);
+            const { skill } = await skill_promise.json();
+            return { id: skill?.id, title: skill?.title, category: skill?.category };
+        }));
+
+        return { ...position.toJSON(), skills };
+    }));
+
+    const modified = {
+        ...placement.toJSON(), positions, company: {
+            id: company?.id, title: company?.title, contact: company?.contact,
+            email: company?.email, web: company?.web, logo: company?.logo,
+        },
+    };
+
+    resp.status(200).json({ success: true, placement: modified });
 });
 
 
@@ -204,11 +241,16 @@ export const editPlacement = TryCatch(async (req, resp, next) => {
 
 // OPTIONS FOR CREATE PLACEMENT
 export const getPlaceOptions = TryCatch(async (req, resp, next) => {
-    const [statuses, drives, position_types, skills, companies] = await Promise.all([
-        getPlaceStatusOpts(), getPlaceDriveOpts(), getPlacePositionOpts(), getSkillsOpts(), getCompanyOpts()
+
+    const [skillPromise, companyPromise] = await Promise.all([
+        fetch(process.env.SUPER_SERVER + '/v1/master/skill/opts'),
+        fetch(process.env.SUPER_SERVER + '/v1/master/company/opts'),
+    ]);
+    const [statuses, drives, { skills }, { companies }] = await Promise.all([
+        getPlaceStatusOpts(), getPlacePositionOpts(), skillPromise.json(), companyPromise.json(),
     ]);
 
-    const place_options = { statuses, drives, position_types, skills, companies };
+    const place_options = { statuses, drives, skills, companies, };
     resp.status(200).json({ success: true, place_options });
 });
 

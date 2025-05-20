@@ -13,16 +13,22 @@ export const getApplications = TryCatch(async (req, resp, next) => {
     const where = { status: true };
     if (app_status) { where.app_status = app_status; };
 
-    const applications = await Application.findAll({
+    let applications = await Application.findAll({
         where, order: [['created_at', 'DESC']],
-        attributes: { exclude: ['placement_id', 'position_id', 'user_id', 'company_id', 'status'] },
+        attributes: { exclude: ['placement_id', 'position_id', 'user_id', 'status'] },
         include: [
             { model: PlacePosition, foreignKey: 'position_id', as: 'position', attributes: ['id', 'title', 'type', 'opening'], },
             { model: Placement, foreignKey: 'placement_id', as: 'placement', attributes: ['id', 'title', 'type'], },
             { model: User, foreignKey: 'user_id', as: 'user', attributes: ['id', 'name', 'email', 'avatar'], where: { status: true, is_active: true } },
-            { model: Company, foreignKey: 'company_id', as: 'company', attributes: ['id', 'title'], },
+            // { model: Company, foreignKey: 'company_id', as: 'company', attributes: ['id', 'title'], },
         ]
     });
+
+    applications = await Promise.all(applications.map(async (app) => {
+        const comp_promise = await fetch(process.env.SUPER_SERVER + '/v1/master/company/get/' + app?.company_id);
+        const { company: { id, title, web } } = await comp_promise.json();
+        return { ...app.toJSON(), company: { id, title, web } };
+    }));
 
     resp.status(200).json({ success: true, applications });
 });
@@ -32,7 +38,7 @@ export const getApplications = TryCatch(async (req, resp, next) => {
 export const applicationById = TryCatch(async (req, resp, next) => {
     const application = await Application.findOne({
         where: { status: true, id: req.params.id },
-        attributes: { exclude: ['placement_id', 'position_id', 'user_id', 'company_id'] },
+        attributes: { exclude: ['placement_id', 'position_id', 'user_id'] },
         include: [
             { model: PlacePosition, foreignKey: 'position_id', as: 'position', attributes: ['id', 'title', 'type', 'opening'], },
             {
@@ -40,14 +46,17 @@ export const applicationById = TryCatch(async (req, resp, next) => {
                 attributes: ['id', 'title', 'type', 'place_status', 'selection_details', 'contact_per', 'reg_start_date', 'reg_end_date', 'rereg_end_date'],
             },
             { model: User, foreignKey: 'user_id', as: 'user', attributes: ['id', 'name', 'email', 'avatar'], where: { status: true, is_active: true } },
-            { model: Company, foreignKey: 'company_id', as: 'company', attributes: ['id', 'title'], },
+            // { model: Company, foreignKey: 'company_id', as: 'company', attributes: ['id', 'title'], },
         ],
     });
     if (!application) {
         return next(new ErrorHandler('APPLICATION NOT FOUND!', 404));
     };
 
-    resp.status(200).json({ success: true, application });
+    const comp_promise = await fetch(process.env.SUPER_SERVER + '/v1/master/company/get/' + application?.company_id);
+    const { company: { id, title, web } } = await comp_promise.json();
+
+    resp.status(200).json({ success: true, application: { ...application.toJSON(), company: { id, title, web } } });
 });
 
 
@@ -111,5 +120,5 @@ Application.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 User.hasMany(Application, { foreignKey: 'user_id', as: 'applications' });
 
 // Company-Applications Relation
-Application.belongsTo(Company, { foreignKey: 'company_id', as: 'company' });
-Company.hasMany(Application, { foreignKey: 'company_id', as: 'applications' });
+// Application.belongsTo(Company, { foreignKey: 'company_id', as: 'company' });
+// Company.hasMany(Application, { foreignKey: 'company_id', as: 'applications' });

@@ -28,8 +28,11 @@ export const getCoursesBranches = TryCatch(async (req, resp, next) => {
 
 // OPTIONS FOR STUDENT CREATE
 export const getCollegeOpts = TryCatch(async (req, resp, next) => {
-    const courses = await getCollegeCoursesOpts();
-    const branches = await getCollegeBranchesOpts();
+    const promise = await fetch(process.env.SUPER_SERVER + '/v1/master/course/create-opts');
+    const { opts: { courses, branches } } = await promise.json();
+
+    // const courses = await getCollegeCoursesOpts();
+    // const branches = await getCollegeBranchesOpts();
     const education_years = await getCollegeEdYearOpts();
     const twelve_streams = await getCollegeTwelveStreamOpts();
     const ten_boards = await getCollegeTenBoardOpts();
