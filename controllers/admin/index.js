@@ -4,6 +4,7 @@ import College from '../../models/college.js';
 import Credential from '../../models/credential.js';
 import User from '../../models/user.js';
 import TryCatch, { ErrorHandler } from '../../utils/trycatch.js';
+import { uploadFile } from '../../utils/upload.js';
 
 
 export const getAdmins = TryCatch(async (req, resp, next) => {
@@ -46,22 +47,17 @@ export const getAdminById = TryCatch(async (req, resp, next) => {
 
 export const editAdmin = TryCatch(async (req, resp, next) => {
     const { name, mobile, email, address, city, state, country, pin_code,
-        designation, facebook, twitter, instagram, linkedin } = req.body;
-    const avatar = req.file?.path;
+        designation, facebook, twitter, instagram, linkedin, avatar: avatar_txt } = req.body;
+    const avatar_file = req.file?.path;
 
     const user = await User.findOne({ where: { email, status: true }, attributes: { exclude: ['password'] } });
     if (!user) {
         return next(new ErrorHandler('USER NOT FOUND!', 404));
     };
 
-    if (user?.avatar && avatar) {
-        fs.rm(user?.avatar, () => console.log('OLD AVATAR FILE DELETED!'));
-    };
+    const avatar = await uploadFile(user?.avatar, avatar_file, avatar_txt);
 
-    await user.update({
-        name, mobile, address, city, state, country, pin_code, designation, facebook,
-        twitter, instagram, linkedin, avatar: avatar ? avatar : user?.avatar,
-    });
+    await user.update({ name, mobile, address, city, state, country, pin_code, designation, facebook, twitter, instagram, linkedin, avatar, });
     resp.status(200).json({ success: true, message: 'ADMIN UPDATED!' });
 });
 

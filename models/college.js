@@ -43,6 +43,15 @@ const College = Connect.define('colleges', {
     college_id: {
         type: DataTypes.STRING,
     },
+    college_category: {
+        type: DataTypes.TEXT('tiny'),
+        get: function () {
+            return JSON.parse(this.getDataValue('college_category'));
+        },
+        set: function (values) {
+            return this.setDataValue('college_category', JSON.stringify(values));
+        },
+    },
     university: {
         type: DataTypes.STRING,
     },

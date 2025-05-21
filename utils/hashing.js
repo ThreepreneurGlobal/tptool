@@ -23,25 +23,18 @@ export const decryptData = (input_value) => {
 };
 
 
-// export const getIPAddress = async (web_url = '') => {
-//     let ip_address = '';
-//     dns.lookup(web_url, { family: 4 }, (err, address, family) => {
-//         if (err) {
-//             console.error(err.message);
-//         };
-//         ip_address = address;
-//     });
-//     return ip_address;
-// };
-
 export const getIPAddress = async (domain = '') => {
     try {
-        // REMOVE HTTPS/HTTP
-        const url = new URL(domain);
+        if (domain !== 'localhost') {
+            // REMOVE HTTPS/HTTP
+            const url = new URL(domain);
 
-        // ADD URL IN THIS METHOD AND RETURN
-        const { address } = await dns.lookup(url.hostname, { family: 4 });
-        return address;
+            // ADD URL IN THIS METHOD AND RETURN
+            const { address } = await dns.lookup(url.hostname, { family: 4 });
+            return address;
+        } else {
+            return 'localhost';
+        };
     } catch (error) {
         console.error(error.message);
         return null;

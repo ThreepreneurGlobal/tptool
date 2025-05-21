@@ -5,6 +5,7 @@ import { Op } from 'sequelize';
 import User from '../models/user.js';
 import sendToken from '../utils/token.js';
 import TryCatch, { ErrorHandler } from '../utils/trycatch.js';
+import { uploadFile } from '../utils/upload.js';
 
 
 export const registerUser = TryCatch(async (req, resp, next) => {
@@ -70,21 +71,19 @@ export const logoutUser = TryCatch(async (req, resp, next) => {
 
 export const editMyProfile = TryCatch(async (req, resp, next) => {
     const { name, email, mobile, address, city, state, country, pin_code,
-        designation, facebook, twitter, instagram, linkedin } = req.body;
-    const avatar = req.file?.path;
+        designation, facebook, twitter, instagram, linkedin, avatar: avatar_txt } = req.body;
+    const avatar_file = req.file?.path;
 
     const user = await User.findOne({
         where: { id: req.user.id, status: true },
         attributes: { exclude: ['password', 'created_at', 'updated_at'] }
     });
 
-    if (avatar && user?.avatar) {
-        fs.rm(user?.avatar, () => console.log('OLD AVATAR DELETED!'));
-    };
+    const avatar = await uploadFile(user?.avatar, avatar_file, avatar_txt);
 
     await user.update({
         name, email, mobile, address, city, state, country, pin_code, designation,
-        facebook, twitter, instagram, linkedin, avatar: avatar ? avatar : user?.avatar,
+        facebook, twitter, instagram, linkedin, avatar,
     });
     resp.status(200).json({ success: true, message: 'PROFILE UPDATED SUCCESSFULLY!' });
 });

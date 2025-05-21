@@ -1,11 +1,16 @@
 import { Router } from 'express';
 
-import { activeCollege, createCollege, deactiveCollege, editCollege, getCollegeById, getCollegeOptions, getColleges, getUniversityOptions } from '../controllers/college/index.js';
+import { editMyCollege, myCollege } from '../controllers/college/admin.js';
+import { activeCollege, createCollege, deactiveCollege, getCollegeById, getCollegeOptions, getColleges, getUniversityOptions } from '../controllers/college/index.js';
 import { isAuthenticatedUser, isAutherizeRole } from '../middlewares/auth.js';
+import upload from '../utils/upload.js';
 
 
 
 const router = Router();
+
+// PUBLIC ROUTES
+router.get('/profile', myCollege);
 
 
 // AUTH ROUTES
@@ -29,7 +34,7 @@ router.get('/option/university', isAutherizeRole('super'), getUniversityOptions)
 
 
 // ADMIN
-router.put('/edit/profile', isAutherizeRole('admin'), editCollege);
+router.put('/edit/profile', isAutherizeRole('admin'), upload.single('logo'), editMyCollege);
 
 
 export default router;

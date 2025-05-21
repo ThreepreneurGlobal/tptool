@@ -54,25 +54,25 @@ export const getCollegeById = TryCatch(async (req, resp, next) => {
 });
 
 
-export const editCollege = TryCatch(async (req, resp, next) => {
-    const { admin_email, name, contact, email, type, university, address, city, state,
-        country, pin_code, establish_yr, web, principal_name, principal_contact,
-        principal_email, facebook, twitter, instagram, linkedin, youtube } = req.body;
-    const logo = req.file?.path;
+// export const editCollege = TryCatch(async (req, resp, next) => {
+//     const { admin_email, name, contact, email, type, university, address, city, state,
+//         country, pin_code, establish_yr, web, principal_name, principal_contact,
+//         principal_email, facebook, twitter, instagram, linkedin, youtube } = req.body;
+//     const logo = req.file?.path;
 
-    const user = await User.findOne({ where: { email: admin_email, status: true, role: 'admin' }, attributes: ['id', 'college_id', 'role'] });
-    const college = await College.findOne({ where: { id: user?.college_id, status: true } });
-    if (!college) {
-        return next(new ErrorHandler('COLLEGE NOT FOUND!', 404));
-    };
+//     const user = await User.findOne({ where: { email: admin_email, status: true, role: 'admin' }, attributes: ['id', 'college_id', 'role'] });
+//     const college = await College.findOne({ where: { id: user?.college_id, status: true } });
+//     if (!college) {
+//         return next(new ErrorHandler('COLLEGE NOT FOUND!', 404));
+//     };
 
-    await college.update({
-        name, contact, email, type, university, address, city, state, country, pin_code,
-        establish_yr, web, principal_name, principal_contact, principal_email, facebook,
-        twitter, instagram, linkedin, youtube, logo: logo ? logo : college?.logo,
-    });
-    resp.status(200).json({ success: true, message: 'COLLEGE PROFILE UPDATED SUCCESSFULLY!' });
-});
+//     await college.update({
+//         name, contact, email, type, university, address, city, state, country, pin_code,
+//         establish_yr, web, principal_name, principal_contact, principal_email, facebook,
+//         twitter, instagram, linkedin, youtube, logo: logo ? logo : college?.logo,
+//     });
+//     resp.status(200).json({ success: true, message: 'COLLEGE PROFILE UPDATED SUCCESSFULLY!' });
+// });
 
 
 export const activeCollege = TryCatch(async (req, resp, next) => {
