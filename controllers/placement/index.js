@@ -1,13 +1,14 @@
 import fs from 'fs';
 
-import Company from '../../models/company.js';
+// import Company from '../../models/company.js';
 import PlacePosition from '../../models/place_position.js';
 import Placement from '../../models/placement.js';
 import PositionSkill from '../../models/position_skill.js';
-import Skill from '../../models/skill.js';
+// import Skill from '../../models/skill.js';
 import User from '../../models/user.js';
 import { getPlaceCompanyOpts, getPlacePositionOpts, getPlaceStatusOpts } from '../../utils/opt/place.js';
 import TryCatch, { ErrorHandler } from '../../utils/trycatch.js';
+import { uploadFile } from '../../utils/upload.js';
 
 
 // ALL PLACEMENTS RECORDS
@@ -149,12 +150,12 @@ export const createPlacement = TryCatch(async (req, resp, next) => {
 // UPDATE PLACEMENT RECORD
 export const editPlacement = TryCatch(async (req, resp, next) => {
     const {
-        title, type, place_status, status_details, selection_details, criteria, other_details,
-        contact_per, company_contact, reg_start_date, reg_end_date, rereg_end_date, reg_details,
-        ctc, stipend, add_comment, history, company_id, positions,
+        title, type, place_status, status_details, selection_details, criteria, other_details, contact_per,
+        company_contact, reg_start_date, reg_end_date, rereg_end_date, reg_details, company_id, positions,
+        attach_student: attach_student_txt, attach_tpo: attach_tpo_txt, ctc, stipend, add_comment, history,
     } = req.body;
-    const attach_student = req.files['attach_student'] && req.files['attach_student'][0].path;
-    const attach_tpo = req.files['attach_tpo'] && req.files['attach_tpo'][0].path;
+    const attach_student_file = req.files['attach_student'] && req.files['attach_student'][0].path;
+    const attach_tpo_file = req.files['attach_tpo'] && req.files['attach_tpo'][0].path;
 
     const placement = await Placement.findOne({
         where: { id: req.params.id, status: true, },
@@ -163,18 +164,13 @@ export const editPlacement = TryCatch(async (req, resp, next) => {
         return next(new ErrorHandler('PLACEMENT NOT FOUND!', 404));
     };
 
-    if (placement?.attach_tpo && attach_tpo) {
-        fs.rm(placement?.attach_tpo, () => console.log('ATTACT TPO OLD FILE DELETED!'));
-    };
-    if (placement?.attach_student && attach_student) {
-        fs.rm(placement?.attach_student, () => console.log('ATTACT STUDENT OLD FILE DELETED!'));
-    };
+    const attach_tpo = await uploadFile(placement?.attach_tpo, attach_tpo_file, attach_tpo_txt);
+    const attach_student = await uploadFile(placement?.attach_student, attach_student_file, attach_student_txt);
 
     await placement.update({
         title, type, place_status, status_details, selection_details, criteria, other_details, contact_per,
         company_contact, reg_start_date, reg_end_date, rereg_end_date, reg_details, ctc, stipend, add_comment,
-        history, company_id: Number(company_id), attach_tpo: attach_tpo ? attach_tpo :
-            placement?.attach_tpo, attach_student: attach_student ? attach_student : placement?.attach_student,
+        history, company_id: Number(company_id), attach_tpo, attach_student,
     });
 
     // POSITION

@@ -2,12 +2,12 @@ import { Op } from 'sequelize';
 
 import Application from '../../../models/application.js';
 import Certificate from '../../../models/certificate.js';
-import Company from '../../../models/company.js';
+// import Company from '../../../models/company.js';
 import PlacePosition from '../../../models/place_position.js';
 import Placement from '../../../models/placement.js';
 import PositionSkill from '../../../models/position_skill.js';
 import Project from '../../../models/project.js';
-import Skill from '../../../models/skill.js';
+// import Skill from '../../../models/skill.js';
 import Student from '../../../models/student.js';
 import User from '../../../models/user.js';
 import UserSkill from '../../../models/user_skill.js';
@@ -59,7 +59,7 @@ const userDash = TryCatch(async (req, resp, next) => {
     });
 
     rawPlacements = await Promise.all(rawPlacements?.map(async (placement) => {
-        Promise.all(placement?.positions?.map(async (position) => {
+        const positionsWithSkills = await Promise.all(placement?.positions?.map(async (position) => {
             const position_skills = await PositionSkill.findAll({ where: { position_id: position?.id }, attributes: ['id', 'skill_id'] });
             const skills = await Promise.all(position_skills?.map(async (item) => {
                 const skill_promise = await fetch(process.env.SUPER_SERVER + '/v1/master/skill/get/' + item?.skill_id);
@@ -67,12 +67,15 @@ const userDash = TryCatch(async (req, resp, next) => {
                 return { id: skill?.id, title: skill?.title, category: skill?.category };
             }));
 
-            return { ...position.toJSON(), skills };
-        }));
+            const filterdSkills = skills.filter(skill => skill !== null);
 
+            return { ...position.toJSON(), skills: filterdSkills };
+        }));
+        
         const promise = await fetch(process.env.SUPER_SERVER + '/v1/master/company/get/' + placement?.company_id);
         const { company: { id, title, web } } = await promise.json();
-        return { ...placement.toJSON(), company: { id, title, web } };
+        
+        return { ...placement.toJSON(), positions: positionsWithSkills, company: { id, title, web } };
     }));
 
     // Filter placements to remove positions that have no matching skills
@@ -112,7 +115,7 @@ const userDash = TryCatch(async (req, resp, next) => {
             application: { length: applications?.length, badge: applicationBadge, },
             offer: { length: offers.length, badge: appOfferBadge, },
         },
-        user_card: { project: projectCount, skill: user?.student?.skills?.length, certificate: certificateCount },
+        user_card: { project: projectCount, skill: userSkillIds.length, certificate: certificateCount },
     };
     resp.status(200).json({ success: true, stats });
 });

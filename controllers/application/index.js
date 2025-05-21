@@ -1,5 +1,5 @@
 import Application from '../../models/application.js';
-import Company from '../../models/company.js';
+// import Company from '../../models/company.js';
 import PlacePosition from '../../models/place_position.js';
 import Placement from '../../models/placement.js';
 import User from '../../models/user.js';

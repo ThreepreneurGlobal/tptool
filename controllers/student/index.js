@@ -7,7 +7,7 @@ import Certificate from '../../models/certificate.js';
 import Experience from '../../models/experience.js';
 import PlacePosition from '../../models/place_position.js';
 import Project from '../../models/project.js';
-import Skill from '../../models/skill.js';
+// import Skill from '../../models/skill.js';
 import Student from '../../models/student.js';
 import User from '../../models/user.js';
 import UserSkill from '../../models/user_skill.js';
@@ -177,7 +177,7 @@ export const studentById = TryCatch(async (req, resp, next) => {
 
     const jobStatusCounts = countStatuses(jobApps);
     const internshipStatusCounts = countStatuses(internApps);
-
+    
     const statistics = {
         job: {
             labels: Object.keys(jobStatusCounts),

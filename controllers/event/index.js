@@ -1,4 +1,4 @@
-import Company from '../../models/company.js';
+// import Company from '../../models/company.js';
 import Event from '../../models/event.js';
 import EventApplication from '../../models/event_app.js';
 import EventCompany from '../../models/event_company.js';
@@ -23,15 +23,18 @@ export const getEvents = TryCatch(async (req, resp, next) => {
     let events = await Event.findAll({
         where, attributes: { exclude: ['description', 'user_id', 'status', 'updated_at'] },
         include: [{
-            model: EventCompany, foreignKey: 'event_id', as: 'event_companies', attributes: ['id'], where: { status: true },
+            model: EventCompany, foreignKey: 'event_id', as: 'event_companies', attributes: ['id', 'company_id'], where: { status: true },
             // include: [{ model: Company, foreignKey: 'company_id', as: 'company', attributes: ['id', 'title', 'logo'] }]
         }],
     });
 
     events = await Promise.all(events.map(async (event) => {
-        const comp_promise = await fetch(process.env.SUPER_SERVER + '/v1/master/company/get/' + event?.company_id);
-        const { company: { id, title, logo } } = await comp_promise.json();
-        return { ...event.toJSON(), company: { id, title, logo } };
+        const event_companies = await Promise.all(event?.event_companies?.map(async (event_comp) => {
+            const comp_promise = await fetch(process.env.SUPER_SERVER + '/v1/master/company/get/' + event_comp?.company_id);
+            const { company: { id, title, logo } } = await comp_promise.json();
+            return { ...event_comp.toJSON(), company: { id, title, logo } };
+        }));
+        return { ...event.toJSON(), event_companies };
     }));
 
     resp.status(200).json({ success: true, events });
@@ -43,7 +46,7 @@ export const getEventById = TryCatch(async (req, resp, next) => {
     const event = await Event.findOne({
         where: { status: true, id: req.params.id },
         include: [{
-            model: EventCompany, foreignKey: 'event_id', as: 'event_companies', attributes: { exclude: ['company_id', 'event_id'] }, where: { status: true },
+            model: EventCompany, foreignKey: 'event_id', as: 'event_companies', attributes: { exclude: ['event_id'] }, where: { status: true },
             // include: [{ model: Company, foreignKey: 'company_id', as: 'company', attributes: ['id', 'title', 'logo'] }]
         }],
     });
@@ -52,10 +55,13 @@ export const getEventById = TryCatch(async (req, resp, next) => {
         return next(new ErrorHandler('EVENT NOT FOUND!', 404));
     };
 
-    const comp_promise = await fetch(process.env.SUPER_SERVER + '/v1/master/company/get/' + event?.company_id);
-    const { company: { id, title, logo } } = await comp_promise.json();
+    const event_companies = await Promise.all(event?.event_companies?.map(async (event_comp) => {
+        const comp_promise = await fetch(process.env.SUPER_SERVER + '/v1/master/company/get/' + event_comp?.company_id);
+        const { company: { id, title, logo } } = await comp_promise.json();
+        return { ...event_comp.toJSON(), company: { id, title, logo } };
+    }));
 
-    resp.status(200).json({ success: true, event: { ...event.toJSON(), company: { id, title, logo } } });
+    resp.status(200).json({ success: true, event: { ...event.toJSON(), event_companies } });
 });
 
 
@@ -203,7 +209,7 @@ export const getEventApps = TryCatch(async (req, resp, next) => {
         include: [{
             model: Event, foreignKey: 'event_id', as: 'event', where, attributes: { exclude: ['description', 'user_id', 'status', 'created_at', 'updated_at'] }
         }, {
-            model: EventCompany, foreignKey: 'event_comp_id', attributes: ['id'],
+            model: EventCompany, foreignKey: 'event_comp_id', attributes: ['id', 'company_id'],
             // include: [{ model: Company, foreignKey: 'company_id', as: 'company', attributes: ['id', 'title'] }]
         }], where: { status: true }, attributes: { exclude: ['event_id', 'event_comp_id'] }
     });
@@ -240,10 +246,12 @@ export const getEventAppById = TryCatch(async (req, resp, next) => {
 
 // OPTIONS FOR CREATE EVENT
 export const getEventOpts = TryCatch(async (req, resp, next) => {
+    const comp_promise = await fetch(process.env.SUPER_SERVER + '/v1/master/company/opts');
+
     const [
-        positions, courses, branches, company_opts,
+        positions, courses, branches, { companies: company_opts },
     ] = await Promise.all([
-        getPositionOpts(), getCourseOpts(), getBranchOpts(), getCompanyOpts(),
+        getPositionOpts(), getCourseOpts(), getBranchOpts(), comp_promise.json(),
     ]);
 
     const event_opts = { positions, courses, branches, company_opts };

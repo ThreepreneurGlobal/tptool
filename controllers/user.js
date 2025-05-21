@@ -5,7 +5,8 @@ import { Op } from 'sequelize';
 import User from '../models/user.js';
 import sendToken, { cleanExpTokens } from '../utils/token.js';
 import TryCatch, { ErrorHandler } from '../utils/trycatch.js';
-import SuperUser from '../models/super/user.js';
+import { uploadFile } from '../utils/upload.js';
+// import SuperUser from '../models/super/user.js';
 
 
 // SELF CREATE USING ONLY TESTING
@@ -75,23 +76,30 @@ export const logoutUser = TryCatch(async (req, resp, next) => {
 
 // UPDATE MY PROFILE
 export const updateProfile = TryCatch(async (req, resp, next) => {
-    const { gender, address, city, pin_code, facebook, twitter, instagram, linkedin, whatsapp } = req.body;
-    const avatar = req.file?.path;
+    const { gender, address, city, pin_code, facebook, twitter, instagram, linkedin, whatsapp, avatar: avatar_txt, Authorization } = req.body;
+    const avatar_file = req.file?.path;
 
     const user = await User.findOne({ where: { id: req.user.id, status: true } });
+    const avatar = await uploadFile(user?.avatar, avatar_file, avatar_txt);
 
-    if (avatar && user.avatar) {
-        fs.rm(user.avatar, () => { console.log('OLD FILE REMOVED SUCCESSFULLY...'); });
-    };
-    await user.update({ gender, address, city, pin_code, facebook, twitter, instagram, linkedin, whatsapp, avatar: avatar ? avatar : user.avatar });
+    await user.update({ gender, address, city, pin_code, facebook, twitter, instagram, linkedin, whatsapp, avatar });
 
     if (user?.role === 'admin') {
-        const admin_user = await SuperUser.findOne({ where: { email: user?.email, role: 'admin', status: true } });
+        const request_body = { address, city, pin_code, facebook, twitter, instagram, linkedin, avatar };
+        const admin_user_promise = await fetch(process.env.SUPER_SERVER + '/v1/user/myprofile', {
+            method: 'GET', headers: { Authorization },
+        });
+        const { user: admin_user } = await admin_user_promise.json();
+        
         if (!admin_user) {
             return next(new ErrorHandler('PROFILE NOT FOUND!', 404));
         };
-
-        await admin_user.update({ address, city, pin_code, facebook, twitter, instagram, linkedin, avatar: avatar ? avatar : user?.avatar });
+        const edit_admin_promise = await fetch(process.env.SUPER_SERVER + '/v1/user/update/myprofile', {
+            method: 'PUT', body: request_body,
+            headers: { "Content-Type": "multipart/form-data", Authorization },
+        });
+        const { message: admin_msg } = await edit_admin_promise.json();
+        console.log(admin_msg);
     };
     resp.status(200).json({ success: true, message: "PROFILE UPDATED SUCCESSFULLY..." });
 });

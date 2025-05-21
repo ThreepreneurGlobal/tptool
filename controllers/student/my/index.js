@@ -7,7 +7,7 @@ import Certificate from '../../../models/certificate.js';
 import Experience from '../../../models/experience.js';
 import PlacePosition from '../../../models/place_position.js';
 import Project from '../../../models/project.js';
-import Skill from '../../../models/skill.js';
+// import Skill from '../../../models/skill.js';
 import Student from '../../../models/student.js';
 import User from '../../../models/user.js';
 import UserSkill from '../../../models/user_skill.js';
@@ -20,10 +20,10 @@ export const myStudentProfile = TryCatch(async (req, resp, next) => {
     const student = await Student.findOne({
         where: { user_id: req.user.id, status: true }, attributes: { exclude: ['user_id', 'role', 'status', 'is_active'] },
         include: [
-            {
-                model: Skill, through: { model: UserSkill, attributes: ['id', 'rating'] },
-                as: 'skills', required: false, attributes: ['id', 'title'], where: { status: true },
-            },
+            // {
+            //     model: Skill, through: { model: UserSkill, attributes: ['id', 'rating'] },
+            //     as: 'skills', required: false, attributes: ['id', 'title'], where: { status: true },
+            // },
             {
                 model: Certificate, foreignKey: 'student_id', as: 'certificates', required: false,
                 attributes: ['id', 'title', 'url'], where: { status: true },
@@ -46,6 +46,16 @@ export const myStudentProfile = TryCatch(async (req, resp, next) => {
     if (!student) {
         return next(new ErrorHandler('STUDENT NOT FOUND!', 404));
     };
+
+    const user_skill_data = await UserSkill.findAll({ where: { student_id: student?.id, status: true }, attributes: ['id', 'rating', 'skill_id'] });
+    const user_skill_ids = await user_skill_data.map(item => item?.skill_id);
+
+    const skills = await Promise.all(user_skill_ids?.map(async (item) => {
+        const skill_promise = await fetch(process.env.SUPER_SERVER + '/v1/master/skill/get/' + item);
+        const { skill } = await skill_promise.json();
+        const rate = user_skill_data?.filter(data => data.skill_id === item)[0];
+        return { id: skill?.id, title: skill?.title, category: skill?.category, rating: rate?.rating };
+    }));
 
     const applications = await Application.findAll({
         where: { user_id: req.user.id, status: true }, attributes: ['id', 'app_status', 'position_id']
@@ -82,7 +92,7 @@ export const myStudentProfile = TryCatch(async (req, resp, next) => {
         },
     };
 
-    resp.status(200).json({ success: true, student: { ...student.toJSON(), statistics } });
+    resp.status(200).json({ success: true, student: { ...student.toJSON(), skills, statistics } });
 });
 
 

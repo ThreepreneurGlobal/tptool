@@ -13,7 +13,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cors({
     credentials: true, origin: [
-        'http://localhost:5173', process.env.CORS_URL01,
+        process.env.ENV === 'DEV' && 'http://localhost:5173', process.env.ORIGIN_ONE,
     ]
 }));
 

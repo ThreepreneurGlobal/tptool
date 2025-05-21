@@ -111,8 +111,8 @@ export const skillFilterOpts = TryCatch(async (req, resp, next) => {
 // Skill.belongsToMany(PlacePosition, { through: PositionSkill, as: 'positions', foreignKey: 'skill_id', otherKey: 'position_id' });
 
 // User-Skill Relation
-User.belongsToMany(Skill, { through: UserSkill, as: 'skills', foreignKey: 'user_id', otherKey: 'skill_id' });
-Skill.belongsToMany(User, { through: UserSkill, as: 'users', foreignKey: 'skill_id', otherKey: 'user_id' });
+// User.belongsToMany(Skill, { through: UserSkill, as: 'skills', foreignKey: 'user_id', otherKey: 'skill_id' });
+// Skill.belongsToMany(User, { through: UserSkill, as: 'users', foreignKey: 'skill_id', otherKey: 'user_id' });
 
 // Student-Skill Relation
 // Student.belongsToMany(Skill, { through: UserSkill, as: 'skills', foreignKey: 'student_id', otherKey: 'skill_id' });
