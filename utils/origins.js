@@ -10,7 +10,7 @@ const getOrigins = async () => {
         });
 
         const origins = colleges?.map(item => {
-            item?.credential?.front_host_url
+            return item?.credential?.front_host_url
         });
         console.log(origins);
         return origins;
