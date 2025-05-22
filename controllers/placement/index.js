@@ -238,6 +238,7 @@ export const editPlacement = TryCatch(async (req, resp, next) => {
 // OPTIONS FOR CREATE PLACEMENT
 export const getPlaceOptions = TryCatch(async (req, resp, next) => {
 
+    console.log('HELLO!');
     const [skillPromise, companyPromise] = await Promise.all([
         fetch(process.env.SUPER_SERVER + '/v1/master/skill/opts'),
         fetch(process.env.SUPER_SERVER + '/v1/master/company/opts'),
