@@ -242,7 +242,7 @@ export const getPlaceOptions = TryCatch(async (req, resp, next) => {
         fetch(process.env.SUPER_SERVER + '/v1/master/skill/opts'),
         fetch(process.env.SUPER_SERVER + '/v1/master/company/opts'),
     ]);
-    console.log(JSON.stringify({ skillPromise, companyPromise }));
+    console.log(JSON.stringify({ skillPromise, companyPromise, msg:['HELLO'] }));
     const [statuses, drives, { skills }, { companies }] = await Promise.all([
         getPlaceStatusOpts(), getPlacePositionOpts(), skillPromise.json(), companyPromise.json(),
     ]);
