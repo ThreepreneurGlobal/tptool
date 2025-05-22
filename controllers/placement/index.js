@@ -238,21 +238,15 @@ export const editPlacement = TryCatch(async (req, resp, next) => {
 // OPTIONS FOR CREATE PLACEMENT
 export const getPlaceOptions = TryCatch(async (req, resp, next) => {
 
-    // const [skillPromise, companyPromise] = await Promise.all([
-    //     fetch(process.env.SUPER_SERVER + '/v1/master/skill/opts'),
-    //     fetch(process.env.SUPER_SERVER + '/v1/master/company/opts'),
-    // ]);
-    console.log('START');
-    const skillPromise = await fetch(process.env.SUPER_SERVER + '/v1/master/skill/opts');
-    const companyPromise = await fetch(process.env.SUPER_SERVER + '/v1/master/company/opts');
-    console.log('PROMISES');
-    const skills_resp = await skillPromise.json();
-    const companies_resp = await companyPromise.json();
-    console.log('RESPONSE OTHER APIS');
-    const [statuses, drives] = await Promise.all([getPlaceStatusOpts(), getPlacePositionOpts()]);
-    console.log('MY APIS');
+    const [skillPromise, companyPromise] = await Promise.all([
+        fetch(process.env.SUPER_SERVER + '/v1/master/skill/opts'),
+        fetch(process.env.SUPER_SERVER + '/v1/master/company/opts'),
+    ]);
+    const [statuses, drives, { skills }, { companies }] = await Promise.all([
+        getPlaceStatusOpts(), getPlacePositionOpts(), skillPromise.json(), companyPromise.json(),
+    ]);
 
-    const place_options = { statuses, drives, skills: skills_resp?.skills, companies: companies_resp?.companies, };
+    const place_options = { statuses, drives, skills, companies, };
     resp.status(200).json({ success: true, place_options });
 });
 
