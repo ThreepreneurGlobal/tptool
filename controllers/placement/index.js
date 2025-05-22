@@ -242,18 +242,14 @@ export const getPlaceOptions = TryCatch(async (req, resp, next) => {
     //     fetch(process.env.SUPER_SERVER + '/v1/master/skill/opts'),
     //     fetch(process.env.SUPER_SERVER + '/v1/master/company/opts'),
     // ]);
-    // const [statuses, drives, { skills }, { companies }] = await Promise.all([
-    //     getPlaceStatusOpts(), getPlacePositionOpts(), skillPromise.json(), companyPromise.json(),
-    // ]);
-
-    // const place_options = { statuses, drives, skills, companies, };
-
-    console.log('START!');
     const skillPromise = await fetch(process.env.SUPER_SERVER + '/v1/master/skill/opts');
-    console.log('CALL PROMISE');
-    const skill_resp = await skillPromise.json();
-    console.log('RESPONSE ' + skill_resp);
-    resp.status(200).json({ success: true, skill_resp });
+    const companyPromise = await fetch(process.env.SUPER_SERVER + '/v1/master/company/opts');
+    const [statuses, drives, { skills }, { companies }] = await Promise.all([
+        getPlaceStatusOpts(), getPlacePositionOpts(), skillPromise.json(), companyPromise.json(),
+    ]);
+
+    const place_options = { statuses, drives, skills, companies, };
+    resp.status(200).json({ success: true, place_options });
 });
 
 
