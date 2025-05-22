@@ -104,9 +104,9 @@ export const getCompanyById = TryCatch(async (req, resp, next) => {
 export const getCompanyOpts = TryCatch(async (req, resp, next) => {
     const apiObj = {};
     const api = await Company.findAll({ where: { status: true }, attributes: ['id', 'title', 'type'] });
-    if (api.length <= 0) {
-        return [];
-    };
+    // if (api.length <= 0) {
+    //     return [];
+    // };
 
     api?.forEach((item) => {
         if (!apiObj[item?.type]) {
