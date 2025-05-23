@@ -41,6 +41,7 @@ export const generateTemplate = TryCatch(async (req, resp, next) => {
         'DIPLOMA SCORE', 'DISABILITY*', 'EDUCATION GAP (YRS)', 'EDUCATION GAP DESCRIPTION',
     ]);
 
+
     for (let row = 2; row <= 200; row++) {
         sheet_data.getCell(`E${row}`).dataValidation = {
             type: 'list',
@@ -59,6 +60,9 @@ export const generateTemplate = TryCatch(async (req, resp, next) => {
             error: 'PLEASE SELECT A VALID BRANCH FROM DROPDOWN!',
         };
     };
+
+    sheet_courses.protect(process.env.EXCEL_PASS);
+    sheet_branches.protect(process.env.EXCEL_PASS);
 
     const buffer = await workbook.xlsx.writeBuffer();
     resp.setHeader('Content-Disposition', 'attachment; filename=students.xlsx');
