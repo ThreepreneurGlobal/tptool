@@ -2,9 +2,12 @@ import { Router } from 'express';
 
 import { createCompany, editCompany, getCompanies, getCompanyById, getCompanyOpts, getCompCreateOpts } from '../controllers/master/company.js';
 import { createCourse, editCourse, getCourseBranchOpts, getCourseById, getCourses, getCreateCourseBranchOpts } from '../controllers/master/course.js';
+import { courseTemplate, skillTemplate } from '../controllers/master/export.js';
+import { importCourse, importSkill } from '../controllers/master/import.js';
 import { createSkill, editSkill, getCreateSkillOpts, getGrpSkillOpts, getSkillById, getSkills } from '../controllers/master/skill.js';
 import { isAuthenticatedUser, isAutherizeRole } from '../middlewares/auth.js';
 import upload from '../utils/upload.js';
+import xlxUpload from '../utils/xlx_upload.js';
 
 
 const router = Router();
@@ -43,11 +46,19 @@ router.post('/course/create', isAutherizeRole('super', 'admin'), createCourse);
 
 router.put('/course/edit/:id', isAutherizeRole('super', 'admin'), editCourse);
 
+router.get('/course/template', isAutherizeRole('super'), courseTemplate);
+
+router.post('/course/import', isAutherizeRole('super'), xlxUpload.single('file'), importCourse);
+
 
 // SKILL
 router.post('/skill/create', isAutherizeRole('super', 'admin'), createSkill);
 
 router.put('/skill/edit/:id', isAutherizeRole('super', 'admin'), editSkill);
+
+router.get('/skill/template', isAutherizeRole('super'), skillTemplate);
+
+router.post('/skill/import', isAutherizeRole('super'), xlxUpload.single('file'), importSkill);
 
 
 

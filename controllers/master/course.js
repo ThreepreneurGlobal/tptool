@@ -83,7 +83,7 @@ export const getCourseBranchOpts = TryCatch(async (req, resp, next) => {
         getCourseOpts(college_category), getBranchOpts(college_category),
     ]);
 
-    resp.status(200).json({ success: true, opts: { courses, branches } })
+    resp.status(200).json({ success: true, opts: { courses, branches } });
 });
 
 
