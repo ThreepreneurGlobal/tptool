@@ -14,22 +14,18 @@ export const generateTemplate = TryCatch(async (req, resp, next) => {
     const sheet_branches = workbook.addWorksheet('branches');
 
     // FETCH DATA FOR CREATE DROPDOWN
-    const option_promise = await fetch(process.env.SUPER_SERVER + '/v1/master/course-branch/opts?college_category=' + 'engineering');
+    const option_promise = await fetch(process.env.SUPER_SERVER + '/v1/master/course/create-opts?college_category=' + req.query.college_category);
     const { opts: { courses: course_array, branches: branch_array } } = await option_promise.json();
 
     // PREPARE DATA FOR COURSES AND BRANCHE SHEET
     sheet_courses.addRow(['COURSE NAME']);
     course_array?.forEach(course => {
-        course?.options?.forEach(opt => {
-            sheet_courses.addRow([opt?.value?.toUpperCase()]);
-        });
+        sheet_courses.addRow([course?.label]);
     });
 
     sheet_branches.addRow(['BRANCH NAME']);
     branch_array?.forEach(branch => {
-        branch?.options?.forEach(opt => {
-            sheet_branches.addRow([opt?.value?.toUpperCase()]);
-        });
+        sheet_branches.addRow([branch?.label]);
     });
 
     sheet_data.addRow([

@@ -51,13 +51,23 @@ export const loginUser = TryCatch(async (req, resp, next) => {
 
 // MY PROFILE RECORD
 export const myProfile = TryCatch(async (req, resp, next) => {
+    let modified;
     const user = await User.findOne({
         where: { id: req.user.id, status: true },
         attributes: { exclude: ["password", "auth_tokens", "status", "created_at", "updated_at"] },
     });
 
+    if (user?.role === 'admin') {
+        const collegePromise = await fetch(process.env.SUPER_SERVER + '/v1/college/profile?email=' + user?.email);
+        const { college: { college_category } } = await collegePromise.json();
+
+        modified = { ...user.toJSON(), college_category };
+    } else {
+        modified = user;
+    };
+
     await cleanExpTokens(user?.id);
-    resp.status(200).json({ success: true, user });
+    resp.status(200).json({ success: true, user: modified });
 });
 
 
@@ -90,7 +100,7 @@ export const updateProfile = TryCatch(async (req, resp, next) => {
             method: 'GET', headers: { Authorization },
         });
         const { user: admin_user } = await admin_user_promise.json();
-        
+
         if (!admin_user) {
             return next(new ErrorHandler('PROFILE NOT FOUND!', 404));
         };
