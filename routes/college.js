@@ -1,7 +1,7 @@
 import { Router } from 'express';
 
 import { editMyCollege, myCollege } from '../controllers/college/admin.js';
-import { activeCollege, createCollege, deactiveCollege, getCollegeById, getCollegeOptions, getColleges, getUniversityOptions } from '../controllers/college/index.js';
+import { activeCollege, createCollege, deactiveCollege, getCollegeById, getCollegeOptions, getColleges, getUniversityOptions, updateSuperCollege } from '../controllers/college/index.js';
 import { isAuthenticatedUser, isAutherizeRole } from '../middlewares/auth.js';
 import upload from '../utils/upload.js';
 
@@ -23,6 +23,8 @@ router.post('/create', isAutherizeRole('super'), createCollege);
 router.get('/get', isAutherizeRole('super'), getColleges);
 
 router.get('/get/:id', isAutherizeRole('super'), getCollegeById);
+
+router.put('/update/:id', isAutherizeRole('super'), updateSuperCollege);
 
 router.put('/status/active/:id', isAutherizeRole('super'), activeCollege);
 

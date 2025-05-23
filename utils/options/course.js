@@ -1,13 +1,19 @@
-import { Sequelize } from 'sequelize';
+import { Sequelize, Op } from 'sequelize';
 import Course from '../../models/course.js';
 
 
 export const getCourseOpts = async (college_categories) => {
     const apiObj = {};
+    const where = { status: true };
     const unique_courses = new Set();
+
+    if (college_categories) {
+        const category_array = college_categories?.split(',').map(category => category.trim());
+        where.college_category = { [Op.in]: category_array };
+    };
+
     const data = await Course.findAll({
-        where: { status: true, college_category: college_categories }, group: ['course_name', 'course_type'],
-        attributes: ['id', 'course_type', 'course_name']
+        where, group: ['course_name', 'course_type'], attributes: ['id', 'course_type', 'course_name']
     });
     if (data.length <= 0) return [];
 
@@ -33,10 +39,16 @@ export const getCourseOpts = async (college_categories) => {
 
 export const getBranchOpts = async (college_categories) => {
     const apiObj = {};
+    const where = { status: true };
     const unique_branches = new Set();
+
+    if (college_categories) {
+        const category_array = college_categories?.split(',').map(item => item.trim());
+        where.college_category = { [Op.in]: category_array };
+    };
+
     const data = await Course.findAll({
-        where: { status: true, college_category: college_categories }, group: ['branch_name', 'course_name'],
-        attributes: ['id', 'course_name', 'branch_name']
+        where, group: ['branch_name', 'course_name'], attributes: ['id', 'course_name', 'branch_name']
     });
     if (data.length <= 0) return [];
 
@@ -75,9 +87,15 @@ export const getCategoriesOpts = async () => {
 };
 
 
-export const getCreateCourseOpts = async () => {
+export const getCreateCourseOpts = async (college_categories) => {
+    const where = { status: true };
+    if (college_categories) {
+        const category_array = college_categories?.split(',').map(category => category.trim());
+        where.college_category = { [Op.in]: category_array };
+    };
+
     const data = await Course.findAll({
-        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('course_name')), 'course_name']], raw: true,
+        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('course_name')), 'course_name']], raw: true, where,
     });
 
     const courses = data?.filter(item => item?.course_name !== null && item?.course_name !== '')
@@ -90,9 +108,15 @@ export const getCreateCourseOpts = async () => {
 };
 
 
-export const getCreateBranchOpts = async () => {
+export const getCreateBranchOpts = async (college_categories) => {
+    const where = { status: true };
+    if (college_categories) {
+        const category_array = college_categories?.split(',').map(item => item.trim());
+        where.college_category = { [Op.in]: category_array };
+    };
+
     const data = await Course.findAll({
-        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('branch_name')), 'branch_name']], raw: true,
+        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('branch_name')), 'branch_name']], raw: true, where,
     });
 
     const branches = data?.filter(item => item?.branch_name !== null && item?.branch_name !== '')

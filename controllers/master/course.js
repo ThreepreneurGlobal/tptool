@@ -79,6 +79,7 @@ export const editCourse = TryCatch(async (req, resp, next) => {
 // COMMON CONTROLLER
 export const getCourseBranchOpts = TryCatch(async (req, resp, next) => {
     const { college_category } = req.query;
+
     const [courses, branches] = await Promise.all([
         getCourseOpts(college_category), getBranchOpts(college_category),
     ]);
@@ -88,8 +89,9 @@ export const getCourseBranchOpts = TryCatch(async (req, resp, next) => {
 
 
 export const getCreateCourseBranchOpts = TryCatch(async (req, resp, next) => {
+    const { college_category } = req.query;
     const [categories, courses, branches] = await Promise.all([
-        getCategoriesOpts(), getCreateCourseOpts(), getCreateBranchOpts()
+        getCategoriesOpts(), getCreateCourseOpts(college_category), getCreateBranchOpts(college_category)
     ]);
 
     resp.status(200).json({ success: true, opts: { categories, courses, branches } });

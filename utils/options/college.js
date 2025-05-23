@@ -34,3 +34,26 @@ export const getUniversityOpts = async () => {
     return universities;
 };
 
+export const getCategoryOpts = async () => {
+    const data = await College.findAll({
+        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('college_category')), 'college_category']], raw: true,
+    });
+
+    const rawData = data?.map(item => item?.college_category).filter(Boolean)
+        .flatMap(category => {
+            try {
+                const parseData = JSON.parse(category);
+                if (Array.isArray(parseData)) {
+                    return parseData?.filter(domain => domain && domain?.trim() !== '');
+                };
+                return [];
+            } catch (error) {
+                console.error(error);
+                return [];
+            }
+        })
+        .filter((value, idx, self) => self.indexOf(value) === idx);
+
+    const categories = rawData?.map(category => ({ label: category?.toUpperCase(), value: category }));
+    return categories;
+};

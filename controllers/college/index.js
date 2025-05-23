@@ -4,13 +4,13 @@ import { Op } from 'sequelize';
 import College from '../../models/college.js';
 import Credential from '../../models/credential.js';
 import User from '../../models/user.js';
-import { getCollegeOpts, getUniversityOpts } from '../../utils/options/college.js';
+import { getCategoryOpts, getCollegeOpts, getUniversityOpts } from '../../utils/options/college.js';
 import TryCatch, { ErrorHandler } from '../../utils/trycatch.js';
 
 
 export const createCollege = TryCatch(async (req, resp, next) => {
     const { name, reg_no, contact, email, type, university, city, state, country, pin_code,
-        establish_yr, principal_name, principal_contact, principal_email } = req.body;
+        establish_yr, principal_name, principal_contact, principal_email, college_category } = req.body;
 
     const exists = await College.findOne({ where: { [Op.or]: [{ reg_no }, { email }], status: true } });
     if (exists) {
@@ -22,12 +22,31 @@ export const createCollege = TryCatch(async (req, resp, next) => {
     const college = await College.create({
         name, reg_no, contact, email, university, principal_name, principal_contact, principal_email,
         type, city, state, country, pin_code, establish_yr, college_id: hash.substring(0, 10),
+        college_category: college_category?.map(item => item?.toLowerCase()),
     });
     if (!college) {
         return next(new ErrorHandler('COLLEGE NOT CREATED!', 400));
     };
 
     resp.status(201).json({ success: true, message: college?.name?.toUpperCase() + ' CREATED!' });
+});
+
+
+export const updateSuperCollege = TryCatch(async (req, resp, next) => {
+    const { name, reg_no, contact, email, type, university, city, state, country, pin_code,
+        establish_yr, principal_name, principal_contact, principal_email, college_category } = req.body;
+
+    const college = await College.findOne({where: {id: req.params.id, status: true}});
+    if(!college){
+        return next(new ErrorHandler('COLLEGE NOT FOUND!', 404));
+    };
+
+    await college.update({
+        name, reg_no, contact, email, university, principal_name, principal_contact, principal_email, type, city, 
+        state, country, pin_code, establish_yr,  college_category: college_category?.map(item => item?.toLowerCase()),
+    });
+
+    resp.status(200).json({ success: true, message: college?.name?.toUpperCase() + ' UPDATED!' });
 });
 
 
@@ -105,7 +124,7 @@ export const getCollegeOptions = TryCatch(async (req, resp, next) => {
 
 
 export const getUniversityOptions = TryCatch(async (req, resp, next) => {
-    const [university_opts] = await Promise.all([getUniversityOpts()]);
+    const [universities, categories] = await Promise.all([getUniversityOpts(), getCategoryOpts()]);
 
-    resp.status(200).json({ success: true, university_opts });
+    resp.status(200).json({ success: true, opts: { universities, categories } });
 });
