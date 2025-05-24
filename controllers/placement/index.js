@@ -1,4 +1,3 @@
-import fs from 'fs';
 
 // import Company from '../../models/company.js';
 import PlacePosition from '../../models/place_position.js';
@@ -6,7 +5,7 @@ import Placement from '../../models/placement.js';
 import PositionSkill from '../../models/position_skill.js';
 // import Skill from '../../models/skill.js';
 import User from '../../models/user.js';
-import { getPlaceCompanyOpts, getPlacePositionOpts, getPlaceStatusOpts } from '../../utils/opt/place.js';
+import { getPlaceCompanyOpts, getPlaceDriveOpts, getPlaceStatusOpts } from '../../utils/opt/place.js';
 import TryCatch, { ErrorHandler } from '../../utils/trycatch.js';
 import { uploadFile } from '../../utils/upload.js';
 
@@ -243,7 +242,7 @@ export const getPlaceOptions = TryCatch(async (req, resp, next) => {
         fetch(process.env.SUPER_SERVER + '/v1/master/company/opts'),
     ]);
     const [statuses, drives, { skills }, { companies }] = await Promise.all([
-        getPlaceStatusOpts(), getPlacePositionOpts(), skillPromise.json(), companyPromise.json(),
+        getPlaceStatusOpts(), getPlaceDriveOpts(), skillPromise.json(), companyPromise.json(),
     ]);
 
     const place_options = { statuses, drives, skills, companies, };

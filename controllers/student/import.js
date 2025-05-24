@@ -26,6 +26,10 @@ export const importStudent = TryCatch(async (req, resp, next) => {
     const rows = data.slice(2);
 
     await Promise.all(rows?.map(async (row) => {
+        if (row.every(cell => cell === undefined || cell === null)) {
+            return;
+        };
+
         const item = {};
         headers.forEach((header, idx) => {
             item[header] = row[idx];        // EXCELJS USES --BASED INDEXING
@@ -51,7 +55,7 @@ export const importStudent = TryCatch(async (req, resp, next) => {
             return;
         };
         const trimName = Name?.replace(" ", "");
-        const nameWord = trimName.split(' ');
+        const nameWord = trimName?.split(' ');
         let password;
         if (nameWord?.length > 0) {
             const first = nameWord[0];
@@ -67,6 +71,7 @@ export const importStudent = TryCatch(async (req, resp, next) => {
         const degree_yr = excelToDate(Degree_Year, errorMessages, Name);
 
         // CHECK USER EXIST OR NOT
+        console.log(item);
         const existed = await User.findOne({ where: { [Op.or]: [{ mobile: Contact }, { name: Name }, { email }] } });
         if (existed) {
             errorMessages.push(`${existed.name} ALREADY EXIST!`);
