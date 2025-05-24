@@ -14,6 +14,7 @@ const app = express();
 // ADD ALL COLLEGES ORIGINS
 const origin = [process.env.ENV === 'DEV' && 'http://localhost:5174', process.env.ORIGIN_ONE];
 const college_origins = await getOrigins();
+console.log(JSON.stringify(college_origins));
 college_origins.forEach((item) => {
     origin.push(item);
 });
