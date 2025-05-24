@@ -17,7 +17,14 @@ export const courseTemplate = TryCatch(async (req, resp, next) => {
 
     const course_type_opts = ['diploma', 'ug', 'pg', 'phd'];
     const college_category_opts = data?.filter(item => item?.college_category !== null || item?.college_category !== '')
-        .map(item => item?.college_category?.toUpperCase());
+        .flatMap(item => {
+            try {
+                const categories = JSON.parse(item?.college_category);
+                return Array.isArray(categories) ? categories?.map(category => category?.toUpperCase()) : [];
+            } catch (error) {
+                console.error(error.message);
+            }
+        });
 
     sheet_type.addRow(['COURSE TYPE']);
     sheet_category.addRow(['COLLEGE CATEGORY']);
