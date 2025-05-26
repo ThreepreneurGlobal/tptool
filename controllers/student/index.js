@@ -71,9 +71,9 @@ export const createStudent = TryCatch(async (req, resp, next) => {
         return next(new ErrorHandler(`${existed.name} ALREADY EXISTS!`, 500));
     };
 
-    if (name?.length <= 5) {
-        return next(new ErrorHandler(`STUDENT NAME TOO SHORT! MIN 6 CHAR REQUIRED!`, 500));
-    };
+    // if (name?.length <= 5) {
+    //     return next(new ErrorHandler(`STUDENT NAME TOO SHORT! MIN 6 CHAR REQUIRED!`, 500));
+    // };
 
     // Genrate Password
     let password;
@@ -82,7 +82,18 @@ export const createStudent = TryCatch(async (req, resp, next) => {
     const nameWord = trimName?.split(' ');
     if (nameWord?.length > 0) {
         const first = nameWord[0];
-        password = (first.substring(0, 6)).charAt(0).toUpperCase() + first.substring(1, 6).toLowerCase() + "@123#";
+        const namePart = first?.charAt(0).toUpperCase() + first?.slice(1).toLowerCase();
+        const fixedPart = '@123#';
+        const digitNeeded = 10 - (namePart?.length + fixedPart?.length);
+        let digit = '';
+        
+        if (digitNeeded > 0) {
+            for (let i = 0; i < digitNeeded; i++) {
+                digit += (4 + i).toString();
+            };
+        };
+
+        password = namePart + "@123" + digit + '#';
     };
 
     const hash_pass = await bcryptjs.hash(password, 10);
@@ -177,7 +188,7 @@ export const studentById = TryCatch(async (req, resp, next) => {
 
     const jobStatusCounts = countStatuses(jobApps);
     const internshipStatusCounts = countStatuses(internApps);
-    
+
     const statistics = {
         job: {
             labels: Object.keys(jobStatusCounts),
@@ -218,7 +229,7 @@ export const editStudent = TryCatch(async (req, resp, next) => {
         ed_gap, gap_desc, disability, experience, abc_id,
     });
 
-    resp.status(201).json({ success: true, message: `${user?.name?.toUpperCase()} UPDATED...` });
+    resp.status(200).json({ success: true, message: `${user?.name?.toUpperCase()} UPDATED...` });
 });
 
 

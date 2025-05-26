@@ -50,16 +50,26 @@ export const importStudent = TryCatch(async (req, resp, next) => {
 
         const email = Mail_ID?.text || Mail_ID;
         // GENERATE PASSWORD
-        if (Name?.length <= 5) {
-            errorMessages.push(`STUDENT NAME TOO SHORT! MIN 6 CHAR REQUIRED FOR ${Name}`);
-            return;
-        };
+        // if (Name?.length <= 5) {
+        //     errorMessages.push(`STUDENT NAME TOO SHORT! MIN 6 CHAR REQUIRED FOR ${Name}`);
+        //     return;
+        // };
         const trimName = Name?.replace(" ", "");
         const nameWord = trimName?.split(' ');
         let password;
         if (nameWord?.length > 0) {
             const first = nameWord[0];
-            password = (first.substring(0, 6)).charAt(0).toUpperCase() + first.substring(1, 6).toLowerCase() + "@123#";
+            const namePart = first?.charAt(0).toUpperCase() + first?.slice(1).toLowerCase();
+            const fixedPart = '@123#';
+            const digitNeeded = 10 - (namePart?.length + fixedPart?.length);
+            let digit = '';
+
+            if (digitNeeded > 0) {
+                for (let i = 0; i < digitNeeded; i++) {
+                    digit += (4 + i).toString();
+                };
+            };
+            password = namePart + "@123" + digit + '#';
         }
 
         // DATE FORMAT

@@ -10,6 +10,7 @@ import Student from '../../../models/student.js';
 import User from '../../../models/user.js';
 import TryCatch from '../../../utils/trycatch.js';
 import { calculatePercentageChange } from './utils.js';
+import Event from '../../../models/event.js';
 
 
 const adminDash = TryCatch(async (req, resp, next) => {
@@ -91,7 +92,7 @@ const adminDash = TryCatch(async (req, resp, next) => {
     const studentsLenPromise = User.count({ where: { status: true, is_active: true, role: 'user', designation: 'student' } });
     const feedbacksLenPromise = Feedback.count({ where: { status: true } });
     const placementsLenPromise = Placement.count({ where: { status: true } });
-    const applicationsLenPromise = Application.count({ where: { status: true } });
+    const eventsLenPromise = Event.count({ where: { status: true } });
     const adminsPromise = User.findAll({
         where: { status: true, is_active: true, role: 'admin', designation: 'tp officer' }, attributes: ['id', 'name', 'city', 'avatar']
     });
@@ -114,8 +115,8 @@ const adminDash = TryCatch(async (req, resp, next) => {
     const previousFeedbackCountPromise = Feedback.count({ where: { status: true, created_at: { [Op.between]: [startOfPreviousMonth, endOfPreviousMonth] } } });
     const currentPlacementCountPromise = Placement.count({ where: { status: true, created_at: { [Op.gte]: startOfCurrentMonth } } });
     const previousPlacementCountPromise = Placement.count({ where: { status: true, created_at: { [Op.between]: [startOfPreviousMonth, endOfPreviousMonth] } } });
-    const currentApplicationCountPromise = Application.count({ where: { status: true, created_at: { [Op.gte]: startOfCurrentMonth } } });
-    const previousApplicationCountPromise = Application.count({ where: { status: true, created_at: { [Op.between]: [startOfPreviousMonth, endOfPreviousMonth] } } });
+    const currentEventCountPromise = Event.count({ where: { status: true, created_at: { [Op.gte]: startOfCurrentMonth } } });
+    const previousEventCountPromise = Event.count({ where: { status: true, created_at: { [Op.between]: [startOfPreviousMonth, endOfPreviousMonth] } } });
     // const companyActivityFeedPromise = Company.findAll({ attributes: ['id', 'title', 'type', 'updated_at'], where: { status: true }, order: [['updated_at', 'DESC']], limit: 10 });
     const studentActivityFeedPromise = User.findAll({ attributes: ['id', 'name', 'updated_at'], where: { role: 'user' }, order: [['updated_at', 'DESC']], limit: 10 });
     const placementActivityFeedPromise = Placement.findAll({ attributes: ['id', 'title', 'place_status', 'updated_at'], where: { status: true }, order: [['updated_at', 'DESC']], limit: 10 });
@@ -133,15 +134,15 @@ const adminDash = TryCatch(async (req, resp, next) => {
 
     // CALL ALL PROMISES (skip skill activity feed)
     const [
-        studentsLen, feedbacksLen, placementsLen, applicationsLen, admins, placePositions, latest_place_positions,
+        studentsLen, feedbacksLen, placementsLen, eventsLen, admins, placePositions, latest_place_positions,
         currentStudentCount, previousStudentCount, currentFeedbackCount, previousFeedbackCount, currentPlacementCount,
-        previousPlacementCount, currentApplicationCount, previousApplicationCount,
+        previousPlacementCount, currentEventCount, previousEventCount,
         studentActivityFeed, placementActivityFeed, applicationActivityFeed,
     ] = await Promise.all([
-        studentsLenPromise, feedbacksLenPromise, placementsLenPromise, applicationsLenPromise, adminsPromise,
+        studentsLenPromise, feedbacksLenPromise, placementsLenPromise, eventsLenPromise, adminsPromise,
         placePositionsPromise, latestPlacePositionsPromise, currentStudentCountPromise, previousStudentCountPromise,
         currentFeedbackCountPromise, previousFeedbackCountPromise, currentPlacementCountPromise, previousPlacementCountPromise,
-        currentApplicationCountPromise, previousApplicationCountPromise,
+        currentEventCountPromise, previousEventCountPromise,
         studentActivityFeedPromise, placementActivityFeedPromise, applicationActivityFeedPromise,
     ]);
 
@@ -199,13 +200,13 @@ const adminDash = TryCatch(async (req, resp, next) => {
     const studentBadge = calculatePercentageChange(currentStudentCount, previousStudentCount);
     const feedbackBadge = calculatePercentageChange(currentFeedbackCount, previousFeedbackCount);
     const placementBadge = calculatePercentageChange(currentPlacementCount, previousPlacementCount);
-    const applicationBadge = calculatePercentageChange(currentApplicationCount, previousApplicationCount);
+    const eventBadge = calculatePercentageChange(currentEventCount, previousEventCount);
 
     let cards_data = {
         student: { count: studentsLen, percent: studentBadge, series: new Array(last10Months.length).fill(0) },
         feedback: { count: feedbacksLen, percent: feedbackBadge, series: new Array(last10Months.length).fill(0) },
         placement: { count: placementsLen, percent: placementBadge, series: new Array(last10Months.length).fill(0) },
-        application: { count: applicationsLen, percent: applicationBadge, series: new Array(last10Months.length).fill(0) },
+        event: { count: eventsLen, percent: eventBadge, series: new Array(last10Months.length).fill(0) },
     };
 
     const tenMonthsPromise = last10Months?.map(async (date, idx) => {
@@ -221,16 +222,16 @@ const adminDash = TryCatch(async (req, resp, next) => {
         const last10MonthStudentCountPromise = Student.count({ ...cardWhereCondition });
         const last10MonthFeedbackCountPromise = Feedback.count({ ...cardWhereCondition });
         const last10MonthPlacementCountPromise = Placement.count({ ...cardWhereCondition });
-        const last10MonthApplicationCountPromise = Application.count({ ...cardWhereCondition });
+        const last10MonthEventCountPromise = Event.count({ ...cardWhereCondition });
 
-        const [last10MonthStudentCount, last10MonthFeedbackCount, last10MonthPlacementCount, last10MonthApplicationCount] = await Promise.all([
-            last10MonthStudentCountPromise, last10MonthFeedbackCountPromise, last10MonthPlacementCountPromise, last10MonthApplicationCountPromise,
+        const [last10MonthStudentCount, last10MonthFeedbackCount, last10MonthPlacementCount, last10MonthEventCount] = await Promise.all([
+            last10MonthStudentCountPromise, last10MonthFeedbackCountPromise, last10MonthPlacementCountPromise, last10MonthEventCountPromise,
         ]);
 
         cards_data.student.series[idx] = last10MonthStudentCount || 0;
         cards_data.feedback.series[idx] = last10MonthFeedbackCount || 0;
         cards_data.placement.series[idx] = last10MonthPlacementCount || 0;
-        cards_data.application.series[idx] = last10MonthApplicationCount || 0;
+        cards_data.event.series[idx] = last10MonthEventCount || 0;
     });
     await Promise.all(tenMonthsPromise);
 

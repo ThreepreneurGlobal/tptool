@@ -48,7 +48,7 @@ export const getEventById = TryCatch(async (req, resp, next) => {
         include: [{
             model: EventCompany, foreignKey: 'event_id', as: 'event_companies', attributes: { exclude: ['event_id'] }, where: { status: true },
             // include: [{ model: Company, foreignKey: 'company_id', as: 'company', attributes: ['id', 'title', 'logo'] }]
-        }],
+        }, { model: EventApplication, foreignKey: 'event_id', as: 'event_apps', attributes: { exclude: ['event_id', 'company_id', 'event_comp_id'] } }],
     });
 
     if (!event) {
@@ -138,7 +138,7 @@ export const createEvent = TryCatch(async (req, resp, next) => {
 
                     <tr>
                         <td style="background-color: #f0f0f0; padding: 15px; text-align: center; font-size: 14px; color: #888888;">
-                            ©${new Date().getFullYear()} TPConnect. All rights reserved.
+                            ©${new Date().getFullYear()} futryoAI. All rights reserved.
                         </td>
                     </tr>
                 </table>
