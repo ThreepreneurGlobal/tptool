@@ -2,6 +2,7 @@ import { Op } from 'sequelize';
 import Course from '../../models/course.js';
 import { getBranchOpts, getCategoriesOpts, getCourseOpts, getCreateBranchOpts, getCreateCourseOpts } from '../../utils/options/course.js';
 import TryCatch, { ErrorHandler } from '../../utils/trycatch.js';
+import { getCategoryOpts } from '../../utils/options/college.js';
 
 
 // MASTER/COURSE
@@ -91,7 +92,7 @@ export const getCourseBranchOpts = TryCatch(async (req, resp, next) => {
 export const getCreateCourseBranchOpts = TryCatch(async (req, resp, next) => {
     const { college_category } = req.query;
     const [categories, courses, branches] = await Promise.all([
-        getCategoriesOpts(), getCreateCourseOpts(college_category), getCreateBranchOpts(college_category)
+        getCategoryOpts(), getCreateCourseOpts(college_category), getCreateBranchOpts(college_category)
     ]);
 
     resp.status(200).json({ success: true, opts: { categories, courses, branches } });

@@ -24,7 +24,7 @@ export const importCourse = TryCatch(async (req, resp, next) => {
     await Promise.all(rows?.map(async (row) => {
         const item = {};
         headers.forEach((header, idx) => {
-            item[header] = row[idx];        // EXCELS USES --BASED INDEXING
+            item[header] = row[idx];        // EXCELS USES 1-BASED INDEXING
         });
 
         // ALL STRING DATA CONVERTED TO LOWERCASE
@@ -36,7 +36,9 @@ export const importCourse = TryCatch(async (req, resp, next) => {
         // CHECK EXIST OR NOT
         const existed = await Course.findOne({ where: { status: true, [Op.and]: [{ course_name: CourseName }, { branch_name: BranchName }] } });
         if (existed) {
-            return next(new ErrorHandler(CourseName + '/' + BranchName + ' ALREADY EXISTS!', 400));
+            // return next(new ErrorHandler(CourseName + '/' + BranchName + ' ALREADY EXISTS!', 400));
+            errorMessages.push(CourseName?.toUpperCase() + '/' + BranchName?.toUpperCase() + ' ALREADY EXISTS!');
+            return;
         };
 
         const course = await Course.create({
@@ -85,7 +87,9 @@ export const importSkill = TryCatch(async (req, resp, next) => {
         // CHECK EXIST OR NOT
         const existed = await Skill.findOne({ where: { status: true, [Op.or]: [{ title: Title }, { short_name: ShortName }] } });
         if (existed) {
-            return next(new ErrorHandler(Title + ' ALREADY EXISTS!', 400));
+            errorMessages.push(Title?.toUpperCase() + ' ALREADY EXISTS!');
+            return;
+            // return next(new ErrorHandler(Title + ' ALREADY EXISTS!', 400));
         };
 
         const skill = await Skill.create({

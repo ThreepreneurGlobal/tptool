@@ -79,14 +79,14 @@ export const createAdmin = TryCatch(async (req, resp, next) => {
     const options = {
         from: process.env.MAIL_USER,
         to: email,
-        subject: 'Your TPConnect One Time Password (OTP) for Verification',
+        subject: 'Your futryoAI One Time Password (OTP) for Verification',
         html: `
             <!DOCTYPE html>
             <html lang="en">
             <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>OTP FOR TPConnect</title>
+                <title>OTP FOR futryoAI</title>
             </head>
             <body style="font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0;">
                 <table align="center" width="100%" cellpadding="0" cellspacing="0"
@@ -108,7 +108,7 @@ export const createAdmin = TryCatch(async (req, resp, next) => {
                     </tr>
                     <tr>
                         <td style="padding: 20px; text-align: center; font-size: 12px; color: #aaa;">
-                            &copy;${new Date().getFullYear()} TPConnect. All rights reserved.
+                            &copy;${new Date().getFullYear()} futryoAI. All rights reserved.
                         </td>
                     </tr>
                 </table>
@@ -214,20 +214,20 @@ export const createPassword = TryCatch(async (req, resp, next) => {
     const options = {
         from: process.env.MAIL_USER,
         to: user?.email,
-        subject: 'Your TPConnect Account is Ready!',
+        subject: 'Your futryoAI Account is Ready!',
         html: `
             <!DOCTYPE html>
             <html lang="en">
             <head>
                 <meta charset="UTF-8" />
-                <title>TPConnect Account</title>
+                <title>futryoAI Account</title>
             </head>
             <body style="font-family: Arial, sans-serif; background-color: #f6f6f6; margin: 0; padding: 0;">
                 <table align="center" cellpadding="0" cellspacing="0" width="100%"
                     style="max-width: 600px; background-color: #ffffff; margin-top: 40px; border: 1px solid #ddd;">
                     <tr>
                         <td style="background-color: #4390dc; color: #ffffff; padding: 20px; text-align: center;">
-                            <h2>Welcome to TPConnect</h2>
+                            <h2>Welcome to futryoAI</h2>
                         </td>
                     </tr>
                     <tr>
@@ -258,12 +258,12 @@ export const createPassword = TryCatch(async (req, resp, next) => {
 
                             <p style="font-size: 14px; color: #666;">If you have any questions, feel free to contact our support team.</p>
 
-                            <p style="font-size: 16px; color: #333;">Regards,<br>TPConnect Team</p>
+                            <p style="font-size: 16px; color: #333;">Regards,<br>futryoAI Team</p>
                         </td>
                     </tr>
                     <tr>
                         <td style="text-align: center; font-size: 12px; color: #999; padding: 20px; background-color: #f0f0f0;">
-                            &copy; ${new Date().getFullYear()} TPConnect. All rights reserved.
+                            &copy; ${new Date().getFullYear()} futryoAI. All rights reserved.
                         </td>
                     </tr>
                 </table>
