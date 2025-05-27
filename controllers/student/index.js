@@ -86,7 +86,7 @@ export const createStudent = TryCatch(async (req, resp, next) => {
         const fixedPart = '@123#';
         const digitNeeded = 10 - (namePart?.length + fixedPart?.length);
         let digit = '';
-        
+
         if (digitNeeded > 0) {
             for (let i = 0; i < digitNeeded; i++) {
                 digit += (4 + i).toString();
@@ -94,6 +94,7 @@ export const createStudent = TryCatch(async (req, resp, next) => {
         };
 
         password = namePart + "@123" + digit + '#';
+        console.log({ name, password });
     };
 
     const hash_pass = await bcryptjs.hash(password, 10);
