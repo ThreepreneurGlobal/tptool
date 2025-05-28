@@ -18,6 +18,7 @@ const ErrorMiddleware = (err, req, resp, next) => {
         err = new ErrorHandler(message, 400);
     };
 
+    console.error(err);
     resp.status(err.statusCode).json({ success: false, message: err.message });
 };
 
