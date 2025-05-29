@@ -20,7 +20,7 @@ jobs:
           username: ${{ secrets.HOSTINGER_USER }}
           key: ${{ secrets.HOSTINGER_SSH_KEY }}
           script: |
-            cd /home/cloudpanel/htdocs/api.futryo.com
+            cd /home/futryo-api/htdocs/api.futryo.com
             git pull origin main
             npm install
             pm2 restart all
