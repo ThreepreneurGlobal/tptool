@@ -3,25 +3,29 @@ import Application from '../../models/application.js';
 import PlacePosition from '../../models/place_position.js';
 import Placement from '../../models/placement.js';
 import User from '../../models/user.js';
-import { getAppStatusOpts } from '../../utils/opt/application.js';
+import { getAppCompanyOpts, getAppPositionOpts, getAppPositionTypeOpts, getAppStatusOpts } from '../../utils/opt/application.js';
 import TryCatch, { ErrorHandler } from '../../utils/trycatch.js';
 
 
 // ALL APPLICATIONS RECORD
 export const getApplications = TryCatch(async (req, resp, next) => {
-    const { app_status } = req.query;
+    const { app_status, position_type, company, position } = req.query;
     const where = { status: true };
     if (app_status) { where.app_status = app_status; };
+    if (company) { where.company_id = company; };
+
+    const include = [
+        { model: PlacePosition, foreignKey: 'position_id', as: 'position', attributes: ['id', 'title', 'type', 'opening'], where: {}, },
+        { model: Placement, foreignKey: 'placement_id', as: 'placement', attributes: ['id', 'title', 'type'], },
+        { model: User, foreignKey: 'user_id', as: 'user', attributes: ['id', 'name', 'email', 'avatar'], where: { status: true, is_active: true } },
+    ];
+
+    if (position_type) { include[0].where.type = position_type; };
+    if (position) { include[0].where.title = position };
 
     let applications = await Application.findAll({
-        where, order: [['created_at', 'DESC']],
+        where, order: [['created_at', 'DESC']], include,
         attributes: { exclude: ['placement_id', 'position_id', 'user_id', 'status'] },
-        include: [
-            { model: PlacePosition, foreignKey: 'position_id', as: 'position', attributes: ['id', 'title', 'type', 'opening'], },
-            { model: Placement, foreignKey: 'placement_id', as: 'placement', attributes: ['id', 'title', 'type'], },
-            { model: User, foreignKey: 'user_id', as: 'user', attributes: ['id', 'name', 'email', 'avatar'], where: { status: true, is_active: true } },
-            // { model: Company, foreignKey: 'company_id', as: 'company', attributes: ['id', 'title'], },
-        ]
     });
 
     applications = await Promise.all(applications.map(async (app) => {
@@ -98,9 +102,11 @@ export const deleteApplication = TryCatch(async (req, resp, next) => {
 
 // APPLICATION FILTER OPTIONS
 export const appFilterOpts = TryCatch(async (req, resp, next) => {
-    const [statuses] = await Promise.all([getAppStatusOpts()]);
+    const [statuses, position_types, positions, companies] = await Promise.all([
+        getAppStatusOpts(), getAppPositionTypeOpts(), getAppPositionOpts(), getAppCompanyOpts()
+    ]);
 
-    const filter_opts = { statuses };
+    const filter_opts = { statuses, position_types, positions, companies };
     resp.status(200).json({ success: true, filter_opts });
 });
 

@@ -66,21 +66,19 @@ export const myProfile = TryCatch(async (req, resp, next) => {
         modified = user;
     };
 
-    await cleanExpTokens(user?.id);
     resp.status(200).json({ success: true, user: modified });
 });
 
 
 // USER LOGOUT
 export const logoutUser = TryCatch(async (req, resp, next) => {
-    const auth_token = req.headers['auth_token'];
+    const auth_token = req.headers['authorization'];
     const user = await User.findOne({ where: { id: req.user.id, status: true }, attributes: ['id', 'auth_tokens'] });
 
     const auth_tokens = user?.auth_tokens?.filter(token => token !== auth_token);
     await user.update({ auth_tokens });
 
-    resp.status(200)
-        .json({ success: true, message: "LOGGED OUT SUCCESSFULLY..." });
+    resp.status(200).json({ success: true, message: "LOGGED OUT SUCCESSFULLY..." });
 });
 
 

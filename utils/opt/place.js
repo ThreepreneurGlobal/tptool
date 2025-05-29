@@ -44,10 +44,10 @@ export const getPlacePositionOpts = async () => {
 
 
 export const getPlaceCompanyOpts = async () => {
-    // const apiObj = {};
-    // const ids = await Placement.findAll({
-    //     attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('company_id')), 'company_id']], raw: true,
-    // });
+    const apiObj = {};
+    const ids = await Placement.findAll({
+        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('company_id')), 'company_id']], raw: true,
+    });
 
     // const api = await Company.findAll({ where: { id: ids?.map(i=> i?.company_id), status: true }, attributes: ['id', 'title', 'type'] });
     // api?.forEach((item) => {
@@ -57,6 +57,16 @@ export const getPlaceCompanyOpts = async () => {
     //     apiObj[item?.type]?.options?.push({ label: item?.title?.toUpperCase(), value: item?.id });
     // });
 
-    // const companies = Object.values(apiObj);
-    // return companies;
+    await Promise.all(ids?.map(async (item) => {
+        const companyPromise = await fetch(process.env.SUPER_SERVER + '/v1/master/company/get/' + item?.company_id);
+        const { company } = await companyPromise.json();
+
+        if (!apiObj[company?.type]) {
+            apiObj[company?.type] = { label: company?.type?.toUpperCase(), options: [] };
+        };
+        apiObj[company?.type]?.options?.push({ label: company?.title?.toUpperCase(), value: company?.id });
+    }));
+
+    const companies = Object.values(apiObj);
+    return companies;
 };

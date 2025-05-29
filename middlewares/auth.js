@@ -6,7 +6,7 @@ import TryCatch, { ErrorHandler } from '../utils/trycatch.js';
 
 // AUTHENTICATION
 const isAuthenticatedUser = TryCatch(async (req, resp, next) => {
-    const auth_token = req.headers['auth_token'];
+    const auth_token = req.headers['authorization'];
     if (!auth_token) {
         return next(new ErrorHandler("PLEASE LOGIN FIRST!", 403));
     };

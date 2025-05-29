@@ -8,13 +8,15 @@ const ErrorMiddleware = (err, req, resp, next) => {
 
     // json web token error
     if (err.name == "JsonWebTokenError") {
-        const message = `JSON WEB TOKEN IS INVALID! TRY AGAIN...`;
+        // const message = `JSON WEB TOKEN IS INVALID! TRY AGAIN...`;
+        const message = 'PLEASE LOGIN FIRST!'
         err = new ErrorHandler(message, 400);
     };
 
     // json web token expire error
     if (err.name == "TokenExpiredError") {
-        const message = `JSON WEB TOKEN IS EXPIRED! TRY AGAIN...`;
+        // const message = `JSON WEB TOKEN IS EXPIRED! TRY AGAIN...`;
+        const message = 'PLEASE LOGIN FIRST!'
         err = new ErrorHandler(message, 400);
     };
 

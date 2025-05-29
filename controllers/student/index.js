@@ -11,6 +11,7 @@ import Project from '../../models/project.js';
 import Student from '../../models/student.js';
 import User from '../../models/user.js';
 import UserSkill from '../../models/user_skill.js';
+import mailTransporter from '../../utils/mail.js';
 import { getCollegeBatchOpts, getCollegeBranchesOpts, getCollegeCoursesOpts, getCollegeEdYearOpts } from '../../utils/opt/college.js';
 import TryCatch, { ErrorHandler } from '../../utils/trycatch.js';
 
@@ -114,6 +115,105 @@ export const createStudent = TryCatch(async (req, resp, next) => {
     if (!student) {
         return next(new ErrorHandler('REGISTRATION FAILED!', 500));
     };
+
+    const options = {
+        from: process.env.MAIL_USER,
+        to: user?.email,
+        subject: 'Your futryoAI Account Ready!',
+        html: `
+            <!DOCTYPE html>
+            <html>
+            <head>
+            <meta charset="UTF-8">
+            <title>futryoAI Account Created</title>
+            <style>
+                body {
+                font-family: Arial, sans-serif;
+                background-color: #f4f6f8;
+                margin: 0;
+                padding: 0;
+                }
+                .email-container {
+                max-width: 600px;
+                margin: 30px auto;
+                background-color: #ffffff;
+                border-radius: 8px;
+                overflow: hidden;
+                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+                }
+                .email-header {
+                background-color: #0d6efd;
+                color: #ffffff;
+                padding: 20px;
+                text-align: center;
+                }
+                .email-body {
+                padding: 30px;
+                }
+                .email-body h2 {
+                color: #333333;
+                }
+                .email-body p {
+                line-height: 1.6;
+                color: #555555;
+                }
+                .email-footer {
+                background-color: #f0f0f0;
+                padding: 20px;
+                text-align: center;
+                font-size: 12px;
+                color: #888888;
+                }
+                .btn {
+                display: inline-block;
+                background-color: #0d6efd;
+                color: white;
+                padding: 12px 24px;
+                margin-top: 20px;
+                border-radius: 5px;
+                text-decoration: none;
+                }
+            </style>
+            </head>
+            <body>
+
+            <div class="email-container">
+                <div class="email-header">
+                <h1>Welcome to T&P Portal</h1>
+                </div>
+
+                <div class="email-body">
+                <h2>Hello ${user?.name},</h2>
+                <p>
+                    We’re excited to inform you that your futryoAI account has been successfully created.
+                </p>
+                <p><strong>Account Details:</strong></p>
+                <ul>
+                    <li><strong>Email ID:</strong> ${user?.email}</li>
+                    <li><strong>Password:</strong> ${password}</li>
+                </ul>
+                <p>
+                    Please log in to your account using the button below and update your profile and password at your earliest convenience.
+                </p>
+                <a href="${process.env.ORIGIN_ONE}" class="btn">Login to futryoAI Portal</a>
+                </div>
+
+                <div class="email-footer">
+                    If you didn’t request this account or have questions, please contact the futryoAI cell.<br>
+                    &copy; 2025 futryoAI
+                </div>
+            </div>
+
+            </body>
+            </html>
+        `,
+    };
+
+    await mailTransporter.sendMail(options, (error, info) => {
+        if (error) {
+            return new ErrorHandler(error.message, 400);
+        };
+    });
     resp.status(201).json({ success: true, message: `${user?.name?.toUpperCase()} ADDED...` });
 });
 
