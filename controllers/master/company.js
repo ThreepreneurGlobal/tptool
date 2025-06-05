@@ -23,7 +23,7 @@ export const createCompany = TryCatch(async (req, resp, next) => {
 
     const company = await Company.create({
         title, type, description, reg_no, contact, contact_alt, email, email_alt, team_size,
-        instagram, logo: logo || null, work_domains: work_domains?.map(item => item?.toLowerCase()) || null,
+        instagram, logo, work_domains: work_domains?.map(item => item?.toLowerCase()) || null,
         work_types: work_types?.map(item => item?.toLowerCase()) || null, web, facebook, linkedin, youtube,
     });
     if (!company) {
