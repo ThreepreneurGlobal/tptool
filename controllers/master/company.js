@@ -46,15 +46,6 @@ export const editCompany = TryCatch(async (req, resp, next) => {
         return next(new ErrorHandler('COMPANY NOT FOUND!', 404));
     };
 
-    // if ((company?.logo && logo_file && typeof logo_file === 'object') || (company?.logo && logo === null && logo_txt === null)) {
-    //     rm(company?.logo, (error) => {
-    //         if (error) {
-    //             console.error(error.message);
-    //         };
-    //         console.log('COMPANY OLD LOGO DELETED!');
-    //     });
-    // };
-
     const logo = await uploadFile(company?.logo, logo_file, logo_txt);
 
     await company.update({
