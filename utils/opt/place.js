@@ -70,3 +70,37 @@ export const getPlaceCompanyOpts = async () => {
     const companies = Object.values(apiObj);
     return companies;
 };
+
+
+export const getPlaceTypeOpts = async () => {
+    const data = await Placement.findAll({
+        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('type')), 'type']], raw: true,
+    });
+
+    const types = data?.filter(item => item?.type !== null && item?.type !== '')
+        .map(item => ({
+            label: item?.type?.toUpperCase(),
+            value: item?.type?.toLowerCase(),
+        }));
+    return types;
+};
+
+
+export const getPlaceDateRange = async () => {
+    const minResult = await Placement.findOne({
+        attributes: [[Sequelize.fn('MIN', Sequelize.col('reg_start_date')), 'minDate']], where: { status: true }
+    });
+    const maxRegResult = await Placement.findOne({
+        attributes: [[Sequelize.fn('MAX', Sequelize.col('reg_end_date')), 'maxRegDate']], where: { status: true }
+    });
+    const maxReRegResult = await Placement.findOne({
+        attributes: [[Sequelize.fn('MAX', Sequelize.col('rereg_end_date')), 'maxReRegDate']], where: { status: true }
+    });
+
+    const maxRegDate = new Date(maxRegResult.get('maxRegDate'));
+    const maxReRegDate = new Date(maxReRegResult.get('maxReRegDate'));
+    const minDate = minResult ? minResult.get('minDate') : null;
+    const maxDate = maxReRegDate === null ? maxRegDate : maxRegDate > maxReRegDate ? maxRegDate : maxReRegDate;
+    
+    return { min: minDate, max: maxDate };
+};

@@ -1,36 +1,44 @@
 
 // import Company from '../../models/company.js';
+import { Op } from 'sequelize';
 import PlacePosition from '../../models/place_position.js';
 import Placement from '../../models/placement.js';
 import PositionSkill from '../../models/position_skill.js';
 // import Skill from '../../models/skill.js';
 import User from '../../models/user.js';
-import { getPlaceCompanyOpts, getPlaceDriveOpts, getPlaceStatusOpts } from '../../utils/opt/place.js';
+import { getPlaceCompanyOpts, getPlaceDateRange, getPlaceDriveOpts, getPlaceStatusOpts, getPlaceTypeOpts } from '../../utils/opt/place.js';
 import TryCatch, { ErrorHandler } from '../../utils/trycatch.js';
 import { uploadFile } from '../../utils/upload.js';
 
 
 // ALL PLACEMENTS RECORDS
 export const getPlacements = TryCatch(async (req, resp, next) => {
-    const { company_id, place_status } = req.query;
+    const { company_id, place_status, type, date_range } = req.query;
     const where = { status: true };
+    if (type) { where.type = type; };
     if (company_id) { where.company_id = company_id; };
     if (place_status) { where.place_status = place_status; };
 
+    if (date_range) {
+        const date_array = Array.isArray(date_range) ? date_range : [date_range];
+
+        if (date_array.length >= 2) {
+            const start_date = new Date(date_array[0]?.trim());
+            const end_date = new Date(date_array[1]?.trim());
+
+
+            if (!isNaN(start_date) && !isNaN(end_date)) {
+                end_date.setHours(23, 59, 59, 999);
+
+                // where.reg_start_date = { [Op.gte]: start_date };
+                // where.reg_end_date = { [Op.lte]: end_date };
+            };
+        };
+    };
+
     const placements = await Placement.findAll({
         where, order: [['created_at', 'DESC']],
-        include: [
-            {
-                model: PlacePosition, foreignKey: 'placement_id', as: 'positions', attributes: ['id', 'title', 'opening'],
-                include: [
-                    // {
-                    //     model: Skill, as: 'skills', required: false, attributes: ['id', 'title'],
-                    //     through: { model: PositionSkill, attributes: [] }
-                    // },
-                ]
-            },
-            // { model: Company, foreignKey: 'company_id', as: 'company', attributes: ['id', 'title'] }
-        ]
+        include: [{ model: PlacePosition, foreignKey: 'placement_id', as: 'positions', attributes: ['id', 'title', 'opening'] }]
     });
 
     const modified = await Promise.all(placements.map(async (item) => {
@@ -252,9 +260,11 @@ export const getPlaceOptions = TryCatch(async (req, resp, next) => {
 
 // OPTIONS FOR FILTER PLACEMENT
 export const getPlaceFilterOpts = TryCatch(async (req, resp, next) => {
-    const [companies, statuses] = await Promise.all([getPlaceCompanyOpts(), getPlaceStatusOpts()]);
+    const [companies, statuses, types, { min, max }] = await Promise.all([
+        getPlaceCompanyOpts(), getPlaceStatusOpts(), getPlaceTypeOpts(), getPlaceDateRange()
+    ]);
 
-    const filter_opts = { companies, statuses };
+    const filter_opts = { companies, statuses, types, min, max };
     resp.status(200).json({ success: true, filter_opts });
 });
 
