@@ -22,7 +22,7 @@ app.use(cors({
 // Upload Files
 app.use("/upload", express.static(path.join(__dirname, "upload"), {
   setHeaders: (res, filePath) => {
-    res.setHeader("Content-Security-Policy", "frame-ancestors 'self' https://uat.futryo.com");
+    res.setHeader("Content-Security-Policy", `frame-ancestors 'self' ${process.env.ORIGIN_ONE}`);
     // Optional: allow caching, content-type etc.
     res.setHeader("X-Content-Type-Options", "nosniff");
   }
@@ -31,7 +31,7 @@ app.use(
   helmet.contentSecurityPolicy({
     directives: {
       defaultSrc: ["'self'"],
-      frameAncestors: ["'self'", "https://uat.futryo.com"],
+      frameAncestors: ["'self'", process.env.ORIGIN_ONE],
       // add more if needed
     },
   })
