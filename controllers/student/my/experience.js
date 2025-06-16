@@ -5,6 +5,7 @@ import Experience from '../../../models/experience.js';
 import Student from '../../../models/student.js';
 import User from '../../../models/user.js';
 import TryCatch, { ErrorHandler } from '../../../utils/trycatch.js';
+import { uploadFile } from '../../../utils/upload.js';
 
 
 // CREATE STUDENT EXPERIENCE RECORD
@@ -46,8 +47,8 @@ export const experienceById = TryCatch(async (req, resp, next) => {
 // UPDATE STUDENT EXPERIENCE RECORD
 export const editExperience = TryCatch(async (req, resp, next) => {
     const { description, start_date, end_date, position,
-        org_name, location, work_type, category } = req.body;
-    const certificate = req.file?.path;
+        org_name, location, work_type, category, certificate_txt } = req.body;
+    const certificate_file = req.file?.path;
 
     const student = await Student.findOne({ where: { user_id: req.user.id, status: true }, attributes: ['id', 'user_id'] });
     const experience = await Experience.findOne({ where: { id: req.params.id, user_id: req.user.id, student_id: student.id, status: true } });
@@ -55,13 +56,13 @@ export const editExperience = TryCatch(async (req, resp, next) => {
         return next(new ErrorHandler('EXPERIENCE NOT FOUND!', 404));
     };
 
-    if (experience.certificate && certificate) {
-        fs.rm(experience.certificate, () => console.log('OLD FILE DELETED!'));
-    };
+    // if (experience.certificate && certificate) {
+    //     fs.rm(experience.certificate, () => console.log('OLD FILE DELETED!'));
+    // };
+    const certificate = await uploadFile(experience?.certificate, certificate_file, certificate_txt);
 
     await experience.update({
-        description, start_date, end_date, position, org_name, location, work_type, category,
-        certificate: certificate ? certificate : experience?.certificate,
+        description, start_date, end_date, position, org_name, location, work_type, category, certificate,
     });
     resp.status(201).json({ success: true, message: 'EXPERIENCE UPDATED!' });
 });

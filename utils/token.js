@@ -14,10 +14,13 @@ const sendToken = async (user, statusCode, resp) => {
     currentTokens?.unshift(auth_token);
     await auth_user.update({ auth_tokens: currentTokens });
 
+    // CLEAR EXPIRED TOKENS
+    await cleanExpTokens(user?.id);
+
     resp
         .status(statusCode)
         .json({
-            success: true, auth_token,
+            success: true, auth_token, role: user?.role,
             message: `HELLO ${user?.name?.toUpperCase()}...`
         });
 };

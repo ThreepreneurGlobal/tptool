@@ -7,10 +7,11 @@ import Certificate from '../../models/certificate.js';
 import Experience from '../../models/experience.js';
 import PlacePosition from '../../models/place_position.js';
 import Project from '../../models/project.js';
-import Skill from '../../models/skill.js';
+// import Skill from '../../models/skill.js';
 import Student from '../../models/student.js';
 import User from '../../models/user.js';
 import UserSkill from '../../models/user_skill.js';
+import mailTransporter from '../../utils/mail.js';
 import { getCollegeBatchOpts, getCollegeBranchesOpts, getCollegeCoursesOpts, getCollegeEdYearOpts } from '../../utils/opt/college.js';
 import TryCatch, { ErrorHandler } from '../../utils/trycatch.js';
 
@@ -71,9 +72,9 @@ export const createStudent = TryCatch(async (req, resp, next) => {
         return next(new ErrorHandler(`${existed.name} ALREADY EXISTS!`, 500));
     };
 
-    if (name?.length <= 5) {
-        return next(new ErrorHandler(`STUDENT NAME TOO SHORT! MIN 6 CHAR REQUIRED!`, 500));
-    };
+    // if (name?.length <= 5) {
+    //     return next(new ErrorHandler(`STUDENT NAME TOO SHORT! MIN 6 CHAR REQUIRED!`, 500));
+    // };
 
     // Genrate Password
     let password;
@@ -82,7 +83,19 @@ export const createStudent = TryCatch(async (req, resp, next) => {
     const nameWord = trimName?.split(' ');
     if (nameWord?.length > 0) {
         const first = nameWord[0];
-        password = (first.substring(0, 6)).charAt(0).toUpperCase() + first.substring(1, 6).toLowerCase() + "@123#";
+        const namePart = first?.charAt(0).toUpperCase() + first?.slice(1).toLowerCase();
+        const fixedPart = '@123#';
+        const digitNeeded = 10 - (namePart?.length + fixedPart?.length);
+        let digit = '';
+
+        if (digitNeeded > 0) {
+            for (let i = 0; i < digitNeeded; i++) {
+                digit += (4 + i).toString();
+            };
+        };
+
+        password = namePart + "@123" + digit + '#';
+        console.log({ name, password });
     };
 
     const hash_pass = await bcryptjs.hash(password, 10);
@@ -102,6 +115,105 @@ export const createStudent = TryCatch(async (req, resp, next) => {
     if (!student) {
         return next(new ErrorHandler('REGISTRATION FAILED!', 500));
     };
+
+    const options = {
+        from: process.env.MAIL_USER,
+        to: user?.email,
+        subject: 'Your futryoAI Account Ready!',
+        html: `
+            <!DOCTYPE html>
+            <html>
+            <head>
+            <meta charset="UTF-8">
+            <title>futryoAI Account Created</title>
+            <style>
+                body {
+                font-family: Arial, sans-serif;
+                background-color: #f4f6f8;
+                margin: 0;
+                padding: 0;
+                }
+                .email-container {
+                max-width: 600px;
+                margin: 30px auto;
+                background-color: #ffffff;
+                border-radius: 8px;
+                overflow: hidden;
+                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+                }
+                .email-header {
+                background-color: #0d6efd;
+                color: #ffffff;
+                padding: 20px;
+                text-align: center;
+                }
+                .email-body {
+                padding: 30px;
+                }
+                .email-body h2 {
+                color: #333333;
+                }
+                .email-body p {
+                line-height: 1.6;
+                color: #555555;
+                }
+                .email-footer {
+                background-color: #f0f0f0;
+                padding: 20px;
+                text-align: center;
+                font-size: 12px;
+                color: #888888;
+                }
+                .btn {
+                display: inline-block;
+                background-color: #0d6efd;
+                color: white;
+                padding: 12px 24px;
+                margin-top: 20px;
+                border-radius: 5px;
+                text-decoration: none;
+                }
+            </style>
+            </head>
+            <body>
+
+            <div class="email-container">
+                <div class="email-header">
+                <h1>Welcome to T&P Portal</h1>
+                </div>
+
+                <div class="email-body">
+                <h2>Hello ${user?.name},</h2>
+                <p>
+                    We’re excited to inform you that your futryoAI account has been successfully created.
+                </p>
+                <p><strong>Account Details:</strong></p>
+                <ul>
+                    <li><strong>Email ID:</strong> ${user?.email}</li>
+                    <li><strong>Password:</strong> ${password}</li>
+                </ul>
+                <p>
+                    Please log in to your account using the button below and update your profile and password at your earliest convenience.
+                </p>
+                <a href="${process.env.ORIGIN_ONE}" class="btn">Login to futryoAI Portal</a>
+                </div>
+
+                <div class="email-footer">
+                    If you didn’t request this account or have questions, please contact the futryoAI cell.<br>
+                    &copy; 2025 futryoAI
+                </div>
+            </div>
+
+            </body>
+            </html>
+        `,
+    };
+
+    await mailTransporter.sendMail(options, (error, info) => {
+        if (error) {
+            return new ErrorHandler(error.message, 400);
+        };
+    });
     resp.status(201).json({ success: true, message: `${user?.name?.toUpperCase()} ADDED...` });
 });
 
@@ -114,10 +226,11 @@ export const studentById = TryCatch(async (req, resp, next) => {
         include: [
             {
                 model: Student, foreignKey: 'user_id', as: 'student', where: { status: true, is_active: true },
-                include: [{
-                    model: Skill, through: { model: UserSkill, attributes: ['id', 'rating'] },
-                    as: 'skills', required: false, attributes: ['id', 'title'], where: { status: true },
-                }], attributes: { exclude: ['user_id', 'status', 'updated_at', 'created_at'] }, required: true,
+                // include: [{
+                //     model: Skill, through: { model: UserSkill, attributes: ['id', 'rating'] },
+                //     as: 'skills', required: false, attributes: ['id', 'title'], where: { status: true },
+                // }],
+                attributes: { exclude: ['user_id', 'status', 'updated_at', 'created_at'] }, required: true,
             },
             {
                 model: Certificate, foreignKey: 'user_id', as: 'certificates', required: false,
@@ -142,6 +255,16 @@ export const studentById = TryCatch(async (req, resp, next) => {
     if (!user) {
         return next(new ErrorHandler('STUDENT NOT FOUND!', 404));
     };
+
+    const user_skill_data = await UserSkill.findAll({ where: { student_id: user?.student?.id, status: true }, attributes: ['id', 'rating', 'skill_id'] });
+    const user_skill_ids = await user_skill_data.map(item => item?.skill_id);
+
+    const skills = await Promise.all(user_skill_ids?.map(async (item) => {
+        const skill_promise = await fetch(process.env.SUPER_SERVER + '/v1/master/skill/get/' + item);
+        const { skill } = await skill_promise.json();
+        const rate = user_skill_data?.filter(data => data.skill_id === item)[0];
+        return { id: skill?.id, title: skill?.title, category: skill?.category, rating: rate?.rating };
+    }));
 
     const applications = await Application.findAll({
         where: { user_id: user.id, status: true }, attributes: ['id', 'app_status', 'position_id']
@@ -177,7 +300,8 @@ export const studentById = TryCatch(async (req, resp, next) => {
             data: Object.values(internshipStatusCounts),
         },
     };
-    resp.status(200).json({ success: true, user: { ...user.toJSON(), statistics } });
+    const modified_user = { ...user.toJSON(), student: { ...user?.student?.toJSON(), skills } };
+    resp.status(200).json({ success: true, user: modified_user, statistics });
 });
 
 
@@ -206,7 +330,7 @@ export const editStudent = TryCatch(async (req, resp, next) => {
         ed_gap, gap_desc, disability, experience, abc_id,
     });
 
-    resp.status(201).json({ success: true, message: `${user?.name?.toUpperCase()} UPDATED...` });
+    resp.status(200).json({ success: true, message: `${user?.name?.toUpperCase()} UPDATED...` });
 });
 
 

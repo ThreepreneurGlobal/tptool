@@ -5,6 +5,7 @@ import Achievement from '../../../models/achievement.js';
 import Student from '../../../models/student.js';
 import User from '../../../models/user.js';
 import TryCatch, { ErrorHandler } from '../../../utils/trycatch.js';
+import { uploadFile } from '../../../utils/upload.js';
 
 
 // CREATE STUDENT ACHIEVEMENT RECORD
@@ -30,8 +31,8 @@ export const addAchievement = TryCatch(async (req, resp, next) => {
 
 // UPDATE STUDENT ACHIEVEMENT RECORD
 export const editAchievement = TryCatch(async (req, resp, next) => {
-    const { title, description, date, org_name } = req.body;
-    const certificate = req.file?.path;
+    const { title, description, date, org_name, certificate: certificate_txt } = req.body;
+    const certificate_file = req.file?.path;
 
     const student = await Student.findOne({ where: { user_id: req.user.id, status: true }, attributes: ['id', 'user_id'] });
     const achievement = await Achievement.findOne({
@@ -41,13 +42,9 @@ export const editAchievement = TryCatch(async (req, resp, next) => {
         return next(new ErrorHandler('ACHIEVEMENT RECORD NOT FOUND!', 404));
     };
 
-    if (achievement.certificate && certificate) {
-        fs.rm(achievement.certificate, () => console.log('OLD FILE DELETED!'));
-    };
+    const certificate = await uploadFile(achievement?.certificate, certificate_file, certificate_txt);
 
-    await achievement.update({
-        title, description, date, org_name, certificate: certificate ? certificate : achievement.certificate,
-    });
+    await achievement.update({ title, description, date, org_name, certificate, });
     resp.status(201).json({ success: true, message: 'ACHIEVEMENT RECORD UPDATED!' });
 });
 

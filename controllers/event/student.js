@@ -43,7 +43,7 @@ export const applyEvent = TryCatch(async (req, resp, next) => {
             <p style="text-align: justify;">We appreciate your interest and enthusiasm in participating. This event is a great opportunity to showcase your skills, learn, and connect with like-minded peers. Our team will review your application, and we’ll notify you about the next steps soon.</p>
             <p>
                 Best Regards, <br>
-                <strong>TPConnect</strong>
+                <strong>futryoAI</strong>
             </p>
         `,
     };
@@ -54,6 +54,30 @@ export const applyEvent = TryCatch(async (req, resp, next) => {
         };
     });
     resp.status(201).json({ success: true, message: 'APPLICATION APPLIED!' });
+});
+
+
+// SINGLE EVENT RECORD
+export const getUserEventById = TryCatch(async (req, resp, next) => {
+    const event = await Event.findOne({
+        where: { status: true, id: req.params.id },
+        include: [{
+            model: EventCompany, foreignKey: 'event_id', as: 'event_companies', attributes: { exclude: ['event_id'] }, where: { status: true },
+            // include: [{ model: Company, foreignKey: 'company_id', as: 'company', attributes: ['id', 'title', 'logo'] }]
+        }],
+    });
+
+    if (!event) {
+        return next(new ErrorHandler('EVENT NOT FOUND!', 404));
+    };
+
+    const event_companies = await Promise.all(event?.event_companies?.map(async (event_comp) => {
+        const comp_promise = await fetch(process.env.SUPER_SERVER + '/v1/master/company/get/' + event_comp?.company_id);
+        const { company: { id, title, logo } } = await comp_promise.json();
+        return { ...event_comp.toJSON(), company: { id, title, logo } };
+    }));
+
+    resp.status(200).json({ success: true, event: { ...event.toJSON(), event_companies } });
 });
 
 

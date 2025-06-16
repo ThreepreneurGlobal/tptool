@@ -5,7 +5,8 @@ import { Op } from 'sequelize';
 import User from '../models/user.js';
 import sendToken, { cleanExpTokens } from '../utils/token.js';
 import TryCatch, { ErrorHandler } from '../utils/trycatch.js';
-import SuperUser from '../models/super/user.js';
+import { uploadFile } from '../utils/upload.js';
+// import SuperUser from '../models/super/user.js';
 
 
 // SELF CREATE USING ONLY TESTING
@@ -50,48 +51,63 @@ export const loginUser = TryCatch(async (req, resp, next) => {
 
 // MY PROFILE RECORD
 export const myProfile = TryCatch(async (req, resp, next) => {
+    let modified;
     const user = await User.findOne({
         where: { id: req.user.id, status: true },
         attributes: { exclude: ["password", "auth_tokens", "status", "created_at", "updated_at"] },
     });
 
-    await cleanExpTokens(user?.id);
-    resp.status(200).json({ success: true, user });
+    if (user?.role === 'admin') {
+        const collegePromise = await fetch(process.env.SUPER_SERVER + '/v1/college/profile?email=' + user?.email);
+        const { college: { college_category } } = await collegePromise.json();
+
+        modified = { ...user.toJSON(), college_category };
+    } else {
+        modified = user;
+    };
+
+    resp.status(200).json({ success: true, user: modified });
 });
 
 
 // USER LOGOUT
 export const logoutUser = TryCatch(async (req, resp, next) => {
-    const auth_token = req.headers['auth_token'];
+    const auth_token = req.headers['authorization'];
     const user = await User.findOne({ where: { id: req.user.id, status: true }, attributes: ['id', 'auth_tokens'] });
 
     const auth_tokens = user?.auth_tokens?.filter(token => token !== auth_token);
     await user.update({ auth_tokens });
 
-    resp.status(200)
-        .json({ success: true, message: "LOGGED OUT SUCCESSFULLY..." });
+    resp.status(200).json({ success: true, message: "LOGGED OUT SUCCESSFULLY..." });
 });
 
 
 // UPDATE MY PROFILE
 export const updateProfile = TryCatch(async (req, resp, next) => {
-    const { gender, address, city, pin_code, facebook, twitter, instagram, linkedin, whatsapp } = req.body;
-    const avatar = req.file?.path;
+    const { gender, address, city, pin_code, facebook, twitter, instagram, linkedin, whatsapp, avatar: avatar_txt, Authorization } = req.body;
+    const avatar_file = req.file?.path;
 
     const user = await User.findOne({ where: { id: req.user.id, status: true } });
+    const avatar = await uploadFile(user?.avatar, avatar_file, avatar_txt);
 
-    if (avatar && user.avatar) {
-        fs.rm(user.avatar, () => { console.log('OLD FILE REMOVED SUCCESSFULLY...'); });
-    };
-    await user.update({ gender, address, city, pin_code, facebook, twitter, instagram, linkedin, whatsapp, avatar: avatar ? avatar : user.avatar });
+    await user.update({ gender, address, city, pin_code, facebook, twitter, instagram, linkedin, whatsapp, avatar });
 
     if (user?.role === 'admin') {
-        const admin_user = await SuperUser.findOne({ where: { email: user?.email, role: 'admin', status: true } });
+        const request_body = { address, city, pin_code, facebook, twitter, instagram, linkedin, avatar };
+        const admin_user_promise = await fetch(process.env.SUPER_SERVER + '/v1/user/myprofile', {
+            method: 'GET', headers: { Authorization },
+        });
+        const { user: admin_user } = await admin_user_promise.json();
+
         if (!admin_user) {
             return next(new ErrorHandler('PROFILE NOT FOUND!', 404));
         };
-
-        await admin_user.update({ address, city, pin_code, facebook, twitter, instagram, linkedin, avatar: avatar ? avatar : user?.avatar });
+        const edit_admin_promise = await fetch(process.env.SUPER_SERVER + '/v1/user/update/myprofile', {
+            method: 'PUT', body: request_body,
+            headers: { "Content-Type": "multipart/form-data", Authorization },
+        });
+        const { message: admin_msg } = await edit_admin_promise.json();
+        console.log(admin_msg);
     };
     resp.status(200).json({ success: true, message: "PROFILE UPDATED SUCCESSFULLY..." });
 });

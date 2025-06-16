@@ -1,5 +1,10 @@
 import multer from 'multer';
+import { rm } from 'fs';
 import path from 'path';
+import { promisify } from 'util';
+
+
+const rmAsync = promisify(rm);
 
 
 const storage = multer.diskStorage({
@@ -27,4 +32,24 @@ const upload = multer({
 });
 
 
+const uploadFile = async (exist_file, file_handle, txt_handle) => {
+    let logo;
+
+    if (file_handle && (exist_file || exist_file === null)) {
+        await rmAsync(exist_file).catch(err => console.error(err?.message));
+        console.log('OLD FILE DELETED!');
+        logo = file_handle;
+    } else if (txt_handle === null && file_handle === null && exist_file) {
+        await rmAsync(exist_file).catch(err => console.error(err?.message));
+        console.log('OLD FILE DELETED!');
+        logo = null;
+    } else if (typeof txt_handle === 'string') {
+        logo = exist_file;
+    };
+
+    return logo;
+};
+
+
+export { uploadFile };
 export default upload;

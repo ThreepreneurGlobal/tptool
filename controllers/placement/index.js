@@ -1,41 +1,65 @@
-import fs from 'fs';
 
-import Company from '../../models/company.js';
+// import Company from '../../models/company.js';
+import { Op } from 'sequelize';
 import PlacePosition from '../../models/place_position.js';
 import Placement from '../../models/placement.js';
 import PositionSkill from '../../models/position_skill.js';
-import Skill from '../../models/skill.js';
+// import Skill from '../../models/skill.js';
 import User from '../../models/user.js';
-import { getCompanyOpts } from '../../utils/opt/company.js';
-import { getPlaceCompanyOpts, getPlaceDriveOpts, getPlacePositionOpts, getPlaceStatusOpts } from '../../utils/opt/place.js';
-import { getSkillsOpts } from '../../utils/opt/skill.js';
+import { getPlaceCompanyOpts, getPlaceDateRange, getPlaceDriveOpts, getPlaceStatusOpts, getPlaceTypeOpts } from '../../utils/opt/place.js';
 import TryCatch, { ErrorHandler } from '../../utils/trycatch.js';
+import { uploadFile } from '../../utils/upload.js';
 
 
 // ALL PLACEMENTS RECORDS
 export const getPlacements = TryCatch(async (req, resp, next) => {
-    const { company_id, place_status } = req.query;
+    const { company_id, place_status, type, date_range } = req.query;
     const where = { status: true };
+    if (type) { where.type = type; };
     if (company_id) { where.company_id = company_id; };
     if (place_status) { where.place_status = place_status; };
 
+    if (date_range) {
+        const date_array = Array.isArray(date_range) ? date_range : [date_range];
+
+        if (date_array.length >= 2) {
+            const start_date = new Date(date_array[0]?.trim());
+            const end_date = new Date(date_array[1]?.trim());
+
+
+            if (!isNaN(start_date) && !isNaN(end_date)) {
+                end_date.setHours(23, 59, 59, 999);
+
+                // where.reg_start_date = { [Op.gte]: start_date };
+                // where.reg_end_date = { [Op.lte]: end_date };
+            };
+        };
+    };
+
     const placements = await Placement.findAll({
         where, order: [['created_at', 'DESC']],
-        include: [
-            {
-                model: PlacePosition, foreignKey: 'placement_id', as: 'positions', attributes: ['id', 'title', 'opening'],
-                include: [
-                    {
-                        model: Skill, as: 'skills', required: false, attributes: ['id', 'title'],
-                        through: { model: PositionSkill, attributes: [] }
-                    },
-                ]
-            },
-            { model: Company, foreignKey: 'company_id', as: 'company', attributes: ['id', 'title'] }
-        ]
+        include: [{ model: PlacePosition, foreignKey: 'placement_id', as: 'positions', attributes: ['id', 'title', 'opening'] }]
     });
 
-    resp.status(200).json({ success: true, placements });
+    const modified = await Promise.all(placements.map(async (item) => {
+        const promise = await fetch(process.env.SUPER_SERVER + '/v1/master/company/get/' + item?.company_id);
+        const { company } = await promise.json();
+
+        const positions = await Promise.all(item?.positions?.map(async (position) => {
+            const position_skills = await PositionSkill.findAll({ where: { position_id: position?.id }, attributes: ['id', 'skill_id'] });
+            const skills = await Promise.all(position_skills?.map(async (item) => {
+                const skill_promise = await fetch(process.env.SUPER_SERVER + '/v1/master/skill/get/' + item?.skill_id);
+                const { skill } = await skill_promise.json();
+                return { id: skill?.id, title: skill?.title, category: skill?.category };
+            }));
+
+            return { ...position.toJSON(), skills };
+        }));
+
+        return { ...item.toJSON(), positions, company: { id: company?.id, title: company?.title } };
+    }));
+
+    resp.status(200).json({ success: true, placements: modified });
 });
 
 
@@ -45,16 +69,16 @@ export const getPlacementById = TryCatch(async (req, resp, next) => {
         where: { status: true, id: req.params.id },
         include: [
             { model: User, foreignKey: 'user_id', as: 'user', attributes: ['id', 'name', 'email'], where: { status: true }, },
+            // {
+            //     model: Company, foreignKey: 'company_id', as: 'company', where: { status: true },
+            //     attributes: ['id', 'title', 'phone', 'email', 'web', 'logo']
+            // },
             {
-                model: Company, foreignKey: 'company_id', as: 'company', where: { status: true },
-                attributes: ['id', 'title', 'phone', 'email', 'web', 'logo']
-            },
-            {
-                model: PlacePosition, foreignKey: 'placement_id', as: 'positions', attributes: ['id', 'title', 'type', 'opening'],
-                include: [{
-                    model: Skill, through: { model: PositionSkill, attributes: [], where: { status: true } },
-                    as: 'skills', required: false, attributes: ['id', 'title', 'category'],
-                }], where: { status: true },
+                model: PlacePosition, foreignKey: 'placement_id', as: 'positions', where: { status: true }, attributes: ['id', 'title', 'type', 'opening'],
+                // include: [{
+                //     model: Skill, through: { model: PositionSkill, attributes: ['skill_id'], where: { status: true } },
+                //     as: 'skills', required: false, attributes: ['id', 'title', 'category'],
+                // }],
             },
         ]
     });
@@ -63,7 +87,28 @@ export const getPlacementById = TryCatch(async (req, resp, next) => {
         return next(new ErrorHandler('PLACEMENT NOT FOUND!', 404));
     };
 
-    resp.status(200).json({ success: true, placement });
+    const comp_promise = await fetch(process.env.SUPER_SERVER + '/v1/master/company/get/' + placement?.company_id);
+    const { company } = await comp_promise.json();
+
+    const positions = await Promise.all(placement?.positions?.map(async (position) => {
+        const position_skills = await PositionSkill.findAll({ where: { position_id: position?.id }, attributes: ['id', 'skill_id'] });
+        const skills = await Promise.all(position_skills?.map(async (item) => {
+            const skill_promise = await fetch(process.env.SUPER_SERVER + '/v1/master/skill/get/' + item?.skill_id);
+            const { skill } = await skill_promise.json();
+            return { id: skill?.id, title: skill?.title, category: skill?.category };
+        }));
+
+        return { ...position.toJSON(), skills };
+    }));
+
+    const modified = {
+        ...placement.toJSON(), positions, company: {
+            id: company?.id, title: company?.title, contact: company?.contact,
+            email: company?.email, web: company?.web, logo: company?.logo,
+        },
+    };
+
+    resp.status(200).json({ success: true, placement: modified });
 });
 
 
@@ -112,12 +157,12 @@ export const createPlacement = TryCatch(async (req, resp, next) => {
 // UPDATE PLACEMENT RECORD
 export const editPlacement = TryCatch(async (req, resp, next) => {
     const {
-        title, type, place_status, status_details, selection_details, criteria, other_details,
-        contact_per, company_contact, reg_start_date, reg_end_date, rereg_end_date, reg_details,
-        ctc, stipend, add_comment, history, company_id, positions,
+        title, type, place_status, status_details, selection_details, criteria, other_details, contact_per,
+        company_contact, reg_start_date, reg_end_date, rereg_end_date, reg_details, company_id, positions,
+        attach_student: attach_student_txt, attach_tpo: attach_tpo_txt, ctc, stipend, add_comment, history,
     } = req.body;
-    const attach_student = req.files['attach_student'] && req.files['attach_student'][0].path;
-    const attach_tpo = req.files['attach_tpo'] && req.files['attach_tpo'][0].path;
+    const attach_student_file = req.files['attach_student'] && req.files['attach_student'][0].path;
+    const attach_tpo_file = req.files['attach_tpo'] && req.files['attach_tpo'][0].path;
 
     const placement = await Placement.findOne({
         where: { id: req.params.id, status: true, },
@@ -126,18 +171,13 @@ export const editPlacement = TryCatch(async (req, resp, next) => {
         return next(new ErrorHandler('PLACEMENT NOT FOUND!', 404));
     };
 
-    if (placement?.attach_tpo && attach_tpo) {
-        fs.rm(placement?.attach_tpo, () => console.log('ATTACT TPO OLD FILE DELETED!'));
-    };
-    if (placement?.attach_student && attach_student) {
-        fs.rm(placement?.attach_student, () => console.log('ATTACT STUDENT OLD FILE DELETED!'));
-    };
+    const attach_tpo = await uploadFile(placement?.attach_tpo, attach_tpo_file, attach_tpo_txt);
+    const attach_student = await uploadFile(placement?.attach_student, attach_student_file, attach_student_txt);
 
     await placement.update({
         title, type, place_status, status_details, selection_details, criteria, other_details, contact_per,
         company_contact, reg_start_date, reg_end_date, rereg_end_date, reg_details, ctc, stipend, add_comment,
-        history, company_id: Number(company_id), attach_tpo: attach_tpo ? attach_tpo :
-            placement?.attach_tpo, attach_student: attach_student ? attach_student : placement?.attach_student,
+        history, company_id: Number(company_id), attach_tpo, attach_student,
     });
 
     // POSITION
@@ -204,20 +244,27 @@ export const editPlacement = TryCatch(async (req, resp, next) => {
 
 // OPTIONS FOR CREATE PLACEMENT
 export const getPlaceOptions = TryCatch(async (req, resp, next) => {
-    const [statuses, drives, position_types, skills, companies] = await Promise.all([
-        getPlaceStatusOpts(), getPlaceDriveOpts(), getPlacePositionOpts(), getSkillsOpts(), getCompanyOpts()
+
+    const [skillPromise, companyPromise] = await Promise.all([
+        fetch(process.env.SUPER_SERVER + '/v1/master/skill/opts'),
+        fetch(process.env.SUPER_SERVER + '/v1/master/company/opts'),
+    ]);
+    const [statuses, drives, { skills }, { companies }] = await Promise.all([
+        getPlaceStatusOpts(), getPlaceDriveOpts(), skillPromise.json(), companyPromise.json(),
     ]);
 
-    const place_options = { statuses, drives, position_types, skills, companies };
+    const place_options = { statuses, drives, skills, companies, };
     resp.status(200).json({ success: true, place_options });
 });
 
 
 // OPTIONS FOR FILTER PLACEMENT
 export const getPlaceFilterOpts = TryCatch(async (req, resp, next) => {
-    const [companies, statuses] = await Promise.all([getPlaceCompanyOpts(), getPlaceStatusOpts()]);
+    const [companies, statuses, types, { min, max }] = await Promise.all([
+        getPlaceCompanyOpts(), getPlaceStatusOpts(), getPlaceTypeOpts(), getPlaceDateRange()
+    ]);
 
-    const filter_opts = { companies, statuses };
+    const filter_opts = { companies, statuses, types, min, max };
     resp.status(200).json({ success: true, filter_opts });
 });
 
