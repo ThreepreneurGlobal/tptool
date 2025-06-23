@@ -19,6 +19,33 @@ const PlacePosition = Connect.define('place_positions', {
     opening: {
         type: DataTypes.INTEGER,
     },
+    courses: {
+        type: DataTypes.TEXT,
+        get: function () {
+            return JSON.parse(this.getDataValue('courses')) || [];
+        },
+        set: function (value) {
+            return this.setDataValue('courses', JSON.stringify(value));
+        }
+    },
+    branches: {
+        type: DataTypes.TEXT,
+        get: function () {
+            return JSON.parse(this.getDataValue('branches')) || [];
+        },
+        set: function (value) {
+            return this.setDataValue('branches', JSON.stringify(value));
+        }
+    },
+    batches: {
+        type: DataTypes.TEXT,
+        get: function () {
+            return JSON.parse(this.getDataValue('batches')) || [];
+        },
+        set: function (value) {
+            return this.setDataValue('batches', JSON.stringify(value));
+        }
+    },
     placement_id: {
         type: DataTypes.INTEGER,
     },

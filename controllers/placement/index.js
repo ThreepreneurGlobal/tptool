@@ -1,14 +1,16 @@
-
 // import Company from '../../models/company.js';
-import { Op } from 'sequelize';
+import { col, fn, Op, where } from 'sequelize';
 import PlacePosition from '../../models/place_position.js';
 import Placement from '../../models/placement.js';
 import PositionSkill from '../../models/position_skill.js';
 // import Skill from '../../models/skill.js';
+import Student from '../../models/student.js';
 import User from '../../models/user.js';
-import { getPlaceCompanyOpts, getPlaceDateRange, getPlaceDriveOpts, getPlaceStatusOpts, getPlaceTypeOpts } from '../../utils/opt/place.js';
+import mailTransporter from '../../utils/mail.js';
+import { getPlaceBranchOpts, getPlaceCompanyOpts, getPlaceCourseOpts, getPlaceDateRange, getPlaceDriveOpts, getPlaceStatusOpts, getPlaceTypeOpts } from '../../utils/opt/place.js';
 import TryCatch, { ErrorHandler } from '../../utils/trycatch.js';
 import { uploadFile } from '../../utils/upload.js';
+import placementMail from '../../templates/placement.js';
 
 
 // ALL PLACEMENTS RECORDS
@@ -74,7 +76,8 @@ export const getPlacementById = TryCatch(async (req, resp, next) => {
             //     attributes: ['id', 'title', 'phone', 'email', 'web', 'logo']
             // },
             {
-                model: PlacePosition, foreignKey: 'placement_id', as: 'positions', where: { status: true }, attributes: ['id', 'title', 'type', 'opening'],
+                model: PlacePosition, foreignKey: 'placement_id', as: 'positions', where: { status: true },
+                attributes: ['id', 'title', 'type', 'opening', 'courses', 'branches', 'batches'],
                 // include: [{
                 //     model: Skill, through: { model: PositionSkill, attributes: ['skill_id'], where: { status: true } },
                 //     as: 'skills', required: false, attributes: ['id', 'title', 'category'],
@@ -125,7 +128,7 @@ export const createPlacement = TryCatch(async (req, resp, next) => {
     const placement = await Placement.create({
         title, type, place_status, status_details, selection_details, criteria, other_details,
         contact_per, company_contact, reg_start_date, reg_end_date, rereg_end_date, reg_details,
-        ctc, stipend, add_comment, history, company_id: Number(company_id), user_id: req.user.id,
+        stipend, add_comment, ctc, history, company_id: Number(company_id), user_id: req.user.id,
         attach_student: attach_student ? attach_student : null, attach_tpo: attach_tpo ? attach_tpo : null,
     });
 
@@ -135,8 +138,8 @@ export const createPlacement = TryCatch(async (req, resp, next) => {
 
     if (Array.isArray(positions) && positions.length > 0) {
         await Promise.all(positions.map(async (position) => {
-            const { title, type, skills, opening } = position;
-            const placePosition = await PlacePosition.create({ title, type, opening, placement_id: placement.id, company_id: Number(company_id) });
+            const { title, type, skills, opening, courses, branches, batches } = position;
+            const placePosition = await PlacePosition.create({ title, type, opening, courses, branches, batches, placement_id: placement.id, company_id: Number(company_id) });
             if (!placePosition) {
                 return new ErrorHandler('PLACEMENT POSITION NOT CREATED!', 400);
             };
@@ -150,6 +153,36 @@ export const createPlacement = TryCatch(async (req, resp, next) => {
         }));
     };
 
+    const data = await Placement.findOne({
+        where: { id: placement?.id }, include: [{ model: PlacePosition, foreignKey: 'placement_id', as: 'positions' }],
+        attributes: ['id', 'title', 'type', 'company_id', 'reg_start_date', 'reg_end_date', 'rereg_end_date']
+    });
+
+    const batches = [...new Set(data?.positions?.flatMap(position => position?.batches))];
+    const courses = [...new Set(data?.positions?.flatMap(position => position?.courses))];
+    const branches = [...new Set(data?.positions?.flatMap(position => position?.branches))];
+
+    const users = await User.findAll({
+        where: { status: true, is_active: true }, attributes: ['id', 'name', 'email'],
+        include: [{
+            model: Student, foreignKey: 'user_id', as: 'student', attributes: ['id', 'course', 'branch', 'batch'],
+            where: { [Op.and]: [{ course: { [Op.in]: courses } }, { branch: { [Op.in]: branches } }, where(fn('YEAR', col('batch')), { [Op.in]: batches })] }
+        }]
+    });
+
+
+    // EMAIL NOTIFICATION
+    const options = {
+        from: process.env.MAIL_USER,
+        to: users?.map(item => item?.email),
+        subject: 'New Placement Opportunity!',
+        html: placementMail({ id: data?.id, name: data?.title, start_date: data?.start_date, end_date: data?.end_date })
+    };
+    await mailTransporter.sendMail(options, (error, info) => {
+        if (error) {
+            return new ErrorHandler(error.message, 400);
+        };
+    });
     resp.status(201).json({ success: true, message: 'PLACEMENT CREATED...' });
 });
 
@@ -188,11 +221,11 @@ export const editPlacement = TryCatch(async (req, resp, next) => {
         const positionsToDelete = existingPositionIds?.filter(id => !reqPositionIds?.includes(id));
 
         for (const position of positions) {
-            const { id, title, type, opening, skills = [] } = position;
+            const { id, title, type, opening, courses, branches, batches, skills = [] } = position;
             if (id) {
                 const existPosition = existingPositions?.find(p => p?.id === Number(id));
                 if (existPosition) {
-                    await existPosition.update({ title, type, opening });
+                    await existPosition.update({ title, type, opening, courses, branches, batches });
 
                     // SKILLS
                     const existingSkills = await PositionSkill.findAll({ where: { position_id: existPosition?.id, placement_id: placement?.id } });
@@ -219,7 +252,7 @@ export const editPlacement = TryCatch(async (req, resp, next) => {
                 };
             } else {
                 const newPosition = await PlacePosition.create({
-                    title, type, opening, placement_id: placement?.id, company_id: Number(company_id),
+                    title, type, opening, courses, branches, batches, placement_id: placement?.id, company_id: Number(company_id),
                 });
                 if (!newPosition) return;
 
@@ -238,6 +271,36 @@ export const editPlacement = TryCatch(async (req, resp, next) => {
         };
     };
 
+    const data = await Placement.findOne({
+        where: { id: placement?.id }, include: [{ model: PlacePosition, foreignKey: 'placement_id', as: 'positions' }],
+        attributes: ['id', 'title', 'type', 'company_id', 'reg_start_date', 'reg_end_date', 'rereg_end_date']
+    });
+
+    const batches = [...new Set(data?.positions?.flatMap(position => position?.batches))];
+    const courses = [...new Set(data?.positions?.flatMap(position => position?.courses))];
+    const branches = [...new Set(data?.positions?.flatMap(position => position?.branches))];
+
+    const users = await User.findAll({
+        where: { status: true, is_active: true }, attributes: ['id', 'name', 'email'],
+        include: [{
+            model: Student, foreignKey: 'user_id', as: 'student', attributes: ['id', 'course', 'branch', 'batch'],
+            where: { [Op.and]: [{ course: { [Op.in]: courses } }, { branch: { [Op.in]: branches } }, where(fn('YEAR', col('batch')), { [Op.in]: batches })] }
+        }]
+    });
+
+    // EMAIL NOTIFICATION
+    const options = {
+        from: process.env.MAIL_USER,
+        to: users?.map(item => item?.email),
+        subject: 'New Placement Opportunity!',
+        html: placementMail({ id: data?.id, name: data?.title, start_date: data?.reg_start_date, end_date: data?.rereg_end_date || data?.reg_end_date })
+    };
+    await mailTransporter.sendMail(options, (error, info) => {
+        if (error) {
+            return new ErrorHandler(error.message, 400);
+        };
+    });
+
     resp.status(200).json({ success: true, message: 'PLACEMENT UPDATED...' });
 });
 
@@ -249,11 +312,12 @@ export const getPlaceOptions = TryCatch(async (req, resp, next) => {
         fetch(process.env.SUPER_SERVER + '/v1/master/skill/opts'),
         fetch(process.env.SUPER_SERVER + '/v1/master/company/opts'),
     ]);
-    const [statuses, drives, { skills }, { companies }] = await Promise.all([
-        getPlaceStatusOpts(), getPlaceDriveOpts(), skillPromise.json(), companyPromise.json(),
+    const [statuses, drives, courses, branches, { skills }, { companies }] = await Promise.all([
+        getPlaceStatusOpts(), getPlaceDriveOpts(), getPlaceCourseOpts(),
+        getPlaceBranchOpts(), skillPromise.json(), companyPromise.json(),
     ]);
 
-    const place_options = { statuses, drives, skills, companies, };
+    const place_options = { statuses, drives, courses, branches, skills, companies, };
     resp.status(200).json({ success: true, place_options });
 });
 
