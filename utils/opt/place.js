@@ -111,8 +111,8 @@ export const getPlaceCourseOpts = async () => {
     });
 
     const courses = data?.flatMap(item => {
-        const parsedCourses = JSON.parse(item?.courses);
-        return parsedCourses?.map(course => ({ label: course?.toUpperCase(), value: course, }));
+        const parsedCourses = item ? JSON.parse(item?.courses) : [];
+        return parsedCourses?.length > 0 ? parsedCourses?.map(course => ({ label: course?.toUpperCase(), value: course, })) : [];
     });
     return [...new Map(courses?.map(item => [item?.value, item])).values()];
 };
@@ -123,8 +123,8 @@ export const getPlaceBranchOpts = async () => {
     });
 
     const branches = data?.flatMap(item => {
-        const parsedBranches = JSON.parse(item?.branches);
-        return parsedBranches?.map(branch => ({ label: branch?.toUpperCase(), value: branch, }));
+        const parsedBranches = item ? JSON.parse(item?.branches) : [];
+        return parsedBranches?.length > 0 ? parsedBranches?.map(branch => ({ label: branch?.toUpperCase(), value: branch, })) : [];
     });
     return [...new Map(branches?.map(item => [item?.value, item])).values()];
 };
