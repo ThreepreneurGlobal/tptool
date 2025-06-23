@@ -36,7 +36,8 @@ export const myPlacements = TryCatch(async (req, resp, next) => {
         attributes: ['id', 'title', 'type', 'place_status', 'reg_start_date', 'reg_end_date', 'rereg_end_date', 'company_id'], order: [['created_at', 'DESC']],
         include: [
             {
-                model: PlacePosition, foreignKey: 'placement_id', as: 'positions', attributes: ['id', 'title', 'opening'],
+                model: PlacePosition, foreignKey: 'placement_id', as: 'positions',
+                attributes: ['id', 'title', 'opening', 'courses', 'branches', 'batches'],
                 // include: [
                 //     {
                 //         model: Skill, as: 'skills', where: { id: { [Op.in]: userSkillIds }, status: true }, required: true,
@@ -68,8 +69,12 @@ export const myPlacements = TryCatch(async (req, resp, next) => {
 
     // Filter placements to remove positions that have no matching skills
     filteredPlacements = filteredPlacements?.map(placement => {
+        const { course, branch, batch } = user?.student;
+        const batch_dt = new Date(batch);
         const filteredPositions = placement?.positions?.filter(position =>
-            position?.skills?.some(skill => userSkillIds?.includes(skill?.id)));
+            position?.skills?.some(skill => userSkillIds?.includes(skill?.id)) && position?.branches?.includes(branch)
+            && position?.batches?.includes(batch_dt.getFullYear().toString()) && position?.courses?.includes(course)
+        );
 
         if (filteredPositions?.length > 0) {
             return { ...placement, positions: filteredPositions, };
@@ -103,7 +108,8 @@ export const myPlaceById = TryCatch(async (req, resp, next) => {
         attributes: ['id', 'title', 'type', 'place_status', 'company_id', 'reg_start_date', 'reg_end_date', 'rereg_end_date', 'criteria', 'attach_student', 'selection_details'],
         include: [
             {
-                model: PlacePosition, foreignKey: 'placement_id', as: 'positions', attributes: ['id', 'title', 'opening'],
+                model: PlacePosition, foreignKey: 'placement_id', as: 'positions',
+                attributes: ['id', 'title', 'opening', 'courses', 'branches', 'batches'],
                 // include: [
                 //     {
                 //         model: Skill, as: 'skills', where: { id: { [Op.in]: userSkillIds }, status: true }, required: true,
@@ -137,9 +143,13 @@ export const myPlaceById = TryCatch(async (req, resp, next) => {
         attributes: ['id', 'placement_id', 'position_id', 'app_status'],
     });
 
+    const { course, batch, branch } = user?.student;
+    const batch_dt = new Date(batch);
     // Filter positions to keep only those with at least one matching skill
     const filteredPositions = positions?.filter(position =>
-        position?.skills?.some(skill => userSkillIds?.includes(skill?.id)));
+        position?.skills?.some(skill => userSkillIds?.includes(skill?.id)) && position?.branches?.includes(branch)
+        && position?.batches?.includes(batch_dt.getFullYear().toString()) && position?.courses?.includes(course)
+    );
 
     if (filteredPositions?.length <= 0) {
         return next(new ErrorHandler('PLACEMENT NOT FOUND!', 404));

@@ -101,6 +101,30 @@ export const getPlaceDateRange = async () => {
     const maxReRegDate = new Date(maxReRegResult.get('maxReRegDate'));
     const minDate = minResult ? minResult.get('minDate') : null;
     const maxDate = maxReRegDate === null ? maxRegDate : maxRegDate > maxReRegDate ? maxRegDate : maxReRegDate;
-    
+
     return { min: minDate, max: maxDate };
+};
+
+export const getPlaceCourseOpts = async () => {
+    const data = await PlacePosition.findAll({
+        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('courses')), 'courses']], raw: true,
+    });
+
+    const courses = data?.flatMap(item => {
+        const parsedCourses = JSON.parse(item?.courses);
+        return parsedCourses?.map(course => ({ label: course?.toUpperCase(), value: course, }));
+    });
+    return [...new Map(courses?.map(item => [item?.value, item])).values()];
+};
+
+export const getPlaceBranchOpts = async () => {
+    const data = await PlacePosition.findAll({
+        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('branches')), 'branches']], raw: true,
+    });
+
+    const branches = data?.flatMap(item => {
+        const parsedBranches = JSON.parse(item?.branches);
+        return parsedBranches?.map(branch => ({ label: branch?.toUpperCase(), value: branch, }));
+    });
+    return [...new Map(branches?.map(item => [item?.value, item])).values()];
 };
