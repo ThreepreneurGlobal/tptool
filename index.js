@@ -10,13 +10,12 @@ import ErrorMiddleware from './middlewares/error.js';
 import router from './routes/index.js';
 
 const app = express();
-
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cors({
-    credentials: true, origin: [
-        process.env.ENV === 'DEV' && 'http://localhost:5173', process.env.ORIGIN_ONE,
-    ]
+    credentials: true, origin: process.env.ORIGIN_ONE,
 }));
 
 // Upload Files
@@ -39,7 +38,6 @@ app.get("/", (req, resp) => {
 
 // Routes
 app.use('/v1', router);
-
 
 //Error Middleware
 app.use(ErrorMiddleware);
