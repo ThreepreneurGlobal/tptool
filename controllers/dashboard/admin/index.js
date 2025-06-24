@@ -234,13 +234,14 @@ const adminDash = TryCatch(async (req, resp, next) => {
         cards_data.event.series[idx] = last10MonthEventCount || 0;
     });
     await Promise.all(tenMonthsPromise);
+ 
 
     // SHOW RECENT ADDED JOBS
     const vacancies = await Promise.all(placePositions?.map(async (item) => {
         const promise = await fetch(process.env.SUPER_SERVER + '/v1/master/company/get/' + item?.placement?.company_id);
-        const { company: { id, title, type, logo } } = await promise.json();
+        const { company } = await promise.json();
 
-        return { id: item?.placement?.id, img: logo, title: item?.title, company: title, type, vacancy: item?.opening, };
+        return { id: item?.placement?.id, img: company?.logo, title: item?.title, company: company?.title, type: company?.type, vacancy: item?.opening, };
     }));
 
     // SHOW ACTIVITY FEEDS
