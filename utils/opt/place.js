@@ -111,8 +111,13 @@ export const getPlaceCourseOpts = async () => {
     });
 
     const courses = data?.flatMap(item => {
+<<<<<<< HEAD
         const parsedCourses = item ? JSON.parse(item?.courses):[];
         return parsedCourses?.length > 0 ? parsedCourses?.map(course => ({ label: course?.toUpperCase(), value: course, })):[];
+=======
+        const parsedCourses = item ? JSON.parse(item?.courses) : [];
+        return parsedCourses?.length > 0 ? parsedCourses?.map(course => ({ label: course?.toUpperCase(), value: course, })) : [];
+>>>>>>> 9dd39b1e3d26e8087a60cfb80fc0a6b2aa3ea3fb
     });
     return [...new Map(courses?.map(item => [item?.value, item])).values()];
 };

@@ -6,11 +6,11 @@ import PositionSkill from '../../models/position_skill.js';
 // import Skill from '../../models/skill.js';
 import Student from '../../models/student.js';
 import User from '../../models/user.js';
+import placementMail from '../../templates/placement.js';
 import mailTransporter from '../../utils/mail.js';
-import { getPlaceBranchOpts, getPlaceCompanyOpts, getPlaceCourseOpts, getPlaceDateRange, getPlaceDriveOpts, getPlaceStatusOpts, getPlaceTypeOpts } from '../../utils/opt/place.js';
+import { getPlaceCompanyOpts, getPlaceDateRange, getPlaceDriveOpts, getPlaceStatusOpts, getPlaceTypeOpts } from '../../utils/opt/place.js';
 import TryCatch, { ErrorHandler } from '../../utils/trycatch.js';
 import { uploadFile } from '../../utils/upload.js';
-import placementMail from '../../templates/placement.js';
 
 
 // ALL PLACEMENTS RECORDS
@@ -312,9 +312,11 @@ export const getPlaceOptions = TryCatch(async (req, resp, next) => {
         fetch(process.env.SUPER_SERVER + '/v1/master/skill/opts'),
         fetch(process.env.SUPER_SERVER + '/v1/master/company/opts'),
     ]);
-    const [statuses, drives, courses, branches, { skills }, { companies }] = await Promise.all([
-        getPlaceStatusOpts(), getPlaceDriveOpts(), getPlaceCourseOpts(),
-        getPlaceBranchOpts(), skillPromise.json(), companyPromise.json(),
+    const promise = await fetch(process.env.SUPER_SERVER + '/v1/master/course/create-opts?college_category=' + req.query.college_category);
+    const { opts: { courses, branches } } = await promise.json();
+
+    const [statuses, drives, { skills }, { companies }] = await Promise.all([
+        getPlaceStatusOpts(), getPlaceDriveOpts(), skillPromise.json(), companyPromise.json(),
     ]);
 
     const place_options = { statuses, drives, courses, branches, skills, companies, };
