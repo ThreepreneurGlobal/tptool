@@ -15,7 +15,12 @@ const getOrigins = async () => {
         });
 
         host_urls?.map(item => {
-            origins.push(item.front_host_url, item.back_host_url);
+            if (item.back_host_url) {
+                origins.push(item.back_host_url);
+            };
+            if (item.front_host_url) {
+                origins.push(item.front_host_url);
+            };
         });
 
         console.log(origins);
